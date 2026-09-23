@@ -966,7 +966,6 @@ function fillAI() {
     return;
   }
   const a = r.data, rec = a.recommendation || {}, recPlan = planDecs(rec.plan);
-  const trace = Array.isArray(a.tool_trace) ? a.tool_trace : [];
   const block = (t, xs) => `<div class="notice"><h3>${t}</h3><ul>${(xs && xs.length ? xs : ['—']).map((x) => `<li>${esc(x)}</li>`).join('')}</ul></div>`;
   el.innerHTML = `${head(`<span class="flex flex-wrap gap-1.5">${aiBadges(a)}</span>`)}
     ${a.summary ? `<p class="m-0 mb-4 max-w-[72ch] text-[17px] leading-[1.45]">${esc(a.summary)}</p>` : ''}
@@ -974,15 +973,7 @@ function fillAI() {
     <div class="notice mt-3 flex flex-col gap-3 sm:flex-row sm:items-center" style="border-top:4px solid var(--pen)">
       <div class="flex-1"><h3>Рекомендация${rec.expected_score != null ? ` → Score ${num(rec.expected_score)}` : ''}</h3><div class="text-[14.5px]">${esc(rec.why || 'Рекомендации нет.')}</div>
         ${recPlan.length ? `<div class="mono mt-2 flex flex-wrap gap-1.5 text-[11.5px]">${recPlan.map((d) => `<span class="border border-rule bg-paper px-1.5 py-0.5">${esc(decShort(d))}</span>`).join('')}</div>` : ''}</div>
-      ${recPlan.length ? '<button id="applyRec" class="btn btn-pen shrink-0">Применить рекомендацию</button>' : ''}</div>
-    <details class="notice mt-3 min-w-0">
-      <summary class="cursor-pointer font-semibold">Вызовы инструментов (${trace.length})</summary>
-      ${trace.length ? `<ol class="mt-3 list-decimal space-y-3 pl-5">${trace.map((call) => `<li>
-        <b class="mono text-[13px]" style="overflow-wrap:anywhere">${esc(call.name ?? call.tool)}</b>
-        <details class="mt-1 text-[12px] text-graph"><summary class="cursor-pointer">аргументы</summary><pre class="mono m-0 whitespace-pre-wrap text-[12px]" style="overflow-wrap:anywhere">${esc(JSON.stringify(call.args ?? {}))}</pre></details>
-      </li>`).join('')}</ol>` : '<p class="mb-0 mt-3 text-[13px] text-graph">офлайн-шаблон: инструменты не вызывались</p>'}
-      <p class="mb-0 mt-3 text-[13px] text-graph">Попыток проверки чисел: ${esc(a.guard?.attempts ?? '—')}</p>
-    </details>`;
+      ${recPlan.length ? '<button id="applyRec" class="btn btn-pen shrink-0">Применить рекомендацию</button>' : ''}</div>`;
   const ab = $('#applyRec'); if (ab) ab.onclick = () => applyRecommendedPlan(recPlan);
   if (ab && SOURCE === 'mock') { ab.disabled = true; ab.title = 'Запустите сервер, чтобы проверить этот план'; }
 }
