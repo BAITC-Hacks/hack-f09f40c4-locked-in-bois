@@ -11,6 +11,7 @@ This contract follows the implemented routes in `api/main.py`: the PLAN.md §4 e
 - **Indicator arrays** (`before`, `after`) have 10 values in the order of `dataset.indicators`: `T1 T2 E1 E2 S1 S2 B1 B2 C1 C2`.
 - All scores are floats rounded to 2 decimals. Every number comes from `engine/`. The LLM never computes numbers.
 - Displayed differences use `engine.score.diff2(a, b)`: subtract the two rounded values. JSON numbers need not retain trailing zeros. `realized_share` retains exact ratio precision.
+  На `/api/receipt` доли округлены до 2 знаков; точная дробь — в `share_formula`.
 - Plan endpoints accept either `{"plan": {"decisions": [...]}}` or `{"decisions": [...]}`; `/api/promise` and `/api/duel` have their own bodies described below.
 - An invalid plan on a scoring endpoint → HTTP 422 `{"detail": "<Russian reason>"}`.
 
