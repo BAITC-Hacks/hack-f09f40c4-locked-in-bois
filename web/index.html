@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Кабинет акима · Астана</title>
-<meta name="description" content="Пять решений, сто единиц, 694 395 законных планов. Симулятор решений акима Астаны с движком AQLS.">
+<meta name="description" content="Симулятор решений акима Астаны: выберите 5 мер из 14 в бюджете 100 единиц — движок AQLS сравнит план со всеми 694 395 допустимыми планами и покажет Score, рейтинг акима и итоги по районам.">
 <meta name="theme-color" content="#0d2a33">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%230d2a33'/%3E%3Cpath d='M4 22 L11 20 L16 12 L21 14 L28 6' fill='none' stroke='%2319b8d8' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -15,7 +15,7 @@
   tailwind.config = {
     theme: {
       extend: {
-        colors: { paper: '#f0f5f5', ink: '#0d2a33', pen: '#19b8d8', peni: '#0a7d95', alarm: '#cf3a2c', steel: '#dfe5e6', rule: '#b9c7ca', graph: '#56696f' },
+        colors: { paper: '#f0f5f5', ink: '#0d2a33', pen: '#19b8d8', peni: '#076a7e', alarm: '#cf3a2c', steel: '#dfe5e6', rule: '#b9c7ca', graph: '#56696f' },
         fontFamily: {
           display: ['"Sofia Sans Extra Condensed"', '"Sofia Sans"', 'Arial Narrow', 'sans-serif'],
           sans: ['"Sofia Sans"', 'system-ui', 'Segoe UI', 'Roboto', 'sans-serif'],
@@ -27,15 +27,20 @@
 </script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <style>
-  :root{--page:#e3eaeb;--paper:#f0f5f5;--grid:#d3e8ec;--grid2:#a9d6df;--ink:#0d2a33;--ink2:#0a2229;--row:#0f2c35;--graph:#56696f;--pen:#19b8d8;--pen-ink:#0a7d95;--red:#cf3a2c;--steel:#dfe5e6;--rule:#b9c7ca;--white:#fbfdfd}
+  :root{--page:#e3eaeb;--paper:#f0f5f5;--grid:#d3e8ec;--grid2:#a9d6df;--ink:#0d2a33;--ink2:#0a2229;--row:#0f2c35;--graph:#56696f;--pen:#19b8d8;--pen-ink:#076a7e;--red:#cf3a2c;--red-ink:#b52f22;--steel:#dfe5e6;--rule:#b9c7ca;--white:#fbfdfd}
   *{box-sizing:border-box}
   html{background:var(--page);scrollbar-color:#9fb0b4 var(--page)}
   body{margin:0;background:var(--page);color:var(--ink);font:15px/1.5 "Sofia Sans",system-ui,sans-serif;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialiased}
-  ::selection{background:var(--pen);color:#fff}
-  :focus-visible{outline:2px solid var(--pen);outline-offset:2px}
+  ::selection{background:var(--pen);color:var(--ink)}
+  :focus-visible{outline:2px solid var(--pen-ink);outline-offset:2px}
+  .inkp :focus-visible,.opp :focus-visible,.board :focus-visible{outline-color:var(--pen)}
   .disp{font-family:"Sofia Sans Extra Condensed","Sofia Sans",sans-serif}
   .mono{font-family:"JetBrains Mono",ui-monospace,monospace}
   button{font:inherit;color:inherit}
+  input,select,textarea{caret-color:var(--pen-ink);accent-color:var(--pen-ink)}
+  h1,h2,h3,.h2,.hl,.mast,#vFinding{text-wrap:balance}
+  p,li,blockquote,.why{text-wrap:pretty}
+  svg text{font-family:"JetBrains Mono",ui-monospace,Consolas,monospace}
   /* materials */
   .paper{background-color:var(--paper);
     background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px),linear-gradient(var(--grid2) 1px,transparent 1px),linear-gradient(90deg,var(--grid2) 1px,transparent 1px);
@@ -54,7 +59,7 @@
   .big{font:900 124px/.82 "Sofia Sans Extra Condensed";letter-spacing:-.01em}
   .mid{font:800 44px/.9 "Sofia Sans Extra Condensed"}
   .sm{font:700 22px/1.05 "Sofia Sans Extra Condensed"}
-  .peni{color:var(--pen-ink)} .red{color:var(--red)} .mut{color:var(--graph)}
+  .peni{color:var(--pen-ink)} .red{color:var(--red-ink)} .mut{color:var(--graph)}
   /* top bar */
   .topbar{position:sticky;top:env(safe-area-inset-top,0);z-index:30;background:var(--steel);border-bottom:1px solid var(--rule);box-shadow:0 1px 0 #fff inset}
   .mark{width:30px;height:30px;background:var(--ink);display:grid;place-items:center;flex:none}
@@ -69,9 +74,9 @@
   .btn-pen{background:var(--pen);color:#04232b} .btn-pen:hover:not([disabled]){background:#35c6e2}
   .btn-red{background:var(--red);color:#fff} .btn-red:hover:not([disabled]){background:#b73125}
   .btn-line{background:transparent;color:var(--ink);box-shadow:inset 0 0 0 1.5px var(--ink)} .btn-line:hover{background:rgba(13,42,51,.06)}
-  .btn[disabled]{background:#c9d3d5;color:#7f8e92;cursor:not-allowed;box-shadow:none}
+  .btn[disabled]{background:#c9d3d5;color:#5f6f73;cursor:not-allowed;box-shadow:none}
   /* cabinet */
-  .dirrow{display:grid;grid-template-columns:132px 1fr;gap:12px;margin-bottom:12px}
+  .dirrow{display:grid;grid-template-columns:132px 1fr;gap:12px;margin-bottom:20px}
   .dirname{border-top:3px solid var(--ink);padding-top:8px}
   .dirname b{display:block;font:800 23px/1 "Sofia Sans Extra Condensed"}
   .dirname small{display:block;margin-top:6px;font-size:12px;line-height:1.35;color:var(--graph)}
@@ -80,43 +85,52 @@
   .ch{position:relative;text-align:left;background:var(--white);border:1px solid var(--rule);padding:11px 12px 10px;display:flex;flex-direction:column;gap:5px;cursor:pointer;transition:border-color .12s,transform .12s,box-shadow .12s}
   .ch:hover:not([disabled]){border-color:var(--ink);transform:translateY(-1px);box-shadow:0 3px 10px rgba(13,42,51,.08)}
   .ch[data-selected="true"]{border:2px solid var(--pen);padding:10px 11px 9px;background:#effafd}
-  .ch[disabled]{opacity:.45;cursor:not-allowed}
+  .ch[disabled]{cursor:not-allowed;background:transparent}
+  .ch[disabled]>*:not(.blk){opacity:.45}
+  .blk{color:var(--ink);font-weight:600;border-top:1px dashed var(--rule);padding-top:5px;margin-top:1px}
+  .ch[data-idle="true"]{background:transparent}
+  .ch[data-idle="true"] .nm,.ch[data-idle="true"] .cost,.ch[data-idle="true"] .eff b{color:var(--graph)}
+  .ch[data-idle="true"] .why b{color:inherit}
+  .ch[data-idle="true"] .lagbar i.r{background:#8fd0de}
   .code{font:600 12px "JetBrains Mono";border:1.5px solid var(--ink);padding:1px 5px;line-height:1.3}
   .ch[data-selected="true"] .code{background:var(--ink);color:#fff}
-  .typ{font:600 10.5px "Sofia Sans";letter-spacing:.1em;text-transform:uppercase;color:var(--graph)}
+  .typ{font:600 11px "Sofia Sans",system-ui,sans-serif;letter-spacing:.1em;text-transform:uppercase;color:var(--graph)}
   .cost{font:800 28px/1 "Sofia Sans Extra Condensed"} .cost small{font:600 13px "Sofia Sans";color:var(--graph)}
   .nm{font-weight:700;line-height:1.2}
-  .eff{font:500 11.5px/1.45 "JetBrains Mono";color:var(--graph)} .eff .neg{color:var(--red)}
+  .eff{font:500 13px/1.45 "Sofia Sans",system-ui,sans-serif;color:var(--graph)} .eff span{white-space:nowrap} .eff .neg{color:var(--red)}
   .lagbar{display:grid;grid-template-columns:repeat(8,1fr);gap:2px}
-  .lagbar i{height:7px;background:var(--grid2)} .lagbar i.r{background:var(--pen)}
+  .lagbar i{height:7px;background:#cbd6d8} .lagbar i.r{background:var(--pen)}
   .why{font-size:12px;color:var(--graph)}
-  .pin{position:absolute;right:-1px;top:-11px;background:var(--pen);color:#04232b;font:700 11px/1 "JetBrains Mono";padding:5px 7px}
+  .pin{position:absolute;right:-2px;top:-9px;background:var(--pen);color:#04232b;font:700 11px/1 "JetBrains Mono";padding:4px 7px}
   .slot{display:grid;grid-template-columns:22px 1fr auto;gap:8px;align-items:center;border-top:1px solid var(--rule);padding:7px 0;font-size:13.5px}
   .slot .n{font:600 12px "JetBrains Mono";color:var(--graph)}
-  .slot.empty{color:#8a989c}
-  .x{border:0;background:none;cursor:pointer;color:var(--graph);font-size:18px;line-height:1;padding:2px 6px}
+  .slot.empty{color:var(--graph)}
+  .x{border:0;background:none;cursor:pointer;color:var(--graph);font-size:18px;line-height:1;padding:2px 6px;min-width:28px;min-height:28px}
   .x:hover{color:var(--red)}
-  .tape{font:500 12.5px/1.45 "JetBrains Mono";background:#fffdf7;border:1px dashed var(--rule);padding:9px 10px;min-height:44px}
+  .tape{font:500 13.5px/1.4 "Sofia Sans";background:var(--white);border:1px dashed var(--rule);padding:10px 11px;min-height:44px}
   .dirc{display:grid;grid-template-columns:repeat(5,1fr);gap:4px}
   .dirc div{border:1px solid var(--rule);background:var(--white);text-align:center;padding:4px 2px}
   .dirc b{display:block;font:600 13px "JetBrains Mono"} .dirc span{display:block;font-size:10px;color:var(--graph);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .dirc .on{border-color:var(--pen)} .dirc .on b{color:var(--pen-ink)} .dirc .bad{border-color:var(--red)} .dirc .bad b{color:var(--red)}
   /* verdict */
-  .dialbox{padding:14px 16px 16px}
-  .board{background:var(--ink);padding:10px;border:1px solid #061a20}
-  .brow{display:grid;align-items:center;gap:10px;background:var(--row);padding:9px 10px;color:#e9f6f8;margin-top:4px}
-  .bhead{display:grid;gap:10px;padding:2px 10px 6px;font:600 11px "Sofia Sans";letter-spacing:.12em;text-transform:uppercase;color:#8fb4bd}
+  .dialbox{padding:14px 16px 16px} @media(min-width:1024px){.dialbox > .lbl:first-child{min-height:2.6em}}
+  .board{background:var(--ink);padding:4px 10px 10px;border:1px solid #061a20}
+  .brow{display:grid;align-items:center;gap:10px;background:var(--row);padding:10px;color:#e9f6f8;border-top:1px solid #1f4550;transition:background .12s}
+  .brow:hover{background:#123440}
+  .bhead + .brow{border-top-color:#3d6772}
+  .bhead{display:grid;align-items:end;gap:10px;padding:8px 10px;font:600 11px "Sofia Sans";letter-spacing:.12em;text-transform:uppercase;color:#8fb4bd}
   .lamp{width:12px;height:12px;border-radius:50%;background:#26414a;box-shadow:inset 0 1px 2px #000}
-  .lamp.on{background:var(--pen);box-shadow:0 0 0 3px rgba(25,184,216,.22)} .lamp.r{background:var(--red);box-shadow:0 0 0 3px rgba(207,58,44,.22)}
+  .brow > .lamp{align-self:start;margin-top:5px}
+  .lamp.on{background:var(--pen);box-shadow:inset 0 -2px 0 rgba(4,35,43,.35)} .lamp.r{background:var(--red);box-shadow:inset 0 -2px 0 rgba(60,8,4,.35)}
   .cells{display:grid;grid-template-columns:repeat(10,1fr);gap:3px}
-  .cell{background:#163843;text-align:center;padding:3px 0 2px;font:500 12px/1.2 "JetBrains Mono"}
-  .cell small{display:block;font-size:9.5px;color:#7fc9d9}
-  .cell.crit{background:var(--red);color:#fff} .cell.crit small{color:#ffd7d2}
+  .cell{background:#163843;text-align:center;padding:4px 0 3px;font:500 13px/1.2 "JetBrains Mono"}
+  .cell small{display:block;margin-top:1px;font-size:10px;color:#7fc9d9} .cell small.neg{color:#ff9d92}
+  .cell.crit{background:var(--red);color:#fff} .cell.crit small{color:#fff}
   .cell.fix{box-shadow:inset 0 0 0 1.5px var(--pen)}
   .bval{font:600 16px "JetBrains Mono"} .bval.pen{color:#6fd6ea} .bval.red{color:#ff8e82}
   .notice{background:var(--white);border:1px solid var(--rule);padding:14px 16px;box-shadow:0 2px 6px rgba(13,42,51,.07)}
   .notice h3{margin:0 0 6px;font:800 21px/1.05 "Sofia Sans Extra Condensed";text-transform:uppercase;letter-spacing:.02em}
-  .notice ul{margin:0;padding-left:16px;font-size:14px} .notice li{margin:3px 0}
+  .notice ul{margin:0;padding-left:14px;font-size:14px;line-height:1.45;list-style:square} .notice li{margin:8px 0 0;padding-left:3px} .notice li:first-child{margin-top:0} .notice li::marker{color:var(--pen);font-size:.9em}
   .council-card{background:var(--white);border:1px solid var(--rule);padding:12px 14px;display:flex;flex-direction:column}
   .council-card .head{display:flex;justify-content:space-between;align-items:baseline;border-bottom:2px solid var(--ink);padding-bottom:6px;margin-bottom:8px}
   .mood{font:600 11.5px "JetBrains Mono";letter-spacing:.06em}
@@ -124,7 +138,7 @@
   .log th{font:600 11.5px "Sofia Sans";text-transform:uppercase;letter-spacing:.08em;color:var(--graph);padding:8px 8px;border-bottom:2px solid var(--ink);text-align:right}
   .log td{padding:9px 8px;border-bottom:1px solid var(--rule);text-align:right}
   .log th:nth-child(2),.log td:nth-child(2){text-align:left}
-  .log tr.me td{background:#effafd} .log tr.pin-opt td{background:#fbe9e7} .log tr.pin-bal td{background:#f3f8e9}
+  .log tr.me td{background:#d4eef5;border-bottom-color:var(--pen)} .log tr.pin-opt td,.log tr.pin-bal td{background:#e6eced} .log tr.pin-opt td:first-child{color:var(--red)} .log tr.pin-bal td:first-child{color:var(--pen-ink)}
   /* crisis */
   .opp{background:var(--ink);color:#e9f6f8;padding:22px}
   .opp h3{margin:0;font:900 44px/.95 "Sofia Sans Extra Condensed"}
@@ -132,18 +146,23 @@
   .opt{width:100%;display:grid;grid-template-columns:18px 1fr auto;gap:10px;align-items:center;text-align:left;border:1px solid var(--rule);background:var(--white);padding:8px 10px;margin-top:5px;cursor:pointer}
   .opt:hover:not([disabled]){border-color:var(--ink)}
   .opt .rd{width:16px;height:16px;border:1.5px solid var(--ink);border-radius:50%;display:grid;place-items:center}
-  .opt.out{border-color:var(--red);background:#fdf1ef} .opt.out .rd{background:var(--red);border-color:var(--red)} .opt.out .t{text-decoration:line-through;color:var(--graph)}
-  .opt.in{border-color:var(--pen);background:#effafd} .opt.in .rd{background:var(--pen);border-color:var(--pen)}
-  .opt[disabled]{opacity:.4;cursor:not-allowed}
-  select{font:500 14px "Sofia Sans";border:1.5px solid var(--ink);background:#fff;padding:6px 8px;width:100%;margin-top:6px}
+  .opt.out,.opt.out:hover:not([disabled]){border-color:var(--red);box-shadow:inset 0 0 0 1px var(--red);background:#fdf1ef} .opt.out .rd{background:var(--red);border-color:var(--red)} .opt.out .rd:after{content:"";width:8px;height:2px;background:#fff} .opt.out .t{text-decoration:line-through;text-decoration-color:rgba(207,58,44,.6);color:var(--graph)}
+  .opt.in,.opt.in:hover:not([disabled]){border-color:var(--pen);box-shadow:inset 0 0 0 1px var(--pen);background:#effafd} .opt.in .rd{background:var(--pen);border-color:var(--pen)} .opt.in .rd:after{content:"";width:6px;height:6px;border-radius:50%;background:#fff}
+  .opt[disabled]{cursor:not-allowed;background:transparent;border-style:dashed;color:var(--graph)} .opt[disabled] .rd{border-color:var(--rule)} .opt[disabled] b{color:var(--graph)}
+  #modal select{font:500 14px/1.3 "Sofia Sans";color:var(--ink);border:2px solid var(--pen);border-top:0;background:#effafd;padding:9px 10px 10px;width:100%;margin:0;border-radius:0;cursor:pointer}
+  .stp{display:inline-grid;place-items:center;width:18px;height:18px;border:1px solid var(--rule);font:600 11px/1 "JetBrains Mono";letter-spacing:0;color:var(--graph)} .stp.on{background:var(--ink);border-color:var(--ink);color:#fff} .stp.done{background:var(--pen);border-color:var(--pen);color:#04232b}
+  [data-scroll],[data-addlist]{scrollbar-width:thin;scrollbar-color:#9fb0b4 transparent} [data-scroll]:focus{outline:none}
+  @media(min-width:768px){[data-addlist]{padding-bottom:28px;-webkit-mask-image:linear-gradient(#000 calc(100% - 28px),transparent);mask-image:linear-gradient(#000 calc(100% - 28px),transparent)}}
+  @media(max-width:640px){.opp{padding:18px}.opp h3{font-size:34px}}
   /* paper page */
   .tele{max-width:900px;margin:0 auto;background:#fbfbf6;border:1px solid var(--rule);padding:30px 52px 26px;position:relative;box-shadow:0 18px 40px rgba(13,42,51,.12)}
   .tele:before,.tele:after{content:"";position:absolute;top:0;bottom:0;width:26px;background:radial-gradient(circle at 13px 12px,var(--page) 5px,transparent 5.5px) 0 0/26px 24px repeat-y}
-  .tele:before{left:0}.tele:after{right:0}
-  .tele .mast{font:900 64px/.9 "Sofia Sans Extra Condensed";letter-spacing:.01em;text-align:center;margin:6px 0 4px}
-  .tele .hl{font:900 44px/.98 "Sofia Sans Extra Condensed";margin:18px 0 10px}
-  .tele .item{margin-top:14px} .tele .item b{font:600 14px "JetBrains Mono";text-transform:uppercase;display:block}
-  .tele .body{font:14.5px/1.6 "JetBrains Mono"}
+  .tele:before{left:0;border-right:1px dashed var(--rule)}.tele:after{right:0;border-left:1px dashed var(--rule)}
+  .tele .mast{font:900 92px/.84 "Sofia Sans Extra Condensed";letter-spacing:-.005em;text-align:center;margin:16px 0 12px;white-space:nowrap}
+  .tele .hl{font:900 58px/.94 "Sofia Sans Extra Condensed";letter-spacing:-.005em;margin:26px 0 12px;text-wrap:balance}
+  .tele .item{margin-top:18px;break-inside:avoid} .tele .item b{display:block;margin-bottom:4px;font:800 22px/1.05 "Sofia Sans Extra Condensed","Sofia Sans",sans-serif;letter-spacing:.005em;text-wrap:balance}
+  .tele .body{font:15.5px/1.6 "Sofia Sans",system-ui,sans-serif;text-wrap:pretty;hyphens:auto}
+  .tele .lede{font-size:18px;line-height:1.5;max-width:64ch}
   /* misc */
   .skel{background:linear-gradient(90deg,#e8eff0 0%,#f6fafa 50%,#e8eff0 100%);background-size:200% 100%;animation:sk 1.3s infinite linear;border:1px solid var(--rule)}
   @keyframes sk{from{background-position:200% 0}to{background-position:-200% 0}}
@@ -154,10 +173,10 @@
   #modal{position:fixed;inset:0;z-index:50;background:rgba(6,26,32,.62);display:none;align-items:flex-end;justify-content:center;padding:0}
   #modal.open{display:flex}
   @media(min-width:640px){#modal{align-items:center;padding:24px}}
-  #toast{position:fixed;left:50%;bottom:96px;transform:translateX(-50%);z-index:60;pointer-events:none}
+  #toast{position:fixed;left:50%;bottom:96px;transform:translateX(-50%);z-index:60;pointer-events:none;width:max-content;max-width:calc(100vw - 32px);text-align:center}
   @media(min-width:1024px){#toast{bottom:28px}}
   @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
-  @media(max-width:1023px){.dirrow{grid-template-columns:1fr}.big{font-size:96px}}
+  @media(max-width:1023px){.dirrow{grid-template-columns:1fr}.big{font-size:96px}.dirname{display:grid;grid-template-columns:1fr auto;column-gap:12px;align-items:start}.dirname small{grid-column:1}.dirname .cnt{grid-column:2;grid-row:1;margin-top:0}}
   @media(max-width:640px){.strip{padding:14px 28px}.strip:before,.strip:after{width:14px;background-size:14px 24px}.tele{padding:22px 30px}.tele .mast{font-size:44px}.tele .hl{font-size:32px}.big{font-size:80px}.h2{font-size:28px}}
 </style>
 </head>
@@ -167,13 +186,13 @@
     <div class="mark" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 32 32"><path d="M3 22 L10 20 L15 11 L21 14 L29 5" fill="none" stroke="#19b8d8" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
     <div class="mr-2 leading-tight">
       <div class="disp whitespace-nowrap text-[20px] font-extrabold leading-none sm:text-[22px]">Кабинет акима</div>
-      <div class="mono hidden text-[11px] text-graph sm:block">Астана · 694 395 планов</div>
+      <div class="mono hidden text-[11px] text-graph sm:block">Астана · 694&nbsp;395 планов</div>
     </div>
     <nav id="tabs" class="flex flex-1 gap-1 overflow-x-auto" role="tablist" aria-label="Разделы"></nav>
     <span id="modeBadge" class="mono hidden shrink-0 border border-rule bg-white/60 px-2 py-1 text-[11px] text-graph md:inline"></span>
   </div>
 </header>
-<div id="banner" class="hidden border-b border-rule bg-[#fff4d6] px-4 py-2 text-center text-[13px]" role="status"></div>
+<div id="banner" class="hidden border-b border-rule bg-[#e3f4f8] px-4 py-2 text-center text-[13px]" role="status"></div>
 
 <main class="mx-auto max-w-[1280px] px-4 pb-32 pt-6 sm:px-6 lg:pb-16">
   <section id="tab-cabinet" data-tab="cabinet" aria-label="Кабинет"></section>
@@ -220,7 +239,7 @@ const spinner = (t = 'Загрузка…') => `<span class="inline-flex items-c
 const scale = (v, a, b, c, d) => c + ((v - a) / (b - a)) * (d - c);
 function toast(msg) {
   const t = $('#toast');
-  t.innerHTML = `<div class="fade mono border border-ink bg-ink px-4 py-2.5 text-[13px] text-white shadow-lg">${esc(msg)}</div>`;
+  t.innerHTML = `<div class="fade border border-ink bg-ink px-4 py-2.5 text-[14px] font-semibold text-white shadow-lg">${esc(msg)}</div>`;
   clearTimeout(toast._t); toast._t = setTimeout(() => (t.innerHTML = ''), 2600);
 }
 
@@ -341,7 +360,7 @@ function localValidate(plan, { partial = false } = {}) {
 }
 function blockReason(m, district, decs) {
   if (decs.some((d) => d.measure === m.id)) return 'Уже в плане';
-  if (decs.length >= S.ds.decisions_required) return 'Все 5 слотов заняты';
+  if (decs.length >= S.ds.decisions_required) return 'План заполнен — уберите одну из мер';
   const n = decs.filter((d) => S.mi[d.measure]?.direction === m.direction).length;
   if (n >= S.ds.max_per_direction) return `В направлении уже ${S.ds.max_per_direction} меры`;
   for (const inc of S.ds.incompatibilities || []) {
@@ -361,7 +380,7 @@ function renderTabs() {
   $('#tabs').innerHTML = TABS.map((t) => `<button role="tab" class="tab" data-go="${t.id}" aria-selected="${S.tab === t.id}">${t.name}</button>`).join('');
 }
 function go(tab) {
-  S.tab = tab;
+  S.tab = tab; clearTimeout(toast._t); $('#toast').innerHTML = '';
   $$('main > section').forEach((s) => (s.hidden = s.dataset.tab !== tab));
   $('#mobileBar').hidden = tab !== 'cabinet';
   renderTabs();
@@ -380,10 +399,10 @@ function renderCabinetShell() {
   $('#tab-cabinet').innerHTML = `
     <div class="mb-6 flex flex-wrap items-end justify-between gap-4">
       <div class="max-w-3xl">
-        <h1 class="disp m-0 text-[44px] font-black leading-[.95] sm:text-[56px]">Пять решений. Сто единиц. Пять районов.</h1>
-        <p class="mt-3 text-[16px] text-graph">Выберите ровно 5 мер из 14: не больше 2 в одном направлении, бюджет — 100 единиц. Районную меру нужно привязать к району. Эффект набирается после лага, и к IV кварталу 2028 года успевает реализоваться только его часть.</p>
+        <h1 class="disp m-0 text-[44px] font-black leading-[.95] sm:text-[56px]">Пять решений. Сто&nbsp;единиц. Пять&nbsp;районов.</h1>
+        <p class="mt-3 max-w-[68ch] text-[16px] leading-[1.55] text-graph">Выберите ровно 5&nbsp;мер из&nbsp;14: не больше 2&nbsp;в&nbsp;одном направлении, бюджет&nbsp;— 100&nbsp;единиц. Районную меру запускают в&nbsp;одном районе, его нужно выбрать. Каждая мера начинает работать после лага&nbsp;— задержки запуска, поэтому к&nbsp;IV&nbsp;кварталу 2028&nbsp;года успевает проявиться только часть эффекта.</p>
       </div>
-      <div class="flex gap-2">
+      <div class="flex w-full gap-2 sm:w-auto lg:w-[320px] [&>*]:flex-1">
         <button id="btnExample" class="btn btn-line">Пример из ТЗ</button>
         <button id="btnClear" class="btn btn-line" style="box-shadow:inset 0 0 0 1.5px var(--rule);color:var(--graph)">Очистить</button>
       </div>
@@ -404,20 +423,20 @@ function renderMeasures() {
     const cnt = decs.filter((x) => S.mi[x.measure]?.direction === d.id).length;
     return `<div class="dirrow">
       <div class="dirname"><b>${esc(d.name)}</b><small>${(d.indicators || []).map((c) => `${c} ${indShort(c)}`).join('<br>')}</small><span class="cnt ${cnt >= S.ds.max_per_direction ? 'full' : ''}">${cnt}/${S.ds.max_per_direction}</span></div>
-      <div class="grid gap-2.5 sm:grid-cols-2 xl:grid-cols-3">
+      <div class="grid gap-x-2.5 gap-y-3.5 sm:grid-cols-2 xl:grid-cols-3">
       ${list.map((m) => {
         const sel = slotOf[m.id];
-        const reason = sel ? null : blockReason(m, null, decs);
+        const reason = sel || decs.length >= S.ds.decisions_required ? null : blockReason(m, null, decs);
         const share = Math.round(realized(m) * 100);
-        const eff = Object.entries(m.effects || {}).map(([k, v]) => `<span class="${v < 0 ? 'neg' : ''}">${v > 0 ? '+' : '−'}${Math.abs(v)} ${esc(indShort(k))}</span>`).join(' · ');
-        const incs = (S.ds.incompatibilities || []).filter((i) => i.pair.includes(m.id)).map((i) => (i.pair[0] === m.id ? i.pair[1] : i.pair[0]) + (i.scope === 'same_district' ? ' в том же районе' : ''));
-        return `<button class="ch" data-mid="${esc(m.id)}" data-selected="${!!sel}" ${reason ? `disabled title="${esc(reason)}"` : ''} aria-pressed="${!!sel}">
+        const eff = Object.entries(m.effects || {}).map(([k, v]) => `<span class="whitespace-nowrap ${v < 0 ? 'neg' : ''}"><b>${v > 0 ? '+' : '−'}${Math.abs(v)}</b> ${esc(indShort(k))}</span>`).join('&nbsp;· ');
+        const incs = (S.ds.incompatibilities || []).filter((i) => i.pair.includes(m.id)).map((i) => (i.scope === 'same_district' ? 'в одном районе с ' : 'вместе с ') + (i.pair[0] === m.id ? i.pair[1] : i.pair[0]));
+        return `<button class="ch" data-mid="${esc(m.id)}" data-selected="${!!sel}" data-idle="${!sel && decs.length >= S.ds.decisions_required}" ${reason ? `disabled title="${esc(reason)}"` : ''} aria-pressed="${!!sel}">
           <div class="flex items-center justify-between gap-2"><span class="flex items-center gap-2"><span class="code">${esc(m.id)}</span><span class="typ">${m.type === 'district' ? 'район' : 'город'}</span></span><span class="cost">${esc(m.cost)}<small> ед.</small></span></div>
           <div class="nm">${esc(m.name)}</div>
           <div class="eff">${eff}</div>
           <div class="lagbar" title="Лаг ${m.lag} кв.: к IV кв. 2028 реализуется ${share}% эффекта" aria-hidden="true">${Array.from({ length: 8 }, (_, i) => `<i class="${i >= m.lag ? 'r' : ''}"></i>`).join('')}</div>
-          <div class="why">лаг ${m.lag} кв. · к концу срока <b class="${share <= 50 ? 'red' : 'peni'}">${share}%</b>${incs.length ? ` · несовместима: ${esc(incs.join(', '))}` : ''}</div>
-          ${reason ? `<div class="why" style="color:var(--ink)">${esc(reason)}</div>` : ''}
+          <div class="why">эффект через ${m.lag} кв. · успеет <b class="${share > 50 ? 'peni' : ''}">${share}%</b></div>${incs.length ? `<div class="why">нельзя ${esc(incs.join('; '))}</div>` : ''}
+          ${reason ? `<div class="why blk">${esc(reason)}</div>` : ''}
           ${sel ? `<span class="pin">Слот ${sel.slot + 1}${sel.district ? ' · ' + esc(sel.district) : ''}</span>` : ''}
         </button>`;
       }).join('')}
@@ -427,11 +446,12 @@ function renderMeasures() {
 }
 
 function budgetSvg(used, budget, over) {
-  const h = 200, fill = Math.min(1, used / budget) * h;
-  return `<svg viewBox="0 0 54 ${h + 20}" width="54" height="${h + 20}" aria-hidden="true">
-    <rect x="18" y="10" width="22" height="${h}" fill="#fbfdfd" stroke="#0d2a33"/>
-    <rect x="18" y="${10 + h - fill}" width="22" height="${fill}" fill="${over ? '#cf3a2c' : '#19b8d8'}"/>
-    ${[0, 25, 50, 75, 100].map((v) => `<line x1="10" x2="18" y1="${10 + h - v / 100 * h}" y2="${10 + h - v / 100 * h}" stroke="#0d2a33"/><text x="0" y="${14 + h - v / 100 * h}" font-size="8.5" font-family="JetBrains Mono" fill="#56696f">${v}</text>`).join('')}</svg>`;
+  const h = 150, fill = Math.min(1, used / budget) * h;
+  return `<svg viewBox="0 0 60 ${h + 20}" width="60" height="${h + 20}" aria-hidden="true">
+    <rect x="24.5" y="10.5" width="22" height="${h}" fill="#fbfdfd"/>
+    <rect x="24.5" y="${10.5 + h - fill}" width="22" height="${fill}" fill="${over ? '#cf3a2c' : '#19b8d8'}"/>
+    <rect x="24.5" y="10.5" width="22" height="${h}" fill="none" stroke="#0d2a33"/>
+    ${[0, .25, .5, .75, 1].map((f) => { const y = 10.5 + h - f * h; return `<line x1="17" x2="24.5" y1="${y}" y2="${y}" stroke="#0d2a33"/><text x="14" y="${y + 3}" text-anchor="end" font-size="8.5" font-family="JetBrains Mono" fill="#56696f">${Math.round(f * budget)}</text>`; }).join('')}</svg>`;
 }
 
 function renderRail() {
@@ -441,14 +461,14 @@ function renderRail() {
   const v = S.val;
   const canSubmit = v && v.valid && !S.validating && full && !over;
   let msg, tone;
-  if (over) { msg = `Перерасход: ${used} из ${S.ds.budget}. Уберите одну из дорогих мер.`; tone = 'err'; }
+  if (over) { msg = `Перерасход: ${used} из ${S.ds.budget} ед. Замените одну из дорогих мер.`; tone = 'err'; }
   else if (local.reason) { msg = local.reason; tone = 'err'; }
   else if (!full) { const k = S.ds.decisions_required - decs.length; msg = `Выберите ещё ${k} ${plural(k, 'решение', 'решения', 'решений')}.`; tone = 'wait'; }
   else if (S.validating || !v) { msg = null; tone = 'load'; }
-  else if (v.valid) { msg = `План допустим. Остаток ${v.remaining} ед. не сгорает и не даёт бонуса.`; tone = 'ok'; }
+  else if (v.valid) { msg = 'План допустим — можно принимать решения.'; tone = 'ok'; }
   else { msg = v.reason || 'План не проходит проверку'; tone = 'err'; }
-  const tcol = { ok: 'var(--pen-ink)', err: 'var(--red)', wait: 'var(--ink)', load: 'var(--graph)' }[tone];
-  const mark = { ok: '✓', err: '!', wait: '·', load: '' }[tone];
+  const tcol = { ok: 'var(--pen-ink)', err: 'var(--red-ink)', wait: 'var(--ink)', load: 'var(--graph)' }[tone];
+  const mark = { ok: '✓', err: '!', wait: '→', load: '' }[tone];
   const msgHtml = tone === 'load' ? spinner('Проверяем на сервере…') : `<span style="color:${tcol}">${mark} ${esc(msg)}</span>`;
 
   $('#rail').innerHTML = `
@@ -457,13 +477,13 @@ function renderRail() {
       <div class="mt-2">${S.slots.map((s, i) => {
         if (!s) return `<div class="slot empty"><span class="n">${i + 1}</span><span>свободный слот</span><span></span></div>`;
         const m = S.mi[s.measure];
-        return `<div class="slot fade"><span class="n">${i + 1}</span><span class="min-w-0"><b class="mono text-[12px]">${esc(s.measure)}</b> ${esc(m?.name || '')}<span class="block text-[12px] text-graph">${m ? m.cost + ' ед. · ' + esc(dirName(m.direction)) : ''}${s.district ? ' · <b class="peni">' + esc(s.district) + '</b>' : ' · весь город'}</span></span><button class="x" data-remove="${i}" aria-label="Убрать ${esc(s.measure)}">×</button></div>`;
+        return `<div class="slot"><span class="n">${i + 1}</span><span class="min-w-0"><b class="mono text-[12px]">${esc(s.measure)}</b> ${esc(m?.name || '')}<span class="block text-[12px] text-graph">${m ? m.cost + ' ед. · ' + esc(dirName(m.direction)) : ''}${s.district ? ' · <b class="peni">' + esc(s.district) + '</b>' : ' · весь город'}</span></span><button class="x" data-remove="${i}" aria-label="Убрать ${esc(s.measure)}">×</button></div>`;
       }).join('')}</div>
       <div class="mt-3 flex items-end gap-3 border-t border-rule pt-3">
         ${budgetSvg(used, S.ds.budget, over)}
         <div class="pb-2"><div class="lbl">Бюджет</div><div class="big" style="font-size:84px;color:${over ? 'var(--red)' : 'var(--ink)'}">${used}</div>
           <div class="sm">из ${S.ds.budget}${over ? ` · <span class="red">+${used - S.ds.budget}</span>` : ` · остаток ${S.ds.budget - used}`}</div>
-          <div class="mt-1 text-[12px] text-graph">остаток не сгорает и не даёт бонуса</div></div>
+          <div class="mt-1 text-[12px] text-graph">неизрасходованный остаток не даёт ни штрафа, ни бонуса</div></div>
       </div>
       <div class="dirc mt-3">${S.ds.directions.map((d) => { const c = local.direction_counts[d.id] || 0; return `<div class="${c > S.ds.max_per_direction ? 'bad' : c ? 'on' : ''}" title="${esc(d.name)}"><b>${c}/${S.ds.max_per_direction}</b><span>${esc(d.name)}</span></div>`; }).join('')}</div>
       <div class="tape mt-3" aria-live="polite">${msgHtml}</div>
@@ -471,10 +491,11 @@ function renderRail() {
     </div>`;
   $$('#rail [data-remove]').forEach((b) => (b.onclick = () => { S.slots[+b.dataset.remove] = null; onPlanChange(); }));
   $('#btnSubmit').onclick = submitPlan;
+  const bc = $('#btnClear'); if (bc) bc.disabled = !decs.length;
   $('#mobileBar').innerHTML = `
     <div class="flex items-center gap-3">
       <div class="min-w-0 flex-1">
-        <div class="mono text-[13px]"><b style="color:${over ? 'var(--red)' : 'var(--ink)'}">${used}/${S.ds.budget}</b> · ${decs.length}/${S.ds.decisions_required} решений</div>
+        <div class="mono text-[13px]"><b style="color:${over ? 'var(--red)' : 'var(--ink)'}">${used}/${S.ds.budget}</b> ед. · ${decs.length}/${S.ds.decisions_required} решений</div>
         <div class="mt-1 h-1.5 bg-[#c9d3d5]"><div class="h-full" style="width:${Math.min(100, used)}%;background:${over ? 'var(--red)' : 'var(--pen)'}"></div></div>
         <div class="mt-1 truncate text-[12px]" style="color:${tcol}">${esc(msg || 'Проверяем…')}</div>
       </div>
@@ -503,13 +524,13 @@ function openDistrictPicker(m, onPick) {
         <button data-close class="x" style="color:#8fc9d6;font-size:24px" aria-label="Закрыть">×</button>
       </div>
       <div class="p-4">
-        <p class="m-0 mb-3 text-[14px] text-graph">Где запускаем? Для каждого района — затронутые показатели сейчас и к IV кварталу 2028. Красное — ниже ${thr}, каждая такая ячейка отнимает балл Score.</p>
+        <p class="m-0 mb-3 text-[14px] text-graph">В каком районе запустить меру? Для каждого района — затронутые показатели сейчас и к&nbsp;IV&nbsp;кварталу 2028&nbsp;года. Красным — значения ниже ${thr}: каждое такое значение отнимает балл Score.</p>
         ${S.ds.districts.map((k) => {
           const block = blockReason(m, k.name, decs);
           const cells = Object.entries(m.effects).map(([c, e]) => { const now = k.values[c], after = Math.max(0, Math.min(100, now + e * share));
             return `<span class="whitespace-nowrap">${esc(indShort(c))} <span class="${now < thr ? 'red font-semibold' : ''}">${num(now, 0)}</span>→<b class="${after < thr ? 'red' : 'peni'}">${num(after, 1)}</b></span>`; }).join(' &nbsp; ');
-          return `<button data-pick="${esc(k.name)}" ${block ? 'disabled' : ''} class="opt" style="grid-template-columns:1fr auto">
-            <span><b class="disp text-[22px] leading-none">${esc(k.name)}</b> <span class="mono text-[12px] text-graph">${Math.round(k.pop * 100)}% жителей · D ${num(districtD(k))}</span>
+          return `<button data-pick="${esc(k.name)}" ${block ? 'disabled' : ''} class="opt${block ? ' blk-row' : ''}" style="grid-template-columns:1fr auto">
+            <span><b class="disp text-[22px] leading-none">${esc(k.name)}</b> <span class="mono text-[12px] text-graph">${Math.round(k.pop * 100)}% жителей · индекс ${num(districtD(k))}</span>
               <span class="block text-[13px] text-graph">${esc(k.profile || '')}</span>
               <span class="mono mt-1 block text-[12px]">${block ? `<span class="red">${esc(block)}</span>` : cells}</span></span>
             <span class="mono text-[20px] text-graph" aria-hidden="true">→</span></button>`;
@@ -529,7 +550,15 @@ function openModal(html, { dismissable = true } = {}) {
   const f = md.querySelector('button:not([disabled]),select'); if (f) f.focus({ preventScroll: true });
 }
 function closeModal() { const md = $('#modal'); md.classList.remove('open'); md.innerHTML = ''; document.body.style.overflow = ''; if (lastFocus) lastFocus.focus?.({ preventScroll: true }); }
-document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && $('#modal').classList.contains('open') && !$('#modal [data-lock]')) closeModal(); });
+document.addEventListener('keydown', (e) => {
+  const md = $('#modal'); if (!md.classList.contains('open')) return;
+  if (e.key === 'Escape' && !md.querySelector('[data-lock]')) { closeModal(); return; }
+  if (e.key !== 'Tab') return;
+  const f = [...md.querySelectorAll('button:not([disabled]),select:not([disabled]),summary,[href]')];
+  const i = f.indexOf(document.activeElement);
+  if (!f.length) { e.preventDefault(); return; }
+  if (i < 0 || (e.shiftKey && i === 0) || (!e.shiftKey && i === f.length - 1)) { e.preventDefault(); f[e.shiftKey ? f.length - 1 : 0].focus(); }
+});
 
 function loadPlan(decs) {
   S.slots = Array(S.ds.decisions_required).fill(null);
@@ -556,9 +585,12 @@ async function runValidate() {
 /* =====================================================================
    ВЕРДИКТ
    ===================================================================== */
+/* LLM/template prose arrives as "56.54" / "694 395": print it like the rest of the UI (decimal comma, no-break thousands). Numbers stay numbers. */
+const ruProse = (x, k) => (typeof x === 'string' ? (k === 'provider' ? x : x.replace(/(\d)\.(\d)/g, '$1,$2').replace(/(\d) (\d{3})(?!\d)/g, '$1\u00a0$2'))
+  : Array.isArray(x) ? x.map((v) => ruProse(v)) : x && typeof x === 'object' ? Object.fromEntries(Object.entries(x).map(([kk, v]) => [kk, ruProse(v, kk)])) : x);
 function fetchInto(key, fn, run) {
   S.r[key] = { loading: true };
-  return fn().then((d) => { if (run === S.run) S.r[key] = { data: d }; })
+  return fn().then((d) => { if (run === S.run) S.r[key] = { data: key === 'ai' || key === 'nar' ? ruProse(d) : d }; })
     .catch((e) => { if (run === S.run) S.r[key] = { error: e.message }; })
     .finally(() => { if (run === S.run) refresh(key); });
 }
@@ -601,15 +633,18 @@ function dial(value, min, max, opts = {}) {
     const major = Math.abs(((v - min) / step) % 1) < 1e-6;
     const [x1, y1] = pt(v, R), [x2, y2] = pt(v, R - (major ? 14 : 7));
     ticks += `<line x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" stroke="#0d2a33" stroke-width="${major ? 1.6 : .8}"/>`;
-    if (major) { const [tx, ty] = pt(v, R - 27); ticks += `<text x="${tx.toFixed(1)}" y="${(ty + 4).toFixed(1)}" font-size="10" text-anchor="middle" fill="#56696f" font-family="JetBrains Mono">${num(v, 0)}</text>`; }
+    if (major) { const [tx, ty] = pt(v, R - 27); ticks += `<text x="${tx.toFixed(1)}" y="${(ty + 4).toFixed(1)}" font-size="10" text-anchor="middle" fill="#56696f" font-family="JetBrains Mono" stroke="#dfe5e6" stroke-width="4" stroke-linejoin="round" paint-order="stroke">${num(v, 0)}</text>`; }
   }
   let zone = '';
   if (opts.redBelow != null) { const [a1, b1] = pt(min, R + 6), [a2, b2] = pt(opts.redBelow, R + 6); zone = `<path d="M${a1},${b1} A${R + 6},${R + 6} 0 0 1 ${a2},${b2}" fill="none" stroke="#cf3a2c" stroke-width="5"/>`; }
-  const marks = (opts.marks || []).map((m) => { const [x1, y1] = pt(m.v, R + 3), [x2, y2] = pt(m.v, R - 20); return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${m.c}" stroke-width="3"/>`; }).join('');
-  const [nx, ny] = pt(value, R - 8);
-  return `<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="${esc(opts.label || '')}">${zone}${ticks}${marks}
-    <line x1="${cx}" y1="${cy}" x2="${nx.toFixed(1)}" y2="${ny.toFixed(1)}" stroke="${opts.needle || '#19b8d8'}" stroke-width="3.5" stroke-linecap="round"/>
-    <circle cx="${cx}" cy="${cy}" r="8" fill="#0d2a33"/></svg>`;
+  if (opts.from != null && Math.abs(value - opts.from) > 1e-6) { const [a1, b1] = pt(Math.min(opts.from, value), R + 6), [a2, b2] = pt(Math.max(opts.from, value), R + 6); zone += `<path d="M${a1.toFixed(1)},${b1.toFixed(1)} A${R + 6},${R + 6} 0 0 1 ${a2.toFixed(1)},${b2.toFixed(1)}" fill="none" stroke="${value >= opts.from ? '#19b8d8' : '#cf3a2c'}" stroke-width="5"/>`; }
+  const marks = (opts.marks || []).map((m) => { const a = ang(m.v), [tx, ty] = pt(m.v, R + 1), [bx, by] = pt(m.v, R + 14), px = 5.5 * Math.sin(a), py = 5.5 * Math.cos(a);
+    return `<path d="M${tx.toFixed(1)},${ty.toFixed(1)} L${(bx + px).toFixed(1)},${(by + py).toFixed(1)} L${(bx - px).toFixed(1)},${(by - py).toFixed(1)} Z" fill="${m.c}"/>`; }).join('');
+  const na = ang(value), ux = Math.cos(na), uy = -Math.sin(na), nc = opts.needle || '#19b8d8';
+  const np = (l, w) => `${(cx + ux * l + uy * w).toFixed(1)},${(cy + uy * l - ux * w).toFixed(1)}`;
+  return `<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="${esc(opts.label || '')}">${zone}${marks}
+    <path d="M${np(R - 6, 0)} L${np(0, 4)} L${np(-13, 0)} L${np(0, -4)} Z" fill="${nc}"/>${ticks}
+    <circle cx="${cx}" cy="${cy}" r="8" fill="#0d2a33"/><circle cx="${cx}" cy="${cy}" r="2.5" fill="${nc}"/></svg>`;
 }
 
 function renderVerdict() {
@@ -628,14 +663,14 @@ function renderVerdict() {
   }
   const cr = S.crisis?.result;
   root.innerHTML = `
-    ${cr ? `<div class="fade mb-5 flex flex-wrap items-center gap-3 border border-alarm bg-[#fdf1ef] px-4 py-3"><span class="btn-red mono px-2 py-1 text-[11px] font-semibold uppercase tracking-wider">после кризиса</span><b>${esc(S.crisis.event.title)}.</b><span class="text-[14px]">${esc(crisisComment())}</span></div>`
-      : `<button id="crisisCta" class="fade mb-5 flex w-full items-center gap-4 border border-alarm bg-[#fdf1ef] px-4 py-3 text-left hover:bg-[#fbe6e2]">
+    ${cr ? `<div class="fade mb-5 flex flex-wrap items-center gap-3 border border-alarm bg-[#fdf1ef] px-4 py-3"><span class="mono bg-alarm px-2 py-1 text-[11px] font-semibold uppercase tracking-wider text-white">после кризиса</span><b>${esc(S.crisis.event.title)}.</b><span class="text-[14px]">${esc(crisisComment())}</span></div>`
+      : `<button id="crisisCta" class="fade mb-5 flex w-full flex-wrap items-center gap-x-4 gap-y-3 border border-alarm bg-[#fdf1ef] px-4 py-3 text-left hover:bg-[#fbe6e2] sm:flex-nowrap">
         <span class="pulse grid h-9 w-9 shrink-0 place-items-center rounded-full bg-alarm font-black text-white">!</span>
-        <span class="flex-1"><b class="disp block text-[22px] leading-tight">III квартал: в городе кризис</b><span class="text-[14px] text-graph">План утверждён, но придётся заменить одну меру в пределах того же бюджета.</span></span>
-        <span class="btn btn-red shrink-0">Открыть кризис</span></button>`}
+        <span class="min-w-[220px] flex-1"><b class="disp block text-[22px] leading-tight">III квартал: в городе кризис</b><span class="text-[14px] text-graph">План утверждён, но придётся заменить одну меру в пределах того же бюджета.</span></span>
+        <span class="btn btn-red w-full shrink-0 sm:w-auto">Ответить на кризис</span></button>`}
 
-    <div class="grid gap-0 lg:grid-cols-[1fr_330px]">
-      <div class="paper strip"><div class="flex flex-wrap items-baseline justify-between gap-2"><span class="lbl">Score по кварталам</span><span class="mono text-[11px] text-graph">эффект набирается линейно после лага</span></div><div class="mt-2 h-[300px]"><canvas id="chTrace" aria-label="Score по кварталам"></canvas></div></div>
+    <div class="grid grid-cols-[minmax(0,1fr)] gap-0 lg:grid-cols-[minmax(0,1fr)_330px]">
+      <div class="paper strip"><div class="flex flex-wrap items-baseline justify-between gap-2"><span class="lbl">Score по кварталам</span><span class="mono text-[11px] text-graph">каждая мера набирает силу после срока запуска</span></div><div class="mt-2 h-[300px]"><canvas id="chTrace" role="img" aria-label="Score по кварталам: ваш план, база без решений и оптимум"></canvas></div></div>
       <div id="vScore" class="inkp flex flex-col gap-4 p-6"></div>
     </div>
     <p id="vFinding" class="disp mb-0 mt-4 max-w-[980px] text-[30px] font-bold leading-[1.08]"></p>
@@ -647,11 +682,11 @@ function renderVerdict() {
         <div id="vRegret" class="plate dialbox"></div>
       </div></section>
 
-    <section class="mt-8"><div class="hsec"><h2 class="h2">Районы</h2><p>красная ячейка — показатель ниже ${S.ds.crit_threshold}, каждая отнимает балл Score; голубая рамка — ячейка вышла из красной зоны</p></div>
-      <div id="vDistricts" class="overflow-x-auto"></div>
-      <div class="mt-3 grid gap-3 lg:grid-cols-[1.35fr_1fr]">
+    <section class="mt-8"><div class="hsec"><h2 class="h2">Районы</h2><p class="flex flex-wrap items-center gap-x-[18px] gap-y-1.5"><span class="inline-flex items-center gap-[7px]"><i class="cell crit inline-block h-3.5 w-[22px] shrink-0"></i>ниже ${S.ds.crit_threshold} — минус балл Score</span><span class="inline-flex items-center gap-[7px]"><i class="cell fix inline-block h-3.5 w-[22px] shrink-0"></i>вышел из красной зоны</span><span class="inline-flex items-center gap-[7px]"><i class="lamp on inline-block shrink-0"></i><i class="lamp r inline-block shrink-0"></i>район за / против акима</span>${S.crisis?.event ? '<span class="inline-flex items-center gap-[7px]"><i class="cell inline-block h-3.5 w-[22px] shrink-0" style="outline:1.5px dashed #ffc4bd;outline-offset:-3px"></i>задет кризисом</span>' : ''}</p></div>
+      <div id="vDistricts" class="overflow-x-auto" tabindex="0" role="region" aria-label="Показатели районов до и после плана"></div><div class="mt-1.5 text-[12px] text-graph lg:hidden" aria-hidden="true">Таблица прокручивается вбок →</div>
+      <div class="mt-3 grid grid-cols-1 gap-3 lg:grid-cols-[minmax(0,1.35fr)_minmax(0,1fr)]">
         <div class="paper strip"><div class="flex flex-wrap items-baseline justify-between gap-2"><span class="lbl">Граница Парето: лучший Score за каждую сумму</span><span class="mono text-[11px] text-graph">из ${int(694395)} планов</span></div><div id="vPareto" class="mt-2 h-[270px]"><canvas id="chPareto" aria-label="Граница Парето"></canvas></div></div>
-        <div id="vContrib" class="paper p-4"></div>
+        <div id="vContrib" class="paper strip flex flex-col"></div>
       </div></section>
 
     <section class="mt-8"><div id="vAI"></div></section>
@@ -681,44 +716,46 @@ function fillScore() {
   const crisis = !!S.crisis?.result;
   el.innerHTML = `
     <div><div class="lbl">Score к IV кв. 2028</div><div class="big text-white">${num(v.score)}</div></div>
-    <div class="mid">${sign(v.delta)} <span class="sm" style="color:#8fc9d6">к ${num(base)}${crisis ? ' (база с кризисом)' : ''}</span></div>
+    <div class="mid">${sign(v.delta)} <span class="sm" style="color:#8fc9d6">${crisis ? 'к базе с кризисом' : 'к исходным'} ${num(base)}</span></div>
     <div><div class="lbl">Рейтинг акима · не входит в Score</div><div class="mid ${a && !a.reelected ? 'text-[#ff8e82]' : ''}">${a ? num(a.city, 1) + '%' : '—'}</div></div>
-    <div><div class="lbl">Место среди всех планов${crisis ? ' · до кризиса' : ''}</div><div class="sm">${o ? `${int(o.rank)} из ${int(o.total_valid)} · топ ${num(o.rank / o.total_valid * 100, 2)}%` : '<span class="spin"></span>'}</div></div>
-    <div class="mono mt-auto text-[11.5px] text-[#8fc9d6]">бюджет ${esc(v.cost)}/${S.ds.budget} · ячеек ниже ${S.ds.crit_threshold}: ${v.n_crit_before ?? '—'} → ${v.n_crit}</div>`;
+    <div><div class="lbl">Место среди всех планов${crisis ? ' · до кризиса' : ''}</div><div class="sm">${o ? `${int(o.rank)} из ${int(o.total_valid)} · топ-${num(o.rank / o.total_valid * 100, 2)}%` : '<span class="spin"></span>'}</div></div>
+    <div class="mono mt-auto text-[11.5px] text-[#8fc9d6]">бюджет ${esc(v.cost)}/${S.ds.budget} · в красной зоне: ${v.n_crit_before ?? '—'} → ${v.n_crit}</div>`;
   const dsEl = $('#vDialScore'), apEl = $('#vApproval');
   const best = o?.best?.score;
   dsEl.innerHTML = `<div class="lbl">Score (AQLS)</div>${dial(v.score, 52, 58, { step: 1, label: 'Score ' + num(v.score), marks: [{ v: base, c: '#56696f' }, ...(best ? [{ v: best, c: '#cf3a2c' }] : [])] })}
-    <div class="mid text-center">${num(v.score)}</div><div class="mt-1 text-center text-[13px] text-graph">серая риска — ${num(base)} без решений${best ? `, красная — оптимум ${num(best)}` : ''}</div>`;
+    <div class="mid text-center">${num(v.score)}</div><div class="mt-1 text-center text-[13px] text-graph">серая отметка — ${num(base)} без решений${best ? `, красная — оптимум ${num(best)}` : ''}</div>`;
   if (!a) { apEl.innerHTML = `<div class="lbl">Рейтинг акима</div><div class="mt-6 text-graph">Нет данных</div>`; return; }
-  apEl.innerHTML = `<div class="lbl">Рейтинг акима · слой политического риска, не входит в Score</div>${dial(a.city, 0, 100, { step: 10, redBelow: a.threshold ?? 50, needle: a.reelected ? '#19b8d8' : '#cf3a2c', label: 'Рейтинг ' + num(a.city, 1) + '%' })}
-    <div class="mid text-center">${num(a.city, 1)}%</div><div class="mt-1 text-center font-bold ${a.reelected ? 'peni' : 'red'}">${a.reelected ? 'переизбран' : 'уволен'} · порог ${a.threshold ?? 50}%</div>`;
+  apEl.innerHTML = `<div class="lbl">Рейтинг акима</div>${dial(a.city, 0, 100, { step: 10, redBelow: a.threshold ?? 50, marks: [{ v: a.threshold ?? 50, c: '#0d2a33' }], needle: a.reelected ? '#19b8d8' : '#cf3a2c', label: 'Рейтинг ' + num(a.city, 1) + '%' })}
+    <div class="mid text-center ${a.reelected ? '' : 'red'}">${num(a.city, 1)}%</div><div class="mt-2 text-center text-[15px] font-bold ${a.reelected ? 'peni' : 'red'}">${a.reelected ? 'переизбран' : 'уволен'} · порог ${a.threshold ?? 50}%</div>
+    <div class="mt-1 text-center text-[13px] text-graph">слой политического риска, не входит в Score</div>`;
 }
 
 function fillFinding() {
   const el = $('#vFinding'); if (!el) return;
   const o = S.r.opt?.data;
-  if (!o) { el.innerHTML = spinner('Сверяем план со всеми 694 395 вариантами…'); return; }
-  el.innerHTML = `Движок перебрал все ${int(o.total_valid)} законных плана. Лучший даёт ${num(o.best.score)} — и <span class="${(o.best.approval ?? 0) < 50 ? 'red' : ''}">аким с этим планом ${(o.best.approval ?? 0) < 50 ? 'уволен' : 'переизбран'}: рейтинг ${num(o.best.approval, 1)}%</span>.`;
+  if (!o) { el.innerHTML = spinner('Сверяем план со всеми 694 395 вариантами…'); return; }
+  const fired = (o.best.approval ?? 0) < 50;
+  el.innerHTML = `Движок перебрал все ${int(o.total_valid)} ${plural(o.total_valid, 'допустимый план', 'допустимых плана', 'допустимых планов')}. Лучший из них даёт Score ${num(o.best.score)} — ${fired ? 'но' : 'и'} <span class="${fired ? 'red' : ''}">аким с этим планом ${fired ? 'уволен' : 'переизбран'}: рейтинг ${num(o.best.approval, 1)}%</span>.`;
 }
 
 function fillRegret() {
   const el = $('#vRegret'); if (!el) return;
   const o = S.r.opt;
-  if (!o || o.loading) { el.innerHTML = `<div class="lbl">Счётчик сожаления</div><div class="mt-5">${spinner('Сверяем с 694 395 планами…')}</div>${skel('h-10', 'mt-5')}`; return; }
-  if (o.error) { el.innerHTML = `<div class="lbl">Счётчик сожаления</div><div class="mt-5">${errBox('Оптимизатор недоступен', o.error)}</div>`; return; }
+  if (!o || o.loading) { el.innerHTML = `<div class="lbl">Разрыв с оптимумом</div><div class="mt-5">${spinner('Сверяем с 694 395 планами…')}</div>${skel('h-10', 'mt-5')}`; return; }
+  if (o.error) { el.innerHTML = `<div class="lbl">Разрыв с оптимумом</div><div class="mt-5">${errBox('Оптимизатор недоступен', o.error)}</div>`; return; }
   const d = o.data, max = d.best.score, base = BASELINE();
   const mine = S.crisis?.before?.score ?? S.r.score.data?.score;
   const x = (v) => scale(v, base, max, 20, 280).toFixed(1);
   const bal = d.balanced;
   el.innerHTML = `
-    <div class="lbl">Счётчик сожаления${S.crisis ? ' · исходный план' : ''}</div>
+    <div class="lbl">Разрыв с оптимумом${S.crisis ? ' · исходный план' : ''}</div>
     <div class="paper mt-4"><svg viewBox="0 0 300 70" width="100%" aria-hidden="true">
-      <line x1="20" x2="280" y1="40" y2="40" stroke="#0d2a33" stroke-width="2"/>
-      ${[base, 53.5, 54.5, 55.5, 56.5, max].map((v) => `<line x1="${x(v)}" x2="${x(v)}" y1="34" y2="46" stroke="#0d2a33"/><text x="${x(v)}" y="62" font-size="9" text-anchor="middle" fill="#56696f" font-family="JetBrains Mono">${num(v, v % 1 ? 2 : 1)}</text>`).join('')}
+      <line x1="20" x2="280" y1="40" y2="40" stroke="#0d2a33" stroke-width="2"/><line x1="20" x2="${x(mine)}" y1="40" y2="40" stroke="#19b8d8" stroke-width="6"/>
+      ${[base, 53.5, 54.5, 55.5, 56.5, max].map((v) => `<line x1="${x(v)}" x2="${x(v)}" y1="34" y2="46" stroke="#0d2a33"/><text x="${x(v)}" y="62" font-size="9" text-anchor="middle" fill="#56696f" font-family="JetBrains Mono">${num(v, v === base || v === max ? 2 : 1)}</text>`).join('')}
       <path d="M${x(mine)},34 l-7,-14 h14 z" fill="#19b8d8"/></svg></div>
-    <p data-regret class="m-0 mt-3 text-[17px] leading-snug">максимум <b>${num(max)}</b>, ваше место <b>${int(d.rank)}</b> из ${int(d.total_valid)}, топ <b class="peni">${num(d.rank / d.total_valid * 100, 2)}%</b></p>
-    <p class="m-0 mt-2 text-[13.5px] text-graph">На столе осталось ${num(d.gap_to_best ?? max - mine)}. Оптимум: рейтинг <b class="${(d.best.approval ?? 0) < 50 ? 'red' : 'peni'}">${num(d.best.approval, 1)}%</b>.</p>
-    ${bal ? `<button id="loadBalanced" class="mono mt-2 border-0 bg-transparent p-0 text-left text-[12.5px] text-peni underline decoration-dotted underline-offset-4 hover:decoration-solid">Лучший план с рейтингом ≥50%: ${num(bal.score)} · ${num(bal.approval, 1)}% → загрузить</button>` : ''}`;
+    <p data-regret class="m-0 mt-3 text-[17px] leading-snug">Ваше место — <b>${int(d.rank)}</b> из ${int(d.total_valid)}, это топ-<b class="peni">${num(d.rank / d.total_valid * 100, 2)}%</b>. Максимум — <b>${num(max)}</b>.</p>
+    <p class="m-0 mt-2 text-[13.5px] text-graph">До оптимума не хватает ${num(d.gap_to_best ?? max - mine)} Score. Рейтинг акима при оптимуме — <b class="${(d.best.approval ?? 0) < 50 ? 'red' : 'peni'}">${num(d.best.approval, 1)}%</b>.</p>
+    ${bal ? `<button id="loadBalanced" class="mt-2 border-0 bg-transparent p-0 text-left text-[14px] font-semibold text-peni underline decoration-dotted underline-offset-4 hover:decoration-solid">Загрузить лучший план с рейтингом от 50%: Score ${num(bal.score)}, рейтинг ${num(bal.approval, 1)}% →</button>` : ''}`;
   const lb = $('#loadBalanced'); if (lb) lb.onclick = () => { loadPlan(bal.plan); go('cabinet'); toast('Сбалансированный план загружен в кабинет'); };
 }
 
@@ -727,21 +764,21 @@ function fillDistricts() {
   const v = S.r.score.data, inds = S.ds.indicators, thr = S.ds.crit_threshold;
   const ap = v.approval?.districts || {};
   const ev = S.crisis?.event;
-  const cols = 'grid-template-columns:18px minmax(150px,1.1fr) minmax(430px,3fr) 150px 80px 80px';
-  el.innerHTML = `<div class="board" style="min-width:980px">
-    <div class="bhead" style="${cols}"><span></span><span>Район</span><span class="cells" style="gap:3px">${inds.map((i) => `<span class="text-center" title="${esc(i.name)}">${i.code}</span>`).join('')}</span><span>D до → после</span><span class="text-right">Δ</span><span class="text-right">Рейтинг</span></div>
+  const cols = 'grid-template-columns:18px minmax(136px,1.1fr) minmax(400px,3fr) 150px 72px 72px';
+  el.innerHTML = `<div class="board" style="min-width:940px">
+    <div class="bhead" style="${cols}"><span></span><span>Район</span><span class="cells" style="row-gap:5px">${inds.reduce((g, i) => { const l = g[g.length - 1]; if (l && l.dir === i.direction) l.n++; else g.push({ dir: i.direction, n: 1 }); return g; }, []).map((g) => `<span class="truncate border-b border-[#3d6772] pb-1 text-center text-[12px] font-semibold normal-case tracking-[.02em] text-[#d3eaf0]" style="grid-column:span ${g.n}">${esc(dirName(g.dir))}</span>`).join('')}${inds.map((i) => `<span class="mono text-center" title="${esc(i.name)}">${i.code}</span>`).join('')}</span><span>Индекс до → после</span><span class="text-right">Δ</span><span class="text-right">Рейтинг</span></div>
     ${Object.entries(v.districts || {}).map(([name, r]) => {
       const dd = r.D_after - r.D_before, a = ap[name];
-      return `<div class="brow" style="${cols}"><span class="lamp ${a && a.approval < 50 ? 'r' : 'on'}" title="${a && a.approval < 50 ? 'район против' : 'район за'}"></span>
-        <span><b class="disp text-[21px] leading-none">${esc(name)}</b><span class="mono block text-[11px] text-[#8fb4bd]">${r.pop != null ? Math.round(r.pop * 100) + '% жителей' : ''}${a?.got_district_measure ? ' · есть проект' : ''}</span></span>
+      return `<div class="brow" style="${cols}"><span class="lamp ${!a ? '' : a.approval < (v.approval?.threshold ?? 50) ? 'r' : 'on'}" title="${!a ? 'нет данных о рейтинге' : a.approval < (v.approval?.threshold ?? 50) ? 'район против акима' : 'район за акима'}"></span>
+        <span><b class="disp text-[21px] leading-none">${esc(name)}</b><span class="mono block text-[11px] text-[#8fb4bd]">${r.pop != null ? Math.round(r.pop * 100) + '% жителей' : ''}${a?.got_district_measure ? ' · <span class="text-[#6fd6ea]">есть районная мера</span>' : ''}</span></span>
         <span class="cells">${inds.map((ind, k) => { const b = r.before[k], x = r.after[k], d = x - b;
           const hit = ev && ev.district === name && ev.effects && ind.code in ev.effects;
-          return `<span class="cell ${x < thr ? 'crit' : b < thr ? 'fix' : ''}" title="${esc(ind.name)}: ${num(b)} → ${num(x)}${hit ? ' · кризис' : ''}" style="${hit ? 'outline:1.5px dashed #ff8e82;outline-offset:-2px' : ''}">${num(x, 0)}<small>${Math.abs(d) >= .05 ? sign(d, 1) : '&nbsp;'}</small></span>`; }).join('')}</span>
-        <span class="bval">${num(r.D_before)} → <b class="text-white">${num(r.D_after)}</b></span>
+          return `<span class="cell ${x < thr ? 'crit' : b < thr ? 'fix' : ''}" title="${esc(ind.name)}: ${num(b)} → ${num(x)}${x < thr ? ' · ниже ' + thr : b < thr ? ' · вышел из красной зоны' : ''}${hit ? ' · кризис' : ''}" style="${hit ? 'outline:1.5px dashed #ffc4bd;outline-offset:-3px' : ''}">${x < thr && Math.round(x) >= thr ? num(Math.floor(x * 10) / 10, 1) : num(x, 0)}<small class="${d < 0 ? 'neg' : ''}">${Math.abs(d) >= .05 ? sign(d, 1) : '&nbsp;'}</small></span>`; }).join('')}</span>
+        <span class="bval"><span class="text-[#8fb4bd]">${num(r.D_before)} →</span> <b class="text-white">${num(r.D_after)}</b></span>
         <span class="bval text-right ${dd > .005 ? 'pen' : dd < -.005 ? 'red' : ''}">${sign(dd)}</span>
-        <span class="bval text-right ${a && a.approval < 50 ? 'red' : 'pen'}">${a ? num(a.approval, 0) + '%' : '—'}</span></div>`;
+        <span class="bval text-right ${a && a.approval < (v.approval?.threshold ?? 50) ? 'red' : 'pen'}">${a ? num(a.approval, 0) + '%' : '—'}</span></div>`;
     }).join('')}
-    ${(v.resolved_crit_cells || []).length || (v.synergies_triggered || []).length ? `<div class="mono px-2 pt-3 text-[11.5px] text-[#8fb4bd]">${(v.resolved_crit_cells || []).length ? 'Вышли из красной зоны: ' + v.resolved_crit_cells.map((c) => `${esc(c.district)} ${c.indicator} ${num(c.before, 0)}→${num(c.after, 1)}`).join(' · ') : ''}${(v.synergies_triggered || []).length ? '<br>Синергии: ' + v.synergies_triggered.map((s) => `${s.pair.join(' + ')} в ${esc(loc(s.district))} (${Object.entries(s.bonus).map(([k, b]) => k + ' +' + b).join(', ')})`).join(' · ') : ''}</div>` : ''}
+    ${(v.resolved_crit_cells || []).length || (v.synergies_triggered || []).length ? `<div class="flex flex-col gap-1 px-2.5 pb-1 pt-3 text-[13px] leading-[1.45] text-[#c3dde4]">${(v.resolved_crit_cells || []).length ? `<div><i class="cell fix mr-2 inline-block h-3 w-[18px] align-[-1px]"></i><b class="mr-2 text-[11px] font-semibold uppercase tracking-[.12em] text-[#8fb4bd]">Вышли из красной зоны</b>${v.resolved_crit_cells.map((c) => `${esc(c.district)} · ${esc(indShort(c.indicator))} <span class="mono">${num(c.before, 1)} → ${num(c.after, 1)}</span>`).join('; ')}</div>` : ''}${(v.synergies_triggered || []).length ? `<div><b class="mr-2 text-[11px] font-semibold uppercase tracking-[.12em] text-[#8fb4bd]">Меры усилили друг друга</b>${v.synergies_triggered.map((s) => `<span class="mono">${s.pair.join(' + ')}</span> в ${esc(loc(s.district))}: ${Object.entries(s.bonus).map(([k, b]) => `${esc(indShort(k))} <span class="mono">${sign(b, b % 1 ? 1 : 0)}</span>`).join(', ')}`).join('; ')}</div>` : ''}</div>` : ''}
   </div>`;
 }
 
@@ -750,17 +787,17 @@ function fillContrib() {
   const co = (S.r.score.data.contributions || []).slice().sort((a, b) => b.marginal - a.marginal);
   const top = Math.max(...co.map((c) => c.marginal), 0.01);
   el.innerHTML = `<div class="lbl">Вклад каждой меры</div><div class="mb-3 text-[13px] text-graph">насколько упадёт Score, если убрать меру</div>
-    ${co.map((c, i) => `<div class="my-2 grid items-center gap-2" style="grid-template-columns:118px 1fr 56px" title="${esc(decLong(c))}: без меры ${num(c.score_without)}; на единицу бюджета ${num(c.marginal_per_cost)}">
+    ${co.map((c, i) => `<div class="grid items-center gap-2" style="grid-template-columns:118px 1fr 56px" title="${esc(decLong(c))}: без меры ${num(c.score_without)}; на единицу бюджета ${num(c.marginal_per_cost)}">
       <span class="mono truncate text-[12.5px]">${esc(decShort(c))}</span>
-      <span class="h-3.5" style="width:${Math.max(2, c.marginal / top * 100)}%;background:${i === co.length - 1 ? 'var(--red)' : 'var(--pen)'}"></span>
+      <span class="h-3.5" style="width:${Math.max(2, c.marginal / top * 100)}%;background:${i === co.length - 1 && co.length > 1 ? 'var(--graph)' : 'var(--pen)'}"></span>
       <b class="mono text-right text-[12.5px]">${sign(c.marginal)}</b></div>`).join('')}
-    <div class="mt-3 text-[12.5px] text-graph">Красная полоса — худшая отдача: ${co.length ? `${esc(decShort(co[co.length - 1]))}, ${num(co[co.length - 1].marginal_per_cost)} Score на единицу бюджета` : ''}.</div>`;
+    <div class="mt-auto pt-3 text-[12.5px] text-graph">Серая полоса — самый малый вклад: ${co.length ? `${esc(decShort(co[co.length - 1]))}, ${num(co[co.length - 1].marginal_per_cost)} Score на единицу бюджета` : ''}.</div>`;
 }
 
 function aiBadges(x) {
   const prov = x.provider || 'offline';
   return `<span class="mono border border-rule px-2 py-0.5 text-[11px] text-graph">${prov === 'offline' ? 'офлайн-шаблон' : esc(prov)}</span>
-    ${x.grounded === false ? '<span class="mono border border-alarm px-2 py-0.5 text-[11px] text-alarm">проверка чисел не пройдена — шаблон</span>'
+    ${x.grounded === false ? '<span class="mono border border-alarm px-2 py-0.5 text-[11px] red">проверка чисел не пройдена — шаблон</span>'
       : '<span class="mono border border-peni px-2 py-0.5 text-[11px] text-peni">✓ все числа сверены с движком</span>'}`;
 }
 function fillAI() {
@@ -776,7 +813,7 @@ function fillAI() {
   const a = r.data, rec = a.recommendation || {}, recPlan = planDecs(rec.plan);
   const block = (t, xs) => `<div class="notice"><h3>${t}</h3><ul>${(xs && xs.length ? xs : ['—']).map((x) => `<li>${esc(x)}</li>`).join('')}</ul></div>`;
   el.innerHTML = `${head(`<span class="flex flex-wrap gap-1.5">${aiBadges(a)}</span>`)}
-    ${a.summary ? `<p class="m-0 mb-3 max-w-[980px] text-[17px] leading-snug">${esc(a.summary)}</p>` : ''}
+    ${a.summary ? `<p class="m-0 mb-4 max-w-[72ch] text-[17px] leading-[1.45]">${esc(a.summary)}</p>` : ''}
     <div class="grid gap-3 md:grid-cols-2 xl:grid-cols-4">${block('Сильные стороны', a.strengths)}${block('Риски', a.risks)}${block('Последствия', a.consequences)}${block('Компромиссы', a.tradeoffs)}</div>
     <div class="notice mt-3 flex flex-col gap-3 sm:flex-row sm:items-center" style="border-top:4px solid var(--pen)">
       <div class="flex-1"><h3>Рекомендация${rec.expected_score != null ? ` → Score ${num(rec.expected_score)}` : ''}</h3><div class="text-[14.5px]">${esc(rec.why || 'Рекомендации нет.')}</div>
@@ -790,10 +827,10 @@ function fillCouncil() {
   const r = S.r.nar;
   if (!r || r.loading) { el.innerHTML = `<div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">${Array(5).fill(skel('h-44')).join('')}</div>`; return; }
   if (r.error) { el.innerHTML = `<div class="notice">${errBox('Совет не собрался', r.error)}</div>`; return; }
-  const mood = { positive: ['ЗА', 'peni'], neutral: ['ВОЗДЕРЖ.', 'mut'], negative: ['ПРОТИВ', 'red'] };
+  const mood = { positive: ['ЗА', 'peni'], neutral: ['ВОЗДЕРЖАЛСЯ', 'mut'], negative: ['ПРОТИВ', 'red'] };
   el.innerHTML = `<div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">${(r.data.council || []).map((d) => { const m = mood[d.mood] || mood.neutral; return `
     <div class="council-card fade"><div class="head"><b class="disp text-[23px] leading-none">${esc(d.district)}</b><span class="mood ${m[1]}">${m[0]}</span></div>
-      <div class="mono mb-2 text-[11.5px] text-graph">ΔD ${sign(d.delta_D)} · рейтинг ${num(d.approval, 0)}%</div>
+      <div class="mono mb-2 text-[11.5px] text-graph">индекс ${sign(d.delta_D)} · рейтинг ${num(d.approval, 0)}%</div>
       <p class="m-0 flex-1 text-[14px] leading-snug">«${esc(unq(d.quote))}»</p>
       <div class="mt-2 text-[12px] text-graph">${esc(d.deputy || 'Депутат')}</div></div>`; }).join('')}</div>`;
 }
@@ -806,14 +843,16 @@ const refLines = {
     c.data.datasets.forEach((ds, i) => {
       if (!ds.refLabel || !c.isDatasetVisible(i)) return;
       const meta = c.getDatasetMeta(i), pt = meta.data[meta.data.length - 1]; if (!pt) return;
-      ctx.save(); ctx.font = '500 11px "JetBrains Mono"'; ctx.fillStyle = ds.borderColor; ctx.textAlign = 'right';
-      ctx.fillText(ds.refLabel, c.chartArea.right, pt.y - 6); ctx.restore();
+      ctx.save(); ctx.font = '600 11.5px "JetBrains Mono"'; ctx.textAlign = 'right'; ctx.lineJoin = 'round';
+      ctx.lineWidth = 4; ctx.strokeStyle = '#f0f5f5'; ctx.strokeText(ds.refLabel, c.chartArea.right, pt.y - 7);
+      ctx.fillStyle = ds.refColor || ds.borderColor; ctx.fillText(ds.refLabel, c.chartArea.right, pt.y - 7); ctx.restore();
     });
   },
 };
 function chartBase() {
   Chart.defaults.font.family = '"JetBrains Mono", ui-monospace, monospace';
-  Chart.defaults.font.size = 10.5;
+  Chart.defaults.font.size = 11.5;
+  Object.assign(Chart.defaults.plugins.tooltip, { backgroundColor: '#0d2a33', titleColor: '#8fc9d6', bodyColor: '#e9f6f8', cornerRadius: 0, caretSize: 5, padding: 10, displayColors: false });
   Chart.defaults.color = '#56696f';
 }
 function drawTrace() {
@@ -823,15 +862,18 @@ function drawTrace() {
   const tl = v.timeline || [];
   const vals = tl.map((t) => t.score);
   const flat = (y, color, label, dash) => ({ data: tl.map(() => y), borderColor: color, borderWidth: 1.5, borderDash: dash, pointRadius: 0, refLabel: label, fill: false });
-  const ds = [{ data: vals, borderColor: '#19b8d8', borderWidth: 4, pointRadius: 3.5, pointBackgroundColor: '#0d2a33', pointBorderWidth: 0, tension: .25, fill: false }];
+  const tip = (a, b) => vals.map((_, i) => (i === vals.length - 1 ? a : b));
+  const ds = [{ data: vals, borderColor: '#19b8d8', borderWidth: 4, pointRadius: tip(6, 3.5), pointBackgroundColor: tip('#fff', '#0d2a33'), pointBorderColor: '#19b8d8', pointBorderWidth: tip(4, 0), pointHoverRadius: tip(7, 5.5), pointHoverBackgroundColor: tip('#fff', '#0d2a33'), pointHoverBorderWidth: tip(4, 2), cubicInterpolationMode: 'monotone', fill: false }];
   ds.push(flat(base, '#56696f', `${S.crisis ? 'база с кризисом' : 'без решений'} ${num(base)}`, [6, 5]));
-  if (o) ds.push(flat(o.best.score, '#cf3a2c', `оптимум ${num(o.best.score)} — рейтинг ${num(o.best.approval, 1)}%`, [6, 5]));
+  const pre = S.crisis?.before?.timeline;
+  if (pre && pre.length === tl.length) ds.push({ data: pre.map((t) => t.score), borderColor: '#8fc9d6', borderWidth: 2, borderDash: [2, 4], pointRadius: 0, cubicInterpolationMode: 'monotone', refLabel: `план до кризиса ${num(S.crisis.before.score)}`, refColor: '#0a7d95', fill: false });
+  if (o) ds.push(flat(o.best.score, '#cf3a2c', `${S.crisis ? 'оптимум до кризиса' : 'оптимум'} ${num(o.best.score)} · рейтинг ${num(o.best.approval, 1)}%`, [6, 5]));
   const lo = Math.min(...vals, base) - .4, hi = Math.max(...vals, o?.best?.score ?? 0) + .4;
   chart('chTrace', {
     type: 'line', data: { labels: tl.map((t) => QL[t.q] ?? 'Q' + t.q), datasets: ds }, plugins: [refLines],
-    options: { maintainAspectRatio: false, animation: { duration: 900, easing: 'easeOutQuart' }, layout: { padding: { top: 16 } },
-      plugins: { legend: { display: false }, tooltip: { backgroundColor: '#0d2a33', titleFont: { family: 'JetBrains Mono' }, bodyFont: { family: 'JetBrains Mono' }, filter: (i) => i.datasetIndex === 0, callbacks: { label: (c) => `Score ${num(c.parsed.y)}` } } },
-      scales: { x: { grid: { display: false }, border: { color: '#0d2a33' }, ticks: { maxRotation: 0, autoSkip: true } }, y: { min: Math.floor(lo * 2) / 2, max: Math.ceil(hi * 2) / 2, grid: { display: false }, border: { color: '#0d2a33' }, ticks: { stepSize: .5, callback: (x) => num(x, 1) } } } },
+    options: { maintainAspectRatio: false, animation: charts.chTrace?.canvas === $('#chTrace') || matchMedia('(prefers-reduced-motion: reduce)').matches ? false : { duration: 900, easing: 'easeOutQuart' }, layout: { padding: { top: 16 } },
+      plugins: { legend: { display: false }, tooltip: { backgroundColor: '#0d2a33', titleFont: { family: 'JetBrains Mono' }, bodyFont: { family: 'JetBrains Mono' }, filter: (i) => i.datasetIndex === 0, callbacks: { label: (c) => `Score ${num(c.parsed.y)}`, afterLabel: (c) => `${sign(c.parsed.y - base)} к базе ${num(base)}` } } },
+      scales: { x: { grid: { drawOnChartArea: false, color: '#0d2a33', tickLength: 5 }, border: { color: '#0d2a33' }, ticks: { maxRotation: 0, autoSkip: false, callback(v, i) { const n = this.chart.data.labels.length; return this.chart.width < 560 && (n - 1 - i) % 2 ? '' : this.getLabelForValue(v); } } }, y: { min: Math.floor(lo * 2) / 2, max: Math.ceil(hi * 2) / 2, grid: { drawOnChartArea: false, color: '#0d2a33', tickLength: 5 }, border: { color: '#0d2a33' }, ticks: { stepSize: .5, callback: (x) => num(x, 1) } } } },
   });
 }
 function drawPareto() {
@@ -843,18 +885,18 @@ function drawPareto() {
   const v = S.r.score.data;
   const me = S.crisis?.before ? { x: S.crisis.before.cost, y: S.crisis.before.score } : { x: v.cost, y: v.score };
   const ds = [
-    { label: 'Ваш план', data: [me], pointRadius: 8, pointHoverRadius: 10, backgroundColor: '#fff', borderColor: '#19b8d8', borderWidth: 4, order: 0 },
-    { label: `Оптимум · рейтинг ${num(o.best.approval, 1)}%`, data: [{ x: o.best.cost, y: o.best.score, plan: o.best.plan }], pointStyle: 'rectRot', pointRadius: 8, backgroundColor: '#cf3a2c', borderColor: '#cf3a2c', order: 1 },
+    { label: S.crisis ? 'Ваш план до кризиса' : 'Ваш план', data: [me], pointRadius: 8, pointHoverRadius: 10, pointHoverBackgroundColor: '#fff', pointHoverBorderColor: '#19b8d8', pointHoverBorderWidth: 4, backgroundColor: '#fff', borderColor: '#19b8d8', borderWidth: 4, order: 0 },
+    { label: `Оптимум · рейтинг ${num(o.best.approval, 1)}%`, data: [{ x: o.best.cost, y: o.best.score, plan: o.best.plan }], pointStyle: 'rectRot', pointRadius: 8, pointHoverRadius: 10, backgroundColor: '#cf3a2c', borderColor: '#cf3a2c', order: 1 },
     { label: 'Лучший план не дороже', data: (o.pareto || []).map((p) => ({ x: p.cost, y: p.score, plan: p.plan })), showLine: true, stepped: 'before', borderColor: '#0d2a33', backgroundColor: '#0d2a33', borderWidth: 2, pointRadius: 2.5, order: 2 },
   ];
-  if (o.balanced) ds.splice(2, 0, { label: `Баланс · рейтинг ${num(o.balanced.approval, 1)}%`, data: [{ x: o.balanced.cost, y: o.balanced.score, plan: o.balanced.plan }], pointStyle: 'triangle', pointRadius: 8, backgroundColor: '#19b8d8', borderColor: '#0d2a33', borderWidth: 1.5, order: 1 });
+  if (o.balanced) ds.splice(2, 0, { label: `Баланс · рейтинг ${num(o.balanced.approval, 1)}%`, data: [{ x: o.balanced.cost, y: o.balanced.score, plan: o.balanced.plan }], pointStyle: 'triangle', pointRadius: 8, pointHoverRadius: 10, backgroundColor: '#19b8d8', borderColor: '#0d2a33', borderWidth: 1.5, order: 1 });
   chart('chPareto', {
     type: 'scatter', data: { datasets: ds },
-    options: { maintainAspectRatio: false, animation: { duration: 600 },
-      plugins: { legend: { labels: { usePointStyle: true, boxWidth: 8, boxHeight: 8, font: { size: 10.5 } } },
-        tooltip: { backgroundColor: '#0d2a33', callbacks: { label: (c) => `${c.dataset.label}: ${c.parsed.x} ед. → ${num(c.parsed.y)}`, afterLabel: (c) => (c.raw.plan ? planDecs(c.raw.plan).map(decShort).join(', ') : '') } } },
-      scales: { x: { title: { display: true, text: 'потрачено, ед.' }, suggestedMin: 58, suggestedMax: 100, grid: { display: false }, border: { color: '#0d2a33' } },
-        y: { title: { display: true, text: 'Score' }, suggestedMin: 55.4, suggestedMax: 57.4, grid: { display: false }, border: { color: '#0d2a33' }, ticks: { callback: (x) => num(x, 1) } } } },
+    options: { maintainAspectRatio: false, animation: matchMedia('(prefers-reduced-motion: reduce)').matches ? false : { duration: 600, easing: 'easeOutQuart' },
+      plugins: { legend: { align: 'start', labels: { usePointStyle: true, boxWidth: 8, boxHeight: 8, padding: 14, color: '#0d2a33', font: { size: 11.5 }, generateLabels: (c) => Chart.defaults.plugins.legend.labels.generateLabels(c).map((l) => (l.datasetIndex === c.data.datasets.length - 1 ? { ...l, pointStyle: 'line', lineWidth: 2 } : l)) } },
+        tooltip: { filter: (i, _, all) => all.length === 1 || i.datasetIndex !== i.chart.data.datasets.length - 1, callbacks: { label: (c) => `${c.dataset.label}: ${c.parsed.x} ед. → Score ${num(c.parsed.y)}`, afterLabel: (c) => (c.raw.plan ? planDecs(c.raw.plan).map(decShort).join(', ') : '') } } },
+      scales: { x: { title: { display: true, text: 'стоимость плана, ед.' }, min: Math.floor((Math.min(me.x, ...(o.pareto || []).map((p) => p.cost)) - 2) / 5) * 5, suggestedMax: S.ds.budget, grid: { drawOnChartArea: false, color: '#0d2a33', tickLength: 5 }, border: { color: '#0d2a33' } },
+        y: { title: { display: true, text: 'Score' }, suggestedMin: 55.4, suggestedMax: 57.4, grid: { drawOnChartArea: false, color: '#0d2a33', tickLength: 5 }, border: { color: '#0d2a33' }, ticks: { callback: (x) => num(x, 1) } } } },
   });
 }
 
@@ -875,18 +917,21 @@ function eventCard(E, compact) {
   const ev = E.event;
   const effs = Object.entries(ev.effects || {}).map(([k, v]) => `${k} ${indShort(k)} ${v > 0 ? '+' : '−'}${Math.abs(v)} в ${loc(ev.district)}`);
   return `<div class="opp flex flex-col">
-    <div class="flex items-center gap-2"><span class="grid h-7 w-7 place-items-center rounded-full bg-alarm text-[15px] font-black text-white">!</span><span class="mono text-[12px] text-[#8fc9d6]">${ev.quarter ? ['', 'I', 'II', 'III', 'IV'][ev.quarter] + ' квартал' : 'III квартал'} · ${esc(ev.district || '')}</span></div>
-    <h3 class="mt-3">${esc(ev.title)}</h3>
+    <h3>${esc(ev.title)}</h3>
+    <div class="mt-3 flex items-center gap-2"><span class="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-alarm text-[14px] font-black text-white" aria-hidden="true">!</span><span class="text-[12.5px] font-semibold uppercase tracking-[.12em] text-[#8fc9d6]">Кризис · ${ev.quarter ? ['', 'I', 'II', 'III', 'IV'][ev.quarter] + ' квартал' : 'III квартал'}${ev.district ? ' · ' + esc(ev.district) : ''}</span></div>
     <p class="mb-0 mt-3 text-[15px] leading-snug text-[#cfe3e7]">${esc(ev.description || '')}</p>
     <div class="mt-3">${effs.map((e) => `<span class="chip">${esc(e)}</span>`).join('')}</div>
-    ${E.score_before != null ? `<div class="mt-auto pt-5"><div class="lbl">Без замены</div><div class="mid">${num(E.score_before)} → <span class="text-[#ff8e82]">${num(E.new_baseline_score)}</span></div><div class="mono text-[12px] text-[#8fc9d6]">${sign(E.new_baseline_score - E.score_before)} Score · бюджет прежний, ${S.ds.budget} ед.</div></div>` : ''}
+    ${E.score_before != null ? `<div class="mt-auto pt-6"><div class="border-t border-[#2b4b55] pt-4"><div class="lbl">Без замены</div><div class="mid mt-1 text-[46px] sm:text-[60px]">${num(E.score_before)} <span class="text-[#8fc9d6]">→</span> <span class="text-[#ff8e82]">${num(E.new_baseline_score)}</span></div><div class="mt-1.5 text-[13px] text-[#8fc9d6]"><span class="mono">${sign(E.new_baseline_score - E.score_before)}</span> Score · бюджет прежний, <span class="mono">${S.ds.budget}</span> ед.</div></div></div>` : ''}
     ${!compact && ev.hint ? `<details class="mt-4 text-[13.5px] text-[#cfe3e7]"><summary class="cursor-pointer text-[#8fc9d6]">Подсказка штаба</summary><div class="mt-1">${esc(ev.hint)}</div></details>` : ''}
   </div>`;
 }
 function renderCrisis() {
   const md = $('#modal'); if (!md.classList.contains('open')) return;
   const keep = [md.querySelector('[data-scroll]')?.scrollTop || 0, md.querySelector('[data-addlist]')?.scrollTop || 0];
-  const restore = () => { const a = md.querySelector('[data-scroll]'), b = md.querySelector('[data-addlist]'); if (a) a.scrollTop = keep[0]; if (b) b.scrollTop = keep[1]; };
+  const ae = md.contains(document.activeElement) ? document.activeElement : null;
+  const fsel = ae?.dataset?.rm ? `[data-rm="${ae.dataset.rm}"]` : ae?.dataset?.add ? `[data-add="${ae.dataset.add}"]` : ae?.matches?.('[data-dist]') ? '[data-dist]' : ae?.id ? '#' + ae.id : null;
+  const restore = () => { const a = md.querySelector('[data-scroll]'), b = md.querySelector('[data-addlist]'); if (a) a.scrollTop = keep[0]; if (b) b.scrollTop = keep[1];
+    const f = (fsel && md.querySelector(fsel + ':not([disabled])')) || (ae ? a : md.querySelector('[data-rm]')); f?.focus({ preventScroll: true }); };
   if (CR.error || !CR.ev) {
     md.innerHTML = `<div data-lock class="plate w-full max-w-md p-6 text-center"><div class="h2">Кризис не загрузился</div><p class="text-graph">${esc(CR.error || 'Нет данных')}</p>
       <div class="flex justify-center gap-2"><button id="crRetry" class="btn btn-ink">Повторить</button><button data-close class="btn btn-line">Закрыть</button></div></div>`;
@@ -904,33 +949,34 @@ function renderCrisis() {
   else if (!CR.inn) status = 'Шаг 2: выберите, что добавить взамен.';
   else if (!next) status = 'Укажите район для районной меры.';
   else if (CR.validating) status = null;
-  else status = CR.val ? (CR.val.valid ? `Замена допустима · бюджет ${CR.val.cost} из ${S.ds.budget}` : CR.val.reason) : '';
-  md.innerHTML = `<div data-lock data-scroll class="fade grid max-h-[94vh] w-full max-w-[1100px] overflow-y-auto lg:grid-cols-[.9fr_1.1fr]" style="border:1px solid #061a20">
+  else status = CR.val ? (CR.val.valid ? `Замена допустима: бюджет ${CR.val.cost} из ${S.ds.budget} ед.` : CR.val.reason) : '';
+  md.innerHTML = `<div ${CR.submitting ? 'data-lock ' : ''}data-scroll tabindex="-1" class="${md.querySelector('[data-scroll]') ? '' : 'fade '}grid max-h-[94vh] w-full max-w-[1100px] overflow-y-auto lg:grid-cols-[.9fr_1.1fr]" style="border:1px solid #061a20;max-height:94dvh">
     ${eventCard(CR.ev)}
     <div class="bg-paper p-5">
-      <div class="flex items-baseline justify-between gap-2"><h3 class="h2 text-[34px]">Ваш ответ</h3><span class="mono text-[12px] text-graph">заменить ровно одну меру</span></div>
+      <div class="flex items-baseline gap-3"><h3 class="h2 text-[34px]">Ваш ответ</h3><span class="min-w-0 flex-1 text-[13px] text-graph">замените ровно одну меру, бюджет тот же</span><button data-close class="x -mr-1.5 self-start text-[26px]" aria-label="Закрыть и вернуться к кризису позже" title="Закрыть (Esc)">×</button></div>
       <div class="mt-3 grid gap-4 md:grid-cols-2">
-        <div><div class="lbl">1 · Отказаться от</div>${decs.map((d) => { const m = S.mi[d.measure]; const on = CR.outM === d.measure; return `
-          <button data-rm="${esc(d.measure)}" class="opt ${on ? 'out' : ''}"><span class="rd"></span><span class="t min-w-0"><b class="mono text-[12px]">${esc(d.measure)}</b> ${esc(m?.name)}<span class="block text-[12px] text-graph">${esc(m?.cost)} ед. · ${d.district ? esc(d.district) : 'город'}</span></span><span></span></button>`; }).join('')}</div>
-        <div><div class="lbl">2 · Добавить взамен</div>
-          ${!CR.outM ? '<div class="mt-1.5 border border-dashed border-rule p-4 text-[14px] text-graph">Сначала выберите, от чего отказаться.</div>' : `
-          <div data-addlist class="max-h-[330px] overflow-y-auto pr-1">${S.ds.measures.filter((m) => !remaining.some((d) => d.measure === m.id)).map((m) => {
-            const block = blockReason(m, null, remaining), on = CR.inn?.measure === m.id;
-            return `<div><button data-add="${esc(m.id)}" ${block ? `disabled title="${esc(block)}"` : ''} class="opt ${on ? 'in' : ''}"><span class="rd"></span><span class="min-w-0"><b class="mono text-[12px]">${esc(m.id)}</b> ${esc(m.name)}<span class="block text-[12px] text-graph">${Object.entries(m.effects).map(([k, v]) => `${v > 0 ? '+' : '−'}${Math.abs(v)} ${indShort(k)}`).join(', ')} · лаг ${m.lag}${block ? ' · ' + esc(block) : ''}</span></span><b class="cost text-[20px]">${m.cost}</b></button>
-              ${on && m.type === 'district' ? `<select data-dist aria-label="Район"><option value="">— выберите район —</option>${S.ds.districts.map((k) => { const b = blockReason(m, k.name, remaining); return `<option value="${esc(k.name)}" ${CR.inn.district === k.name ? 'selected' : ''} ${b ? 'disabled' : ''}>${esc(k.name)}${k.name === CR.ev.event.district ? ' — зона кризиса' : ''}${b ? ' (нельзя)' : ''}</option>`; }).join('')}</select>` : ''}</div>`; }).join('')}</div>`}
+        <div role="group" aria-label="Шаг 1: отказаться от"><div class="lbl flex items-center gap-2"><span class="stp ${CR.outM ? 'done' : 'on'}">1</span>Отказаться от</div>${decs.map((d) => { const m = S.mi[d.measure]; const on = CR.outM === d.measure; return `
+          <button data-rm="${esc(d.measure)}" aria-pressed="${on}" class="opt ${on ? 'out' : ''}"><span class="rd" aria-hidden="true"></span><span class="t min-w-0"><b class="mono text-[12px]">${esc(d.measure)}</b> ${esc(m?.name)}<span class="block text-[12px] text-graph">${d.district ? 'район ' + esc(d.district) : 'весь город'}</span></span><b class="cost text-[20px] ${on ? 'red' : ''}">${on ? '−' : ''}${esc(m?.cost)}</b></button>`; }).join('')}</div>
+        <div role="group" aria-label="Шаг 2: добавить взамен" class="flex flex-col"><div class="lbl flex items-center gap-2"><span class="stp ${next ? 'done' : CR.outM ? 'on' : ''}">2</span>Добавить взамен</div>
+          ${!CR.outM ? '<div class="mt-1.5 grid min-h-[120px] flex-1 place-items-center border border-dashed border-rule p-4 text-center text-[14px] text-graph">Сначала выберите меру, от которой откажетесь.</div>' : `
+          <div class="relative md:min-h-[330px] md:flex-1"><div data-addlist class="pr-1 md:absolute md:inset-0 md:overflow-y-auto">${S.ds.measures.filter((m) => !remaining.some((d) => d.measure === m.id)).map((m) => {
+            const block = m.id === CR.outM && m.type !== 'district' ? 'Это та же мера — выберите другую' : blockReason(m, null, remaining), on = CR.inn?.measure === m.id;
+            return `<div><button data-add="${esc(m.id)}" aria-pressed="${on}" ${block ? `disabled title="${esc(block)}"` : ''} class="opt ${on ? 'in' : ''}"><span class="rd"></span><span class="min-w-0"><b class="mono text-[12px]">${esc(m.id)}</b> ${esc(m.name)}<span class="block text-[12px] text-graph">${Object.entries(m.effects).map(([k, v]) => `${v > 0 ? '+' : '−'}${Math.abs(v)} ${indShort(k)}`).join(', ')} · лаг ${m.lag}</span>${block ? `<span class="mt-0.5 block text-[12px] font-semibold text-ink">${esc(block)}</span>` : ''}</span><b class="cost text-[20px] ${on ? 'peni' : ''}">${on ? '+' : ''}${m.cost}</b></button>
+              ${on && m.type === 'district' ? `<select data-dist aria-label="Район"><option value="">— выберите район —</option>${S.ds.districts.map((k) => { const b = m.id === CR.outM && decs.some((d) => d.measure === m.id && d.district === k.name) ? 'мера уже здесь' : blockReason(m, k.name, remaining); return `<option value="${esc(k.name)}" ${CR.inn.district === k.name ? 'selected' : ''} ${b ? 'disabled' : ''}>${esc(k.name)}${k.name === CR.ev.event.district ? ' — зона кризиса' : ''}${b ? ' — ' + esc(b) : ''}</option>`; }).join('')}</select>` : ''}</div>`; }).join('')}</div></div>`}
         </div>
       </div>
-      <div class="mt-4 flex flex-col gap-3 border-t border-rule pt-3 sm:flex-row sm:items-center">
-        <div class="min-w-0 flex-1"><div class="mono text-[13px]">бюджет после замены <b style="color:${over ? 'var(--red)' : 'var(--ink)'}">${cost}/${S.ds.budget}</b></div>
-          <div class="mt-1 h-1.5 bg-[#c9d3d5]"><div class="h-full" style="width:${Math.min(100, cost)}%;background:${over ? 'var(--red)' : 'var(--pen)'}"></div></div>
-          <div class="mt-1.5 text-[13px]" style="color:${CR.val?.valid ? 'var(--pen-ink)' : next && CR.val ? 'var(--red)' : 'var(--graph)'}">${status == null ? spinner('Проверяем…') : esc(status)}</div></div>
-        <button id="crGo" class="btn btn-red shrink-0" ${canGo ? '' : 'disabled'}>${CR.submitting ? '<span class="spin"></span> Пересчёт…' : 'Утвердить замену'}</button>
+      <div class="sticky bottom-0 z-10 -mx-5 -mb-5 mt-4 flex flex-col gap-3 border-t border-rule bg-paper px-5 pt-3 sm:flex-row sm:items-center" style="padding-bottom:calc(16px + env(safe-area-inset-bottom,0px))">
+        <div class="min-w-0 flex-1"><div class="flex items-baseline justify-between gap-2 text-[13px] text-graph"><span>Бюджет после замены</span><b class="mono text-[14px]" style="color:${over ? 'var(--red)' : 'var(--ink)'}">${cost}/${S.ds.budget}</b></div>
+          <div class="mt-1 h-1.5 bg-[#c9d3d5]"><div class="h-full" style="width:${Math.min(100, cost / S.ds.budget * 100)}%;background:${over ? 'var(--red)' : 'var(--pen)'}"></div></div>
+          <div class="mt-1.5 text-[13px]" style="color:${CR.val?.valid ? 'var(--pen-ink)' : next && CR.val ? 'var(--red-ink)' : 'var(--graph)'}">${status == null ? spinner('Проверяем…') : esc(status)}</div></div>
+        <button id="crGo" class="btn btn-red shrink-0" ${canGo ? '' : 'disabled'}>${CR.submitting ? '<span class="spin"></span> Пересчитываем…' : 'Утвердить замену'}</button>
       </div>
     </div></div>`;
   $$('#modal [data-rm]').forEach((b) => (b.onclick = () => { CR.outM = b.dataset.rm; CR.inn = null; CR.val = null; renderCrisis(); }));
   $$('#modal [data-add]').forEach((b) => (b.onclick = () => {
     const m = S.mi[b.dataset.add];
     CR.inn = { measure: m.id, district: m.type === 'district' ? (CR.inn?.measure === m.id ? CR.inn.district : null) : null };
+    if (m.type === 'district' && !CR.inn.district) queueMicrotask(() => $('#modal [data-dist]')?.focus({ preventScroll: true }));
     CR.val = null; crisisValidate();
   }));
   const sel = $('#modal [data-dist]'); if (sel) sel.onchange = () => { CR.inn.district = sel.value || null; CR.val = null; crisisValidate(); };
@@ -955,9 +1001,9 @@ async function crisisSubmit() {
 function crisisComment(c = S.crisis) {
   if (!c) return '';
   const r = c.result, ev = c.event, bp = r.best_possible_swap;
-  const parts = [`Кризис стоил ${num(r.crisis_cost)} Score, замена ${c.swap.out} → ${decShort(c.swap.in)} вернула ${sign(r.recovered)}.`];
+  const parts = [`Кризис стоил ${num(r.crisis_cost)} Score, замена ${c.swap.out} → ${decShort(c.swap.in)} дала ${sign(r.recovered)}.`];
   if (r.swap_was_optimal) parts.push('Это лучшая из возможных замен.');
-  else if (bp) parts.push(`Лучшей была бы ${bp.out} → ${decShort(bp.in)}: ${sign(bp.gain)}, Score ${num(bp.score)}.`);
+  else if (bp) parts.push(`Лучшей была бы замена ${bp.out} → ${decShort(bp.in)}: ${sign(bp.gain)}, Score ${num(bp.score)}.`);
   const a = r.approval;
   if (a) parts.push(a.reelected ? `Рейтинг ${num(a.city, 1)}% — аким удерживает кресло.` : `Рейтинг ${num(a.city, 1)}% — ниже 50%: кризис стоил акиму кресла.`);
   return parts.join(' ');
@@ -967,21 +1013,21 @@ function renderCrisisResult() {
   const prevAp = S.r.score.data?.approval?.city;
   const draft = { event: ev, swap: { out: CR.outM, in: CR.inn }, result: r, before: S.r.score.data };
   const inM = S.mi[CR.inn.measure];
-  $('#modal').innerHTML = `<div data-lock data-scroll class="fade grid max-h-[94vh] w-full max-w-[1100px] overflow-y-auto lg:grid-cols-[.9fr_1.1fr]" style="border:1px solid #061a20">
+  $('#modal').innerHTML = `<div data-lock data-scroll tabindex="-1" class="grid max-h-[94vh] w-full max-w-[1100px] overflow-y-auto lg:grid-cols-[.9fr_1.1fr]" style="border:1px solid #061a20;max-height:94dvh">
     ${eventCard(CR.ev, true)}
     <div class="bg-paper p-5">
-      <div class="lbl">Ваш ответ</div>
-      <div class="disp mt-1 text-[46px] font-black leading-[.95]">${esc(CR.outM)} → ${esc(CR.inn.measure)}${CR.inn.district ? ' ' + esc(CR.inn.district) : ''} ${r.swap_was_optimal ? '<span class="peni">!</span>' : ''}</div>
+      <div class="flex flex-wrap items-center gap-x-3 gap-y-1"><h3 class="h2 text-[34px]">Ваш ответ</h3>${r.swap_was_optimal ? '<span class="border border-peni px-2 py-0.5 text-[11.5px] font-semibold uppercase tracking-[.1em] peni">лучшая из возможных замен</span>' : ''}</div>
+      <div class="disp mt-3 text-[40px] font-black leading-[.95] sm:text-[46px]">${esc(CR.outM)} <span class="text-graph">→</span> ${esc(decShort(CR.inn))}</div>
       <div class="mt-1 text-[14px] text-graph">вместо «${esc(S.mi[CR.outM]?.name)}» — «${esc(inM?.name)}»</div>
       <div class="mt-4 grid grid-cols-3 gap-px border border-rule bg-rule text-center">
-        <div class="bg-white p-3"><div class="lbl">до кризиса</div><div class="mid mt-1">${num(r.score_before_crisis)}</div></div>
-        <div class="bg-white p-3"><div class="lbl">без замены</div><div class="mid red mt-1">${num(r.score_after_crisis_no_swap)}</div></div>
-        <div class="bg-white p-3"><div class="lbl">после замены</div><div class="mid peni mt-1">${num(r.score)}</div></div>
+        <div class="bg-white px-2 py-3"><div class="lbl">до кризиса</div><div class="mid mt-1">${num(r.score_before_crisis)}</div><div class="mt-1 text-[12px] text-graph">исходный план</div></div>
+        <div class="bg-white px-2 py-3"><div class="lbl">без замены</div><div class="mid red mt-1">${num(r.score_after_crisis_no_swap)}</div><div class="mt-1 text-[12px] red">кризис <span class="mono">${sign(-r.crisis_cost)}</span></div></div>
+        <div class="bg-white px-2 py-3"><div class="lbl">с заменой</div><div class="mid peni mt-1">${num(r.score)}</div><div class="mt-1 text-[12px] peni">замена <span class="mono">${sign(r.recovered)}</span></div></div>
       </div>
-      <div class="mono mt-3 text-[13px]">кризис −${num(r.crisis_cost)} · замена ${sign(r.recovered)} · ${r.swap_was_optimal ? '<span class="peni">лучшая из возможных</span>' : `лучше было ${esc(r.best_possible_swap?.out)} → ${esc(decShort(r.best_possible_swap?.in || {}))} (${sign(r.best_possible_swap?.gain)})`}</div>
+      ${r.swap_was_optimal || !r.best_possible_swap ? '' : `<div class="mt-3 text-[13.5px] text-graph">Лучшая замена: <b class="mono text-ink">${esc(r.best_possible_swap.out)} → ${esc(decShort(r.best_possible_swap.in || {}))}</b> — Score <b class="mono text-ink">${num(r.best_possible_swap.score)}</b> против ваших <b class="mono text-ink">${num(r.score)}</b></div>`}
       <div class="mt-4 p-3 ${r.approval?.reelected ? 'border border-peni bg-[#effafd]' : 'border border-alarm bg-[#fdf1ef]'}">
         <b class="disp text-[24px] leading-none ${r.approval?.reelected ? 'peni' : 'red'}">Рейтинг ${num(prevAp, 1)}% → ${num(r.approval?.city, 1)}%: ${r.approval?.reelected ? 'аким удерживает кресло' : 'аким уволен'}</b>
-        <p data-comment class="m-0 mt-2 text-[14px]">${esc(crisisComment(draft))}</p><div class="mono mt-1 text-[11px] text-graph">все числа — из движка</div></div>
+        <p data-comment class="m-0 mt-2 text-[14px]">${esc(crisisComment(draft))}</p><div class="mt-2 text-[12px] text-graph">Рейтинг — слой политического риска, не входит в Score · все числа из движка</div></div>
       <div class="mt-5 flex flex-wrap gap-2"><button id="crVerdict" class="btn btn-ink">Вердикт после кризиса</button><button id="crPaper" class="btn btn-line">Открыть газету</button></div>
     </div></div>`;
   const apply = () => {
@@ -996,6 +1042,7 @@ function renderCrisisResult() {
   $('#crVerdict').onclick = () => { apply(); go('verdict'); };
   $('#crPaper').onclick = () => { apply(); go('paper'); };
   $('#crVerdict').focus({ preventScroll: true });
+  const sc = $('#modal [data-scroll]'); if (sc && innerWidth < 1024) sc.scrollTop = $('#modal .opp').offsetHeight;
 }
 
 /* =====================================================================
@@ -1010,7 +1057,8 @@ function renderPaper() {
     root.innerHTML = `<div class="plate mx-auto max-w-xl p-8 text-center"><div class="h2">Редакция не ответила</div><p class="text-graph">${esc(r.error)}</p><button id="paperRetry" class="btn btn-ink">Повторить</button></div>`;
     $('#paperRetry').onclick = () => { loadNarrative(); renderPaper(); }; return;
   }
-  const n = r.data.newspaper || {}, council = r.data.council || [];
+  const dc = (o) => (typeof o === 'string' ? o.replace(/(\d)\.(?=\d)/g, (m, d) => d + ',') : Array.isArray(o) ? o.map(dc) : o && typeof o === 'object' ? Object.fromEntries(Object.entries(o).map(([k, v]) => [k, dc(v)])) : o);
+  const n = dc(r.data.newspaper || {}), council = dc(r.data.council || []); // decimal comma in API prose; numeric fields untouched
   const sc = S.r.score?.data, opt = S.r.opt?.data;
   const hs = n.headlines || [], lead = hs[0] || { title: 'Итоги двух лет', lead: '' };
   const crit = n.crit_sidebar || [];
@@ -1020,27 +1068,27 @@ function renderPaper() {
   const provider = r.data.provider || 'offline';
   root.innerHTML = `
     <article id="newspaper" class="tele fade">
-      <div class="mono flex justify-between text-[11.5px] text-graph"><span>${esc(n.date || 'IV квартал 2028')}</span><span>выпуск № 208</span><span>Астана</span></div>
+      <div class="flex flex-wrap justify-between gap-x-4 border-b border-rule pb-2 text-[11.5px] font-semibold uppercase tracking-[.1em] text-graph"><span>${esc(n.date || 'IV квартал 2028')}</span><span>выпуск № 208</span><span>Астана</span></div>
       <div class="mast">${esc(n.masthead || 'Астана Times')}</div>
-      <div class="border-y-2 border-ink py-1 text-center font-mono text-[11.5px] uppercase tracking-[.2em]">специальный выпуск · итоги срока акима</div>
-      ${S.crisis ? `<div class="mono mt-4 text-center text-[12px] uppercase tracking-widest red">кризис III квартала: ${esc(S.crisis.event.title)}</div>` : ''}
+      <div class="border-y-2 border-ink py-1.5 text-center text-[12px] font-semibold uppercase tracking-[.18em]">специальный выпуск · итоги срока акима</div>
       <div class="hl">${esc(lead.title)}</div>
-      <p class="body m-0">${esc(lead.lead || '')}</p>
-      ${hs.slice(1).map((h) => `<div class="item"><b>■ ${esc(h.title)}</b><div class="body">${esc(h.lead || '')}</div></div>`).join('')}
-      ${n.editorial ? `<div class="item mt-6 border-t border-dashed border-rule pt-4"><b>— от редакции —</b><div class="body italic">${esc(typeof n.editorial === 'string' ? n.editorial : n.editorial.body || '')}</div></div>` : ''}
-      <div class="mt-6 grid gap-5 border-t-2 border-ink pt-4 sm:grid-cols-2">
-        <div><div class="lbl mb-1">Что утвердил аким</div><ol class="body m-0 pl-5 text-[13.5px]">${decs.map((d) => `<li>${esc(S.mi[d.measure]?.name || d.measure)} — ${d.district ? esc(d.district) : 'весь город'}</li>`).join('')}</ol></div>
-        <div><div class="lbl mb-1">Цифры срока</div><div class="grid grid-cols-2 gap-2">
+      <p class="body lede m-0">${esc(lead.lead || '')}</p>
+      ${S.crisis ? `<p class="m-0 mt-3 text-[13px] font-semibold uppercase tracking-[.12em] red">Кризис III квартала: ${esc(S.crisis.event.title)}</p>` : ''}
+      <div class="grid gap-x-8 sm:grid-cols-2">${hs.slice(1).map((h) => `<div class="item"><b>${esc(h.title)}</b><div class="body">${esc(h.lead || '')}</div></div>`).join('')}</div>
+      ${n.editorial ? `<div class="item ed"><b>От редакции</b><div class="body italic">${esc(typeof n.editorial === 'string' ? n.editorial : n.editorial.body || '')}</div></div>` : ''}
+      <div class="mt-8 grid gap-x-12 gap-y-8 border-t-[3px] border-ink pt-6 sm:grid-cols-2">
+        <div><div class="lbl shd">Что утвердил аким</div><ol class="m-0 list-none p-0">${decs.map((d, i) => `<li class="grid grid-cols-[18px_1fr_auto] items-baseline gap-x-2 border-b border-rule py-[7px] text-[15px] leading-snug"><span class="mono text-[11px] text-graph">${i + 1}</span><span>${esc(S.mi[d.measure]?.name || d.measure)}</span><span class="whitespace-nowrap text-[13px] font-semibold text-graph">${d.district ? esc(d.district) : 'весь город'}</span></li>`).join('')}</ol></div>
+        <div><div class="lbl shd">Цифры срока</div><div class="grid grid-cols-2 gap-x-6 gap-y-5 pt-4">
           ${sc ? `<div><div class="mid">${num(sc.score)}</div><div class="text-[12px] text-graph">Score</div></div>` : ''}
-          ${sc?.approval ? `<div><div class="mid ${sc.approval.reelected ? '' : 'red'}">${num(sc.approval.city, 1)}%</div><div class="text-[12px] text-graph">рейтинг акима</div></div>` : ''}
-          ${sc ? `<div><div class="mid">${sc.cost}/${S.ds.budget}</div><div class="text-[12px] text-graph">бюджет</div></div>` : ''}
-          ${opt ? `<div><div class="mid">${int(opt.rank)}</div><div class="text-[12px] text-graph">${S.crisis ? 'место до кризиса' : 'место из 694 395'}</div></div>` : ''}</div></div>
+          ${sc?.approval ? `<div><div class="mid ${sc.approval.reelected ? '' : 'red'}">${num(sc.approval.city, 1)}%</div><div class="text-[12px] text-graph leading-tight">рейтинг акима<br>слой политического риска, не входит в Score</div></div>` : ''}
+          ${sc ? `<div><div class="mid">${sc.cost}<span class="text-graph" style="font-size:.6em">/${S.ds.budget}</span></div><div class="text-[12px] text-graph">единиц бюджета</div></div>` : ''}
+          ${opt ? `<div><div class="mid">${int(opt.rank)}</div><div class="text-[12px] text-graph">${S.crisis ? 'место до кризиса' : 'место'} из ${int(opt.total_valid)}</div></div>` : ''}</div></div>
       </div>
-      ${sc ? `<div class="mt-5"><div class="lbl mb-1">Индекс районов · до → после</div><table class="log"><tbody>${Object.entries(sc.districts).map(([name, d]) => `<tr><td style="text-align:left">${esc(name)}</td><td>${num(d.D_before)} → ${num(d.D_after)}</td><td style="width:80px"><b class="${d.D_after - d.D_before > .005 ? 'peni' : ''}">${sign(d.D_after - d.D_before)}</b></td></tr>`).join('')}</tbody></table></div>` : ''}
-      <div class="mt-5 border border-alarm p-3"><div class="mono text-[12px] font-semibold uppercase tracking-widest red">Критические зоны</div>
-        ${crit.length ? crit.map((z) => `<div class="body">${esc(z.district)} · ${esc(z.indicator)} ${esc(indShort(z.indicator))} — ${num(z.value, 1)}</div>`).join('') : `<div class="body">Ячеек ниже ${S.ds.crit_threshold} нет.${sc ? ` Слабейший район — ${esc(sc.d_min_district)}: ${num(sc.d_min)}.` : ''}</div>`}</div>
-      ${pick.length ? `<div class="mt-5 grid gap-4 sm:grid-cols-2">${pick.map((q) => `<blockquote class="m-0 border-l-2 border-ink pl-3"><p class="m-0 text-[14.5px] italic leading-snug">«${esc(unq(q.quote))}»</p><div class="mt-1 text-[12px] text-graph">— ${esc(q.deputy)}</div></blockquote>`).join('')}</div>` : ''}
-      <div class="mono mt-6 flex justify-between border-t border-dashed border-rule pt-2 text-[11px] text-graph"><span>цифры — движок AQLS · ИИ пишет текст, но не считает</span><span>${provider === 'offline' ? 'текст: офлайн-шаблон' : 'текст: ИИ-редакция (' + esc(provider) + ')'}</span></div>
+      ${sc ? `<div class="mt-8"><div class="lbl shd">Индекс районов: до и после срока</div><table class="log"><tbody>${Object.entries(sc.districts).map(([name, d]) => `<tr><td style="text-align:left;font:600 15px 'Sofia Sans',sans-serif">${esc(name)}${name === sc.d_min_district ? ' <span class="hidden text-[12px] font-normal text-graph sm:inline">· слабейший</span>' : ''}</td><td class="whitespace-nowrap">${num(d.D_before)} → ${num(d.D_after)}</td><td class="whitespace-nowrap" style="width:1%"><b class="${d.D_after - d.D_before > .005 ? 'peni' : ''}">${sign(d.D_after - d.D_before)}</b></td></tr>`).join('')}</tbody></table></div>` : ''}
+      <div class="mt-6 border-y ${crit.length ? 'border-alarm' : 'border-rule'} py-3"><div class="lbl mb-1 ${crit.length ? 'red' : ''}">Критические зоны</div>
+        ${crit.length ? crit.map((z) => `<div class="body">${esc(z.district)} · ${esc(indShort(z.indicator))} — <b class="mono red">${num(z.value, 1)}</b></div>`).join('') : `<div class="body">Показателей ниже порога ${S.ds.crit_threshold} нет.${sc ? ` Слабейший район — ${esc(sc.d_min_district)}: ${num(sc.d_min)}.` : ''}</div>`}</div>
+      ${pick.length ? `<div class="mt-8"><div class="lbl shd">Голоса горсовета</div><div class="grid gap-x-12 gap-y-5 pt-4 sm:grid-cols-2">${pick.map((q) => `<blockquote class="m-0"><p class="m-0 text-[16.5px] italic leading-[1.45]">«${esc(unq(q.quote)).replace(/«/g, '„').replace(/»/g, '“')}»</p><div class="mt-2 text-[12.5px] font-semibold text-graph">— ${esc(q.deputy)}</div></blockquote>`).join('')}</div></div>` : ''}
+      <div class="mt-8 flex flex-wrap justify-between gap-x-6 gap-y-1 border-t border-dashed border-rule pt-2.5 text-[12px] text-graph"><span>цифры — движок AQLS · ИИ пишет текст, но не считает</span><span>${provider === 'offline' ? 'текст: офлайн-шаблон' : 'текст: ИИ-редакция (' + esc(provider) + ')'}</span></div>
     </article>
     <div class="mx-auto mt-6 flex max-w-[900px] flex-wrap justify-center gap-2"><button data-go="verdict" class="btn btn-line">← К вердикту</button><button data-go="board" class="btn btn-ink">В лидерборд</button></div>`;
 }
@@ -1076,19 +1124,19 @@ function renderBoard() {
   $('#tab-board').innerHTML = `
     <div class="mb-6 flex flex-wrap items-end justify-between gap-4">
       <div><h1 class="disp m-0 text-[44px] font-black leading-[.95]">Лидерборд${CONFIG.SESSION ? ' · комната ' + esc(CONFIG.SESSION) : ''}</h1>
-        <p class="mt-2 text-graph">Сортировка по Score. Смотрите на рейтинг: лучший индекс не всегда переизбирают.</p></div>
-      <button id="btnReveal" class="btn ${B.reveal ? 'btn-red' : 'btn-line'}">${B.reveal ? 'Скрыть оптимум движка' : 'Показать оптимум движка'}</button>
+        <p class="mt-2 text-graph">Сортировка по Score. Следите и за рейтингом: аким с лучшим Score не всегда переизбирается.</p></div>
+      <button id="btnReveal" class="btn ${B.reveal ? 'btn-ink' : 'btn-line'}">${B.reveal ? 'Скрыть оптимум движка' : 'Показать оптимум движка'}</button>
     </div>
     <div class="grid gap-4 lg:grid-cols-[320px_1fr]">
       <form id="lbForm" class="plate h-fit p-4">
         <div class="lbl mb-2">Сохранить результат</div>
-        ${has ? `<div class="tape mb-3">Score ${num(sc.score)} · рейтинг ${num(sc.approval?.city, 1)}%${S.crisis ? '<br><span class="text-graph">сервер пересчитает Score по плану без кризиса</span>' : ''}</div>` : '<div class="tape mb-3 text-graph">Сначала получите вердикт в кабинете.</div>'}
+        ${has ? `<div class="tape mb-3">Score ${num(sc.score)} · рейтинг ${num(sc.approval?.city, 1)}%${S.crisis ? '<br><span class="text-graph">в таблицу попадёт Score этого плана без учёта кризиса</span>' : ''}</div>` : '<div class="tape mb-3 text-graph">Сначала получите вердикт в кабинете.</div>'}
         <label class="lbl" for="team">Название команды</label>
-        <input id="team" maxlength="${40 - TAG.length}" required autocomplete="off" placeholder="Например, «Сарыарка вперёд»" class="mt-1 w-full border-[1.5px] border-ink bg-white px-3 py-2.5 text-[15px] outline-none focus:border-pen" ${has ? '' : 'disabled'}>
-        <button class="btn btn-ink mt-3 w-full" ${has ? '' : 'disabled'}>Отправить</button>
+        <input id="team" maxlength="${40 - TAG.length}" required autocomplete="off" placeholder="Например, «Сарыарка вперёд»" class="mt-1 w-full border-[1.5px] border-ink bg-white px-3 py-2.5 text-[15px] focus:border-peni" ${has ? '' : 'disabled'}>
+        <button class="btn btn-ink mt-3 w-full" ${has ? '' : 'disabled'}>Сохранить в таблицу</button>
         <div id="lbMsg" class="mt-2 min-h-[18px] text-[13px] text-graph" aria-live="polite"></div>
       </form>
-      <div class="paper p-4"><div class="mb-2 flex items-center justify-between"><span class="lbl">Таблица</span><span id="lbStatus" class="mono text-[11px] text-graph"></span></div><div id="lbTable" class="overflow-x-auto"></div></div>
+      <div class="paper min-w-0 p-4"><div class="mb-2 flex items-center justify-between"><span class="lbl">Таблица</span><span id="lbStatus" class="mono text-[11px] text-graph"></span></div><div id="lbTable" class="overflow-x-auto"></div></div>
     </div>`;
   $('#btnReveal').onclick = revealOptimum;
   $('#lbForm').onsubmit = async (e) => {
@@ -1098,9 +1146,9 @@ function renderBoard() {
     try {
       const full = team + TAG;
       const r = await api('POST', '/api/submit', { team: full, plan: S.plan, score: sc.score });
-      B.mine = full; $('#lbMsg').textContent = `Готово — вы на ${r.rank ?? '?'}-м месте в общей таблице.`; $('#team').value = '';
+      B.mine = full; $('#lbMsg').textContent = r.rank != null ? `Готово — вы на ${r.rank}-м месте в общей таблице.` : 'Готово — результат сохранён.'; $('#team').value = '';
       refreshBoard();
-    } catch (err) { $('#lbMsg').textContent = 'Не удалось отправить: ' + err.message; }
+    } catch (err) { $('#lbMsg').textContent = 'Не удалось сохранить: ' + err.message; }
   };
   renderBoardTable();
 }
@@ -1111,7 +1159,7 @@ function renderBoardTable() {
   const pinned = [];
   if (B.reveal && B.opt) {
     pinned.push({ team: 'Оптимум движка · перебор 694 395 планов', score: B.opt.best.score, approval: B.opt.best.approval, cost: B.opt.best.cost, plan: B.opt.best.plan, pin: 'opt' });
-    if (B.opt.balanced) pinned.push({ team: 'Баланс · лучший план с рейтингом ≥50%', score: B.opt.balanced.score, approval: B.opt.balanced.approval, cost: B.opt.balanced.cost, plan: B.opt.balanced.plan, pin: 'bal' });
+    if (B.opt.balanced) pinned.push({ team: 'Баланс · лучший план с рейтингом от 50%', score: B.opt.balanced.score, approval: B.opt.balanced.approval, cost: B.opt.balanced.cost, plan: B.opt.balanced.plan, pin: 'bal' });
   }
   const rows = [...pinned, ...B.rows].sort((a, b) => (b.score ?? 0) - (a.score ?? 0));
   if (!rows.length) { t.innerHTML = '<div class="py-6 text-center text-graph">Пока пусто. Будьте первыми.</div>'; return; }
@@ -1143,8 +1191,8 @@ async function boot() {
   indexDataset(raw);
   S.slots = Array(S.ds.decisions_required).fill(null);
   const mb = $('#modeBadge');
-  mb.textContent = SOURCE === 'api' ? 'движок · API' : 'демо-запись';
-  if (SOURCE === 'api') api('GET', '/api/health').then((h) => { mb.textContent = `движок · ИИ: ${h.provider === 'offline' ? 'офлайн' : h.provider}`; }).catch(() => {});
+  mb.textContent = SOURCE === 'api' ? 'движок онлайн' : 'демо: записанные ответы';
+  if (SOURCE === 'api') api('GET', '/api/health').then((h) => { mb.textContent = `движок онлайн · тексты: ${h.provider === 'offline' ? 'шаблон' : 'ИИ, ' + h.provider}`; }).catch(() => {});
   onPlanChange();
   const h = location.hash.replace('#', '');
   go(h === 'board' ? 'board' : 'cabinet');

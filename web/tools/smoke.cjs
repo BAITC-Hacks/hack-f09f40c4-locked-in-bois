@@ -31,7 +31,7 @@ const SHOTS = process.env.SHOTS === '1';
     await page.click('#btnExample');
     await page.waitForFunction(() => !document.querySelector('#btnSubmit').disabled, null, { timeout: 15000 });
     console.log(tag, 'rail msg:', (await page.textContent('#rail [aria-live]')).trim());
-    if (SHOTS && tag === 'desktop') await page.screenshot({ path: path.join(OUT, 'cabinet.png') });
+    if (SHOTS && tag === 'desktop') { await page.waitForTimeout(2800); await page.screenshot({ path: path.join(OUT, 'cabinet.png') }); }
     await page.click('#btnSubmit');
     await page.waitForSelector('#vScore .big', { timeout: 20000 });
     await page.waitForSelector('#vRegret [data-regret]', { timeout: 20000 });
