@@ -26,16 +26,6 @@ uvicorn api.main:app
 
 Для проверки интерфейса на сохранённых ответах откройте **http://localhost:8000/?mock=1**. Этот режим воспроизводит фикстуры `web/mock/` для примера из условия; произвольные планы проверяйте с работающим API. Офлайн-режим ИИ не требует ключей, но оформление и графики загружают Tailwind, Chart.js и шрифты с CDN.
 
-<details><summary>Через виртуальное окружение (рекомендуется)</summary>
-
-```bash
-python -m venv .venv
-source .venv/bin/activate        # Windows: .venv\Scripts\activate
-pip install -r requirements.txt
-uvicorn api.main:app
-```
-</details>
-
 **Режимы ИИ** (`.env`, см. `.env.example`):
 
 | `LLM_PROVIDER` | Что нужно | Что происходит |
@@ -100,9 +90,7 @@ uvicorn api.main:app
 4. **Совет районов:** пять депутатов, по одному от района, реагируют на план и цитируют реальные изменения своего района.
 5. **Кризис «5-го часа».** В III квартале случается событие: прорыв теплотрассы в Алматы (C1 −12), смоговая зима в Сарыарке (E2 −10) или переполнение школ в Есиле (S1 −8). Нужно заменить ровно одну меру, не выходя из бюджета. Система показывает цену кризиса, сколько вы отыграли и была ли ваша замена лучшей из возможных.
    ![Кризис](docs/screenshots/crisis.png)
-6. **«Астана Times», IV квартал 2028:** первая полоса газеты о последствиях ваших решений. Заголовки строятся из самых больших изменений и нерешённых проблем, а врезка показывает оставшиеся критические ячейки.
    ![Газета](docs/screenshots/newspaper.png)
-7. **Лидерборд:** результаты команд. Сервер пересчитывает Score по присланному плану и не принимает значение от клиента.
 
 На экране «Вердикт» ниже аналитика — панели «Разбор партии», «Стресс-тест кризисами», «Цена обещания» (API-запросы — в [контракте](api/CONTRACT.md#новые-функции)):
 
@@ -145,30 +133,6 @@ uvicorn api.main:app
 - **`api/`** — FastAPI. Отдаёт фронтенд как статику, так что запускается одной командой.
 - **`web/`** — `web/index.html` и модули `web/panels/` (grade, stress, promise), без сборки; Tailwind и Chart.js с CDN. Если сервер недоступен, интерфейс переключается на записанные ответы движка для примера из условия (`web/mock/`, принудительно — `?mock=1`).
 - **ИИ объясняет, но не считает.** Агент получает цифры только через инструменты движка. Всё, что он пишет, проходит через ограничитель чисел (см. ниже). Ограничитель проверяет, что число есть в источниках, но не его привязку к конкретной метрике.
-
-### Структура репозитория
-
-```
-data/dataset.json          районы, показатели, веса, 14 мер, синергии, несовместимости, правила
-data/events.json           3 кризисных события
-data/optimizer_cache.json  результат полного перебора (коммитится; пересобирается одной командой)
-data/stress_cache.json     антикризисные оптимумы и распределение худших результатов
-data/promise_table.xz      сжатая таблица допустимых планов для точной цены обещаний
-data/grading_cache.json    точные потолки первого решения и планы, которые их достигают
-engine/                    model · validate · score · approval · optimize · shock · stress · promise · grading · receipt · duel · fairness · calendar
-api/main.py                маршруты + статика
-api/agent.py               агент, провайдеры, ограничитель чисел, офлайн-анализ, одностраничник
-api/prompts.py             системные промпты (RU)
-api/narrative.py           офлайн-шаблоны: Совет районов и газета
-api/db.py                  лидерборд (SQLite)
-api/CONTRACT.md            контракт API: поля и форматы
-web/index.html             интерфейс
-web/panels/                панели «Разбор партии», «Стресс-тест кризисами», «Цена обещания»
-web/mock/                  записанные ответы API для примера из условия (резервный режим, ?mock=1)
-web/tools/                 smoke.cjs — сквозной тест интерфейса; capture_fixtures.py — обновление web/mock
-docs/screenshots/          скриншоты для README
-tests/                     pytest: эталонные числа, правила, API, агент
-```
 
 ### Технологии
 
@@ -255,9 +219,6 @@ tests/                     pytest: эталонные числа, правила
 3. **Оптимум формулы не проходит порог переизбрания.** У плана со Score 57.24 рейтинг акима 48.41. Лучший план с рейтингом ≥ 50 (M3, M7, M8 в Нуре · M11 в Есиле · M14) даёт **57.00** при рейтинге **53.35**. Разница по Score составляет 0.24 балла.
 4. **M11 в Алматы снижает Score.** «Безопасные переходы» снижают T1 на 2 (с учётом лага на 1.75). В Алматы T1 = 40 ровно на пороге. После меры он падает до **38.25**, и появляется новая критическая ячейка, которая снижает Score на 1. ИИ-аналитик отмечает этот случай.
 5. **Влияние лага.** M3 (ЛРТ) и M13 (теплосети) реализуются за 8 кварталов лишь на 50%, M6 — тоже на 50%. Поэтому дорогие долгосрочные проекты дают меньший вклад в Score, чем быстрые недорогие меры.
-6. **Максимальный обычный Score не гарантирует лучший результат в кризис.** У примера худший отдельный сценарий — теплотрасса в Алматы (**55.34**, потеря **1.20**), у глобального оптимума — смог в Сарыарке (**56.08**, потеря **1.16**). В «чёрную зиму» они дают **54.02** и **55.71** соответственно. Антикризисный план M5 Сарыарка · M8, M9 Нура · M6, M14 стоит **91**, даёт **56.49** без кризиса, рейтинг **52.21**, а в худшем отдельном кризисе сохраняет **56.29** (потеря **0.20**). При всех кризисах сразу он даёт **55.97**. Его худший одиночный результат на **0.21** выше, чем у обычного оптимума, ценой **0.75** обычного Score.
-7. **Обещания имеют разную цену.** «Рейтинг ≥ 50» оставляет **657 031** допустимый план и стоит **0.24** балла. «Каждому району — свой проект» оставляет **14 520** планов и стоит **2.42**: лучший вариант M3 Есиль · M4 Алматы · M10 Сарыарка · M9 Байконур · M7 Нура даёт **54.82** при стоимости **91** и рейтинге **64.86**. Это цена именно адресных проектов во всех районах; общегородские программы не засчитываются как районный проект.
-8. **Разбор отличает локальную замену от потери потолка.** У примера оценки и потери: M7 — **Лучший ход, 0.00**; M8 — **Лучший ход, 0.00**; M10 — **Отличный ход, 0.09**; M12 — **Отличный ход, 0.10**; M5 — **Хороший ход, 0.22**. Точность **91.94%**. Для M5 лучшая сохраняющая переизбрание замена — M3 в Есиле (**56.76**, рейтинг **53.53**); неограниченный максимум замены — M3 в Нуре (**57.21**, рейтинг **46.70**). Последний выбор снижает потолок на **0.67**, весь план отстаёт от оптимума на **0.70**. У глобального оптимума все ходы — **Лучший ход**, точность **100.00%**, потолок остаётся **57.24** на каждом шаге.
 
 </details>
 
@@ -265,79 +226,7 @@ tests/                     pytest: эталонные числа, правила
 
 ## API
 
-Полный контракт с полями: [`api/CONTRACT.md`](api/CONTRACT.md). Интерактивная документация: `/docs`.
-
-Запросы с NaN, Infinity или недопустимыми суррогатами Unicode отклоняются с HTTP 422 и пояснением на русском в `detail`.
-
-| Метод | Путь | Назначение |
-|---|---|---|
-| GET | `/api/dataset` | датасет как есть |
-| POST | `/api/validate` | живая проверка плана (в том числе неполного) |
-| POST | `/api/score` | Score, районы, таймлайн, вклад мер, рейтинг |
-| POST | `/api/optimize` | место среди 694 395, процентиль, Парето, лучший в бюджете |
-| POST | `/api/approval` | рейтинг акима (слой риска) |
-| POST | `/api/stress` | отдельные кризисы, «чёрная зима», лучшие замены, антикризисный план |
-| POST | `/api/promise` | лучший план с обещаниями, их цена и проверка вашего плана |
-| GET | `/api/promise/catalog` | готовые обещания с ценой каждого по отдельности |
-| POST | `/api/grade` | оценки ходов, точность, альтернативы и достижимые потолки |
-| POST | `/api/receipt` | чек расчёта Score: слагаемые, эффекты мер, синергии и округление |
-| POST | `/api/duel` | сравнение `plan_a` с `plan_b`; без `plan_b` — с глобальным оптимумом и лучшим планом в пределах стоимости |
-| POST | `/api/fairness` | разрыв районных индексов, Джини, доли расходов и населения |
-| POST | `/api/calendar` | критические показатели по кварталам, сроки выхода и запас до порога |
-| POST | `/api/analyze` | ИИ-анализ (агент или офлайн) |
-| POST | `/api/narrative` | Совет районов + «Астана Times» |
-| POST | `/api/shock`, `/api/shock/resolve` | кризис, замена меры и текстовый комментарий `comment` к её результату |
-| POST/GET | `/api/submit`, `/api/leaderboard` | лидерборд |
-| GET/POST | `/api/brief` | одностраничник команды в Markdown (авто-презентация) |
-
-Пример:
-```bash
-curl -s localhost:8000/api/score -H "Content-Type: application/json" -d '{"decisions":[
- {"measure":"M7","district":"Нура"},{"measure":"M8","district":"Нура"},{"measure":"M10","district":"Нура"},
- {"measure":"M12","district":null},{"measure":"M5","district":"Сарыарка"}]}'
-# → {"score": 56.54, "baseline": 52.56, "delta": 3.98, "cost": 95, ...}
-```
-
-> **Windows (Git Bash / cmd):** curl может испортить кириллицу в аргументах командной строки. Сохраните тело запроса в файл в UTF-8 и отправьте его как `--data-binary @<файл>`. Проще всего — через Swagger на `/docs`.
-
----
-
-## Тесты
-
-```bash
-pip install -r requirements.txt
-python -m pytest -q
-```
-
-`tests/test_criteria.py` проверяет пять критериев кейса (см. выше). Остальные тесты проверяют эталонные числа (52.56 · 56.54 · 55.67 · 57.24), число допустимых планов (694 395), каждое правило валидатора, случай M11 в Алматы, калибровку рейтинга, кризисы, все маршруты API, офлайн-режим агента и ограничитель чисел (включая подставную LLM, которая выдумывает числа).
-
-Стресс-тесты, цена обещаний и разбор партии проверяются в `tests/test_stress.py`, `tests/test_promise.py` и `tests/test_grading.py`. Примеры новых ответов в контракте получены запуском функций движка через настоящий API с `TestClient`.
-
-**Smoke-тест фронтенда** (нужны Node.js, Playwright с Chromium и запущенное приложение):
-
-```bash
-npm i --no-save playwright && npx playwright install chromium
-node web/tools/smoke.cjs
-node web/tools/smoke.cjs "http://127.0.0.1:8000/?mock=1&seed=1" # только экраны примера
-```
-
-Скрипт проходит кабинет, вердикт, кризис, газету и лидерборд на компьютере и телефоне. Если Playwright не найден, укажите путь к модулю в `PLAYWRIGHT_PATH`. По умолчанию он не обновляет скриншоты и не добавляет записи в настоящий лидерборд; `?mock=1` использует фикстуры. Снимки в `docs/screenshots/`: `hero.png` — газета, `cabinet.png` — кабинет, `verdict.png` — вердикт со шкалами, `crisis.png` — результат замены, `newspaper.png` — газета на телефоне.
-
-**Пересборка кэша оптимизатора** (нужна только при изменении датасета):
-```bash
-python -m engine.optimize      # ≈ 21 с, пишет data/optimizer_cache.json
-RUN_SLOW=1 python -m pytest -q           # плюс тест с полным перебором (Windows PowerShell: $env:RUN_SLOW=1; python -m pytest -q)
-```
-
-**Пересборка кэшей новых функций** (обычному запуску не нужна):
-
-```bash
-python -m engine.stress        # data/stress_cache.json
-python -m engine.promise       # data/promise_table.xz
-python -m engine.grading       # data/grading_cache.json
-```
-
-Команды выполняют полный перебор и печатают фактическое время работы. В Windows используйте Python из окружения, например `.venv/Scripts/python -m engine.grading`; полный набор тестов — `.venv/Scripts/python -m pytest -q`.
+Все маршруты, поля и примеры — в [`api/CONTRACT.md`](api/CONTRACT.md) и в Swagger на `/docs`.
 
 ---
 
@@ -395,9 +284,3 @@ python -m pytest tests/test_criteria.py -v
 ## English summary
 
 **Akim's Cabinet** is an AI city-management simulator for the HackAlem "Akim for 5 hours" case. The player makes exactly 5 decisions within a budget of 100 across transport, ecology, social infrastructure, safety and city services. A deterministic Python engine computes the official Astana Quality of Life Score (52.56 baseline, 56.54 for the case example, verified by tests). An LLM agent then explains the result. It reaches numbers only through tools (`score`, `validate`, `optimize_same_budget`, `what_if`, `remove_one`, `stress_test`, `grade_plan`, `price_of_promise`), and a regex number guard rejects any number that didn't come from the engine. Calculations and template-based analysis run locally; browser styling, fonts and charts require internet access (CDNs).
-
-Key features: the engine enumerates **all 694,395 valid plans**, so every player sees their exact rank, their gap to the 57.24 ceiling, and the cost→score Pareto frontier. The data holds a real tension. The formula's optimum puts every district-level measure into Nura (16% of residents), and the political-risk layer (not part of the Score) places this plan below the 50% re-election threshold. The best re-electable plan scores 57.00. Extras: a Q3 crisis that forces one swap, a District Council of five deputies, an "Astana Times 2028" front page, a leaderboard with server-side score verification and an auto-generated Markdown brief.
-
-New engine/API features: crisis stress testing (the case example falls to **55.34**, or **54.02** with all crises together), exact promise pricing (**0.24** Score for approval ≥ 50; **2.42** for a district project everywhere), and chess-style move review (**91.94%** accuracy for the case example). The robust plan keeps **56.29** in its worst single crisis. The UI uses light graph paper, analog dials and a newspaper layout; the new analytical endpoints can be tried in `/docs`. Frontend smoke test: `node web/tools/smoke.cjs`; fixture mode: `?mock=1`. Browser styling, fonts and charts use CDNs.
-
-Run: `pip install -r requirements.txt && uvicorn api.main:app` → http://localhost:8000. Test: `python -m pytest -q`.
