@@ -206,9 +206,9 @@
         <p class="promise-note">Допустимых планов: <span class="mono">${escape(integer(data.count_feasible))}</span> из <span class="mono">${escape(integer(data.total_valid))}</span>.</p>
       </section>
       ${best ? `<section class="sheet-w promise-pad"><h3 class="sm promise-zero">Лучший план, который держит слово</h3>
-        <div class="promise-metrics"><div><div class="lbl">Score с обещаниями</div><div class="mid peni">${escape(number(best.score))}</div></div><div><div class="lbl">Без ограничений</div><div class="mid">${escape(number(data.unconstrained_best))}</div></div><div><div class="lbl">Бюджет, ед.</div><div class="mid">${escape(number(best.cost))}</div></div></div>
+        <div class="promise-metrics"><div><div class="lbl">Score с обещаниями</div><div class="mid peni">${escape(number(best.score))}</div></div><div><div class="lbl">Без ограничений</div><div class="mid">${escape(number(data.unconstrained_best))}</div></div><div><div class="lbl">Бюджет, ед.</div><div class="mid">${escape(integer(best.cost))}</div></div></div>
         <ul class="promise-decisions">${best.plan.decisions.map((d) => `<li class="promise-decision"><span class="code">${escape(d.measure)}</span><span>${escape(measure(d.measure)?.name || d.measure)}<span class="mut" style="display:block">${escape(location(d.district))}</span></span></li>`).join('')}</ul>
-        <button type="button" class="btn btn-pen" data-apply aria-label="Загрузить этот план: лучший с выбранными обещаниями" ${typeof ctx.onApplyPlan === 'function' ? '' : 'disabled'}>Загрузить этот план</button>
+        <button type="button" class="btn btn-pen" data-apply aria-label="Загрузить этот план: лучший с выбранными обещаниями" ${ctx.mock ? 'disabled title="Запустите сервер, чтобы проверить этот план"' : typeof ctx.onApplyPlan === 'function' ? '' : 'disabled'}>Загрузить этот план</button>
         <p class="promise-note">Рейтинг акима: <span class="mono">${escape(number(best.approval))}%</span> — слой политического риска, не входит в Score.</p>
         <p data-apply-status role="status" class="promise-note"></p>
       </section>` : ''}

@@ -152,7 +152,8 @@
       content.innerHTML = resultsHTML(data, ctx.mock);
       announcement.textContent = 'Стресс-тест завершён. ' + prose(data.verdict);
       const button = content.querySelector('[data-stress-apply]');
-      button.disabled = typeof ctx.onApplyPlan !== 'function';
+      button.disabled = ctx.mock || typeof ctx.onApplyPlan !== 'function';
+      if (ctx.mock) button.title = 'Запустите сервер, чтобы проверить этот план';
       const status = content.querySelector('[data-stress-apply-status]');
       button.onclick = async () => {
         if (!current() || button.disabled || button.getAttribute('aria-disabled') === 'true') return;

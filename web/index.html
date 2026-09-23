@@ -12,7 +12,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Sofia+Sans+Extra+Condensed:wght@600;700;800;900&family=Sofia+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdn.tailwindcss.com"></script>
 <script>
-  tailwind.config = {
+  if (window.tailwind) tailwind.config = {
     theme: {
       extend: {
         colors: { paper: '#f0f5f5', ink: '#0d2a33', pen: '#19b8d8', peni: '#076a7e', alarm: '#cf3a2c', steel: '#dfe5e6', rule: '#b9c7ca', graph: '#56696f' },
@@ -171,6 +171,7 @@
   [data-scroll],[data-addlist]{scrollbar-width:thin;scrollbar-color:#9fb0b4 transparent} [data-scroll]:focus{outline:none}
   @media(min-width:768px){[data-addlist]{padding-bottom:28px;-webkit-mask-image:linear-gradient(#000 calc(100% - 28px),transparent);mask-image:linear-gradient(#000 calc(100% - 28px),transparent)}}
   @media(max-width:640px){.opp{padding:18px}.opp h3{font-size:34px}}
+  @media(max-width:767px){#tabs{-webkit-mask-image:linear-gradient(to right,#000 calc(100% - 24px),transparent);mask-image:linear-gradient(to right,#000 calc(100% - 24px),transparent);padding-right:24px}}
   /* paper page */
   .tele{max-width:900px;margin:0 auto;background:#fbfbf6;border:1px solid var(--rule);padding:30px 52px 26px;position:relative;box-shadow:0 18px 40px rgba(13,42,51,.12)}
   .tele:before,.tele:after{content:"";position:absolute;top:0;bottom:0;width:26px;background:radial-gradient(circle at 13px 12px,var(--page) 5px,transparent 5.5px) 0 0/26px 24px repeat-y}
@@ -576,7 +577,7 @@ function openModal(html, { dismissable = true } = {}) {
   const md = $('#modal');
   lastFocus = document.activeElement;
   md.innerHTML = html; md.classList.add('open');
-  md.onclick = (e) => { if ((dismissable && e.target === md) || e.target.closest('[data-close]')) closeModal(); };
+  md.onclick = (e) => { if (CR.submitting) return; if ((dismissable && e.target === md) || e.target.closest('[data-close]')) closeModal(); };
   document.body.style.overflow = 'hidden';
   const f = md.querySelector('button:not([disabled]),select'); if (f) f.focus({ preventScroll: true });
 }
@@ -604,6 +605,7 @@ function applyRecommendedPlan(plan) {
 }
 let valTimer = null;
 function onPlanChange() {
+  S.valSeq++;
   renderMeasures();
   S.validating = true; S.val = null; S.preview = null; if (S.hint && S.hint.key !== planKey(planOf())) S.hint = null;
   renderRail();
@@ -611,7 +613,7 @@ function onPlanChange() {
   valTimer = setTimeout(runValidate, 120);
 }
 async function runValidate() {
-  const seq = ++S.valSeq;
+  const seq = S.valSeq;
   let res;
   try { res = await api('POST', '/api/validate', { plan: planOf() }); }
   catch (e) { res = { valid: false, reason: 'Проверка недоступна: ' + e.message }; }
@@ -669,7 +671,7 @@ async function loadPreview(seq) {
   if (!PREVIEW[key]) {
     S.preview = { loading: true }; renderRail();
     try { const d = await api('POST', '/api/score', { plan: planOf() }); PREVIEW[key] = { score: d.score, delta: d.delta, approval: d.approval?.city, reelected: d.approval?.reelected }; }
-    catch (e) { PREVIEW[key] = { error: e.message }; }
+    catch (e) { if (seq === S.valSeq) { S.preview = { error: e.message }; renderRail(); } return; }
   }
   if (seq !== S.valSeq) return;
   S.preview = PREVIEW[key]; renderRail();
@@ -694,10 +696,11 @@ function planFromParam() {
 const ruProse = (x, k) => (typeof x === 'string' ? (k === 'provider' ? x : x.replace(/(\d)\.(\d)/g, '$1,$2').replace(/(\d) (\d{3})(?!\d)/g, '$1\u00a0$2'))
   : Array.isArray(x) ? x.map((v) => ruProse(v)) : x && typeof x === 'object' ? Object.fromEntries(Object.entries(x).map(([kk, v]) => [kk, ruProse(v, kk)])) : x);
 function fetchInto(key, fn, run) {
+  const seq = (S.seq ||= {})[key] = ((S.seq[key] || 0) + 1);
   S.r[key] = { loading: true };
-  return fn().then((d) => { if (run === S.run) S.r[key] = { data: key === 'ai' || key === 'nar' ? ruProse(d) : d }; })
-    .catch((e) => { if (run === S.run) S.r[key] = { error: e.message }; })
-    .finally(() => { if (run === S.run) refresh(key); });
+  return fn().then((d) => { if (run === S.run && seq === S.seq[key]) S.r[key] = { data: key === 'ai' || key === 'nar' ? ruProse(d) : d }; })
+    .catch((e) => { if (run === S.run && seq === S.seq[key]) S.r[key] = { error: e.message }; })
+    .finally(() => { if (run === S.run && seq === S.seq[key]) refresh(key); });
 }
 function refresh(key) {
   if (S.tab === 'verdict') { if (key === 'score' || !$('#vScore')) renderVerdict(); else fillVerdict(key); }
@@ -721,7 +724,7 @@ function loadNarrative() {
 }
 
 const charts = {};
-function chart(id, cfg) { if (charts[id]) { charts[id].destroy(); delete charts[id]; } const c = document.getElementById(id); if (!c) return; charts[id] = new Chart(c, cfg); }
+function chart(id, cfg) { if (typeof window.Chart !== 'function') return; if (charts[id]) { charts[id].destroy(); delete charts[id]; } const c = document.getElementById(id); if (!c) return; charts[id] = new Chart(c, cfg); }
 function emptyState(title, text, btn = 'В кабинет', to = 'cabinet') {
   return `<div class="plate mx-auto max-w-xl p-8 text-center"><div class="h2">${esc(title)}</div>
     <p class="mt-2 text-graph">${esc(text)}</p><button data-go="${to}" class="btn btn-ink mt-4">${esc(btn)}</button></div>`;
@@ -882,6 +885,7 @@ function fillScore() {
 
 function fillFinding() {
   const el = $('#vFinding'); if (!el) return;
+  if (S.r.opt?.error) { el.innerHTML = errBox('Оптимизатор недоступен', S.r.opt.error); return; }
   const o = S.r.opt?.data;
   if (!o) { el.innerHTML = spinner('Сверяем план со всеми 694 395 вариантами…'); return; }
   const fired = (o.best.approval ?? 0) < 50;
@@ -907,6 +911,7 @@ function fillRegret() {
     <p class="m-0 mt-2 text-[13.5px] text-graph">До оптимума не хватает ${num(d.gap_to_best ?? max - mine)} Score. Рейтинг акима при оптимуме — <b class="${(d.best.approval ?? 0) < 50 ? 'red' : 'peni'}">${num(d.best.approval, 1)}%</b>.</p>
     ${bal ? `<button id="loadBalanced" class="mt-2 border-0 bg-transparent p-0 text-left text-[14px] font-semibold text-peni underline decoration-dotted underline-offset-4 hover:decoration-solid">Загрузить лучший план с рейтингом от 50%: Score ${num(bal.score)}, рейтинг ${num(bal.approval, 1)}% →</button>` : ''}`;
   const lb = $('#loadBalanced'); if (lb) lb.onclick = () => { loadPlan(bal.plan); go('cabinet'); toast('Сбалансированный план загружен в кабинет'); };
+  if (lb && SOURCE === 'mock') { lb.disabled = true; lb.title = 'Запустите сервер, чтобы проверить этот план'; }
 }
 
 function fillDistricts() {
@@ -928,7 +933,7 @@ function fillDistricts() {
         <span class="bval text-right ${dd > .005 ? 'pen' : dd < -.005 ? 'red' : ''}">${sign(dd)}</span>
         <span class="bval text-right ${a && a.approval < (v.approval?.threshold ?? 50) ? 'red' : 'pen'}">${a ? num(a.approval, 0) + '%' : '—'}</span></div>`;
     }).join('')}
-    ${(v.resolved_crit_cells || []).length || (v.synergies_triggered || []).length ? `<div class="flex flex-col gap-1 px-2.5 pb-1 pt-3 text-[13px] leading-[1.45] text-[#c3dde4]">${(v.resolved_crit_cells || []).length ? `<div><i class="cell fix mr-2 inline-block h-3 w-[18px] align-[-1px]"></i><b class="mr-2 text-[11px] font-semibold uppercase tracking-[.12em] text-[#8fb4bd]">Вышли из красной зоны</b>${v.resolved_crit_cells.map((c) => `${esc(c.district)} · ${esc(indShort(c.indicator))} <span class="mono">${num(c.before, 1)} → ${num(c.after, 1)}</span>`).join('; ')}</div>` : ''}${(v.synergies_triggered || []).length ? `<div><b class="mr-2 text-[11px] font-semibold uppercase tracking-[.12em] text-[#8fb4bd]">Меры усилили друг друга</b>${v.synergies_triggered.map((s) => `<span class="mono">${s.pair.join(' + ')}</span> в ${esc(loc(s.district))}: ${Object.entries(s.bonus).map(([k, b]) => `${esc(indShort(k))} <span class="mono">${sign(b, b % 1 ? 1 : 0)}</span>`).join(', ')}`).join('; ')}</div>` : ''}</div>` : ''}
+    ${(v.resolved_crit_cells || []).length || (v.synergies_triggered || []).length ? `<div class="flex flex-col gap-1 px-2.5 pb-1 pt-3 text-[13px] leading-[1.45] text-[#c3dde4]">${(v.resolved_crit_cells || []).length ? `<div><i class="cell fix mr-2 inline-block h-3 w-[18px] align-[-1px]"></i><b class="mr-2 text-[11px] font-semibold uppercase tracking-[.12em] text-[#8fb4bd]">Вышли из красной зоны</b>${v.resolved_crit_cells.map((c) => `${esc(c.district)} · ${esc(indShort(c.indicator))} <span class="mono">${num(c.before, 1)} → ${num(c.after, 1)}</span>`).join('; ')}</div>` : ''}${(v.synergies_triggered || []).length ? `<div><b class="mr-2 text-[11px] font-semibold uppercase tracking-[.12em] text-[#8fb4bd]">Меры усилили друг друга</b>${v.synergies_triggered.map((s) => `<span class="mono">${esc(s.pair.join(' + '))}</span> в ${esc(loc(s.district))}: ${Object.entries(s.bonus).map(([k, b]) => `${esc(indShort(k))} <span class="mono">${sign(b, b % 1 ? 1 : 0)}</span>`).join(', ')}`).join('; ')}</div>` : ''}</div>` : ''}
   </div>`;
 }
 
@@ -974,12 +979,12 @@ function fillAI() {
       <summary class="cursor-pointer font-semibold">Вызовы инструментов (${trace.length})</summary>
       ${trace.length ? `<ol class="mt-3 list-decimal space-y-3 pl-5">${trace.map((call) => `<li>
         <b class="mono text-[13px]" style="overflow-wrap:anywhere">${esc(call.name ?? call.tool)}</b>
-        <div class="mt-1 text-[12px] text-graph">Аргументы:</div>
-        <pre class="mono m-0 whitespace-pre-wrap text-[12px]" style="overflow-wrap:anywhere">${esc(JSON.stringify(call.args ?? {}, null, 2))}</pre>
+        <details class="mt-1 text-[12px] text-graph"><summary class="cursor-pointer">аргументы</summary><pre class="mono m-0 whitespace-pre-wrap text-[12px]" style="overflow-wrap:anywhere">${esc(JSON.stringify(call.args ?? {}))}</pre></details>
       </li>`).join('')}</ol>` : '<p class="mb-0 mt-3 text-[13px] text-graph">офлайн-шаблон: инструменты не вызывались</p>'}
       <p class="mb-0 mt-3 text-[13px] text-graph">Попыток проверки чисел: ${esc(a.guard?.attempts ?? '—')}</p>
     </details>`;
   const ab = $('#applyRec'); if (ab) ab.onclick = () => applyRecommendedPlan(recPlan);
+  if (ab && SOURCE === 'mock') { ab.disabled = true; ab.title = 'Запустите сервер, чтобы проверить этот план'; }
 }
 
 function fillCouncil() {
@@ -1010,14 +1015,16 @@ const refLines = {
   },
 };
 function chartBase() {
+  if (typeof window.Chart !== 'function') return false;
   Chart.defaults.font.family = '"JetBrains Mono", ui-monospace, monospace';
   Chart.defaults.font.size = 11.5;
   Object.assign(Chart.defaults.plugins.tooltip, { backgroundColor: '#0d2a33', titleColor: '#8fc9d6', bodyColor: '#e9f6f8', cornerRadius: 0, caretSize: 5, padding: 10, displayColors: false });
   Chart.defaults.color = '#56696f';
 }
 function drawTrace() {
+  try {
   if (!$('#chTrace') || !S.r.score?.data) return;
-  chartBase();
+  if (chartBase() === false) return;
   const v = S.r.score.data, o = S.r.opt?.data, base = v.baseline ?? BASELINE();
   const tl = v.timeline || [];
   const vals = tl.map((t) => t.score);
@@ -1033,15 +1040,17 @@ function drawTrace() {
     type: 'line', data: { labels: tl.map((t) => QL[t.q] ?? 'Q' + t.q), datasets: ds }, plugins: [refLines],
     options: { maintainAspectRatio: false, animation: charts.chTrace?.canvas === $('#chTrace') || matchMedia('(prefers-reduced-motion: reduce)').matches ? false : { duration: 900, easing: 'easeOutQuart' }, layout: { padding: { top: 16 } },
       plugins: { legend: { display: false }, tooltip: { backgroundColor: '#0d2a33', titleFont: { family: 'JetBrains Mono' }, bodyFont: { family: 'JetBrains Mono' }, filter: (i) => i.datasetIndex === 0, callbacks: { label: (c) => `Score ${num(c.parsed.y)}`, afterLabel: (c) => `${sign(c.parsed.y - base)} к базе ${num(base)}` } } },
-      scales: { x: { grid: { drawOnChartArea: false, color: '#0d2a33', tickLength: 5 }, border: { color: '#0d2a33' }, ticks: { maxRotation: 0, autoSkip: false, callback(v, i) { const n = this.chart.data.labels.length; return this.chart.width < 560 && (n - 1 - i) % 2 ? '' : this.getLabelForValue(v); } } }, y: { min: Math.floor(lo * 2) / 2, max: Math.ceil(hi * 2) / 2, grid: { drawOnChartArea: false, color: '#0d2a33', tickLength: 5 }, border: { color: '#0d2a33' }, ticks: { stepSize: .5, callback: (x) => num(x, 1) } } } },
+      scales: { x: { grid: { drawOnChartArea: false, color: '#0d2a33', tickLength: 5 }, border: { color: '#0d2a33' }, ticks: { maxRotation: 0, autoSkip: false, callback(v, i) { return this.chart.width < 560 && tl[i].q % 4 ? '' : this.getLabelForValue(v); } } }, y: { min: Math.floor(lo * 2) / 2, max: Math.ceil(hi * 2) / 2, grid: { drawOnChartArea: false, color: '#0d2a33', tickLength: 5 }, border: { color: '#0d2a33' }, ticks: { stepSize: .5, callback: (x) => num(x, 1) } } } },
   });
+  } catch (e) { console.warn(e); }
 }
 function drawPareto() {
+  try {
   if (!$('#chPareto') || !S.r.score?.data) return;
   const o = S.r.opt?.data;
   if (!o) { $('#vPareto').innerHTML = S.r.opt?.error ? errBox('Оптимизатор недоступен', S.r.opt.error) : `<div class="pt-8">${spinner('Строим границу Парето…')}</div><canvas id="chPareto" hidden></canvas>`; return; }
   if (!$('#chPareto') || $('#chPareto').hidden) $('#vPareto').innerHTML = '<canvas id="chPareto" aria-label="Граница Парето"></canvas>';
-  chartBase();
+  if (chartBase() === false) return;
   const v = S.r.score.data;
   const me = S.crisis?.before ? { x: S.crisis.before.cost, y: S.crisis.before.score } : { x: v.cost, y: v.score };
   const ds = [
@@ -1058,6 +1067,7 @@ function drawPareto() {
       scales: { x: { title: { display: true, text: 'стоимость плана, ед.' }, min: Math.floor((Math.min(me.x, ...(o.pareto || []).map((p) => p.cost)) - 2) / 5) * 5, suggestedMax: S.ds.budget, grid: { drawOnChartArea: false, color: '#0d2a33', tickLength: 5 }, border: { color: '#0d2a33' } },
         y: { title: { display: true, text: 'Score' }, suggestedMin: 55.4, suggestedMax: 57.4, grid: { drawOnChartArea: false, color: '#0d2a33', tickLength: 5 }, border: { color: '#0d2a33' }, ticks: { callback: (x) => num(x, 1) } } } },
   });
+  } catch (e) { console.warn(e); }
 }
 
 /* «Чек расчёта Score»: the engine's own itemised receipt (/api/receipt), printed as a paper tape */
@@ -1092,9 +1102,9 @@ async function openReceipt() {
 /* =====================================================================
    КРИЗИС — событие слева, ваш ответ справа
    ===================================================================== */
-const CR = { ev: null, outM: null, inn: null, val: null, validating: false, submitting: false, result: null, error: null, seq: 0 };
+const CR = { ev: null, outM: null, inn: null, lastSwap: null, val: null, validating: false, submitting: false, result: null, error: null, seq: 0 };
 async function openCrisis() {
-  Object.assign(CR, { ev: null, outM: null, inn: null, val: null, validating: false, submitting: false, result: null, error: null });
+  Object.assign(CR, { ev: null, outM: null, inn: null, lastSwap: null, val: null, validating: false, submitting: false, result: null, error: null });
   openModal(`<div data-lock class="fade plate w-full max-w-md p-6">${spinner('III квартал. Звонок из штаба…')}</div>`, { dismissable: false });
   const seed = CONFIG.SEED ?? Math.floor(Math.random() * 1000);
   try { CR.ev = await api('POST', '/api/shock', { plan: S.plan, seed }); }
@@ -1161,14 +1171,15 @@ function renderCrisis() {
         <button id="crGo" class="btn btn-red shrink-0" ${canGo ? '' : 'disabled'}>${CR.submitting ? '<span class="spin"></span> Пересчитываем…' : 'Утвердить замену'}</button>
       </div>
     </div></div>`;
-  $$('#modal [data-rm]').forEach((b) => (b.onclick = () => { CR.outM = b.dataset.rm; CR.inn = null; CR.val = null; renderCrisis(); }));
+  $$('#modal [data-rm]').forEach((b) => (b.onclick = () => { if (CR.submitting) return; CR.outM = b.dataset.rm; CR.inn = null; CR.val = null; renderCrisis(); }));
   $$('#modal [data-add]').forEach((b) => (b.onclick = () => {
+    if (CR.submitting) return;
     const m = S.mi[b.dataset.add];
     CR.inn = { measure: m.id, district: m.type === 'district' ? (CR.inn?.measure === m.id ? CR.inn.district : null) : null };
     if (m.type === 'district' && !CR.inn.district) queueMicrotask(() => $('#modal [data-dist]')?.focus({ preventScroll: true }));
     CR.val = null; crisisValidate();
   }));
-  const sel = $('#modal [data-dist]'); if (sel) sel.onchange = () => { CR.inn.district = sel.value || null; CR.val = null; crisisValidate(); };
+  const sel = $('#modal [data-dist]'); if (sel) sel.onchange = () => { if (CR.submitting) return; CR.inn.district = sel.value || null; CR.val = null; crisisValidate(); };
   $('#crGo').onclick = crisisSubmit;
   restore();
 }
@@ -1182,14 +1193,17 @@ async function crisisValidate() {
   CR.val = r; CR.validating = false; renderCrisis();
 }
 async function crisisSubmit() {
+  if (CR.submitting) return;
+  const swap = { out: CR.outM, in: { ...CR.inn } };
   CR.submitting = true; renderCrisis();
-  try { CR.result = await api('POST', '/api/shock/resolve', { plan: S.plan, event_id: CR.ev.event.id, swap: { out: CR.outM, in: CR.inn } }); }
+  try { CR.result = await api('POST', '/api/shock/resolve', { plan: S.plan, event_id: CR.ev.event.id, swap }, { timeout: CONFIG.LLM_TIMEOUT_MS }); CR.lastSwap = swap; }
   catch (e) { CR.val = { valid: false, reason: e.message }; }
   CR.submitting = false; renderCrisis();
 }
 function crisisComment(c = S.crisis) {
   if (!c) return '';
   const r = c.result, ev = c.event, bp = r.best_possible_swap;
+  if (r.comment) return ruProse(r.comment);
   const parts = [`Кризис стоил ${num(r.crisis_cost)} Score, замена ${c.swap.out} → ${decShort(c.swap.in)} дала ${sign(r.recovered)}.`];
   if (r.swap_was_optimal) parts.push('Это лучшая из возможных замен.');
   else if (bp) parts.push(`Лучшей была бы замена ${bp.out} → ${decShort(bp.in)}: ${sign(bp.gain)}, Score ${num(bp.score)}.`);
@@ -1198,16 +1212,16 @@ function crisisComment(c = S.crisis) {
   return parts.join(' ');
 }
 function renderCrisisResult() {
-  const r = CR.result, ev = CR.ev.event;
+  const r = CR.result, ev = CR.ev.event, swap = CR.lastSwap;
   const prevAp = S.r.score.data?.approval?.city;
-  const draft = { event: ev, swap: { out: CR.outM, in: CR.inn }, result: r, before: S.r.score.data };
-  const inM = S.mi[CR.inn.measure];
+  const draft = { event: ev, swap, result: r, before: S.r.score.data };
+  const inM = S.mi[swap.in.measure];
   $('#modal').innerHTML = `<div data-lock data-scroll tabindex="-1" class="grid max-h-[94vh] w-full max-w-[1100px] overflow-y-auto lg:grid-cols-[.9fr_1.1fr]" style="border:1px solid #061a20;max-height:94dvh">
     ${eventCard(CR.ev, true)}
     <div class="bg-paper p-5">
       <div class="flex flex-wrap items-center gap-x-3 gap-y-1"><h3 class="h2 text-[34px]">Ваш ответ</h3>${r.swap_was_optimal ? '<span class="border border-peni px-2 py-0.5 text-[11.5px] font-semibold uppercase tracking-[.1em] peni">лучшая из возможных замен</span>' : ''}</div>
-      <div class="disp mt-3 text-[40px] font-black leading-[.95] sm:text-[46px]">${esc(CR.outM)} <span class="text-graph">→</span> ${esc(decShort(CR.inn))}</div>
-      <div class="mt-1 text-[14px] text-graph">вместо «${esc(S.mi[CR.outM]?.name)}» — «${esc(inM?.name)}»</div>
+      <div class="disp mt-3 text-[40px] font-black leading-[.95] sm:text-[46px]">${esc(swap.out)} <span class="text-graph">→</span> ${esc(decShort(swap.in))}</div>
+      <div class="mt-1 text-[14px] text-graph">вместо «${esc(S.mi[swap.out]?.name)}» — «${esc(inM?.name)}»</div>
       <div class="mt-4 grid grid-cols-3 gap-px border border-rule bg-rule text-center">
         <div class="bg-white px-2 py-3"><div class="lbl">до кризиса</div><div class="mid mt-1">${num(r.score_before_crisis)}</div><div class="mt-1 text-[12px] text-graph">исходный план</div></div>
         <div class="bg-white px-2 py-3"><div class="lbl">без замены</div><div class="mid red mt-1">${num(r.score_after_crisis_no_swap)}</div><div class="mt-1 text-[12px] red">кризис <span class="mono">${sign(-r.crisis_cost)}</span></div></div>
@@ -1306,7 +1320,7 @@ async function revealOptimum() {
     if (S.r.opt?.data) B.opt = S.r.opt.data;
     else { try { B.opt = await api('POST', '/api/optimize', { plan: { decisions: S.ds.reference.doc_example.decisions } }); } catch (e) { toast('Оптимизатор недоступен: ' + e.message); B.reveal = false; } }
   }
-  renderBoard();
+  renderBoardTable();
 }
 function renderBoard() {
   const sc = S.r.score?.data, has = !!(sc && S.plan);
@@ -1343,6 +1357,9 @@ function renderBoard() {
 }
 function renderBoardTable() {
   const t = $('#lbTable'), st = $('#lbStatus'); if (!t) return;
+  const reveal = $('#btnReveal');
+  reveal.textContent = B.reveal ? 'Скрыть оптимум движка' : 'Показать оптимум движка';
+  reveal.className = `btn ${B.reveal ? 'btn-ink' : 'btn-line'}`;
   st.innerHTML = B.loading && !B.rows ? '<span class="spin"></span>' : B.error ? '<span class="red">нет связи — повторяем</span>' : B.updated ? `обновлено ${new Date(B.updated).toLocaleTimeString('ru-RU')} · каждые 5 с` : '';
   if (!B.rows) { t.innerHTML = B.error ? `<div class="text-[14px] text-graph">Лидерборд недоступен: ${esc(B.error)}</div>` : `${skel('h-10')}${skel('h-10', 'mt-2')}${skel('h-10', 'mt-2')}`; return; }
   const pinned = [];

@@ -116,7 +116,7 @@ async function checkPanels(page, tag) {
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
     console.log(tag, 'horizontal overflow px:', overflow);
     // Exercise both panel callbacks and remounts after applying a different plan.
-    if (tag === 'desktop') {
+    if (tag === 'desktop' && !URL.includes('mock=1')) {
       await page.click('[data-go="verdict"]');
       let panels = await checkPanels(page, tag + ' after crisis');
       for (const kind of ['promise', 'stress']) {
