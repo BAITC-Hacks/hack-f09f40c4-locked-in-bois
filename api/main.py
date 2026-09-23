@@ -225,6 +225,38 @@ def grade_plan(body: dict = Body(...)):
     return _engine_call(grading.grade, _valid_plan(body))
 
 
+@app.post("/api/receipt")
+def receipt_plan(body: dict = Body(...)):
+    from engine import receipt
+
+    return _engine_call(receipt.receipt, _valid_plan(body))
+
+
+@app.post("/api/duel")
+def duel_plans(body: dict = Body(...)):
+    from engine import duel
+
+    plan_a = _valid_plan({"plan": body.get("plan_a")})
+    if "plan_b" not in body:
+        return _engine_call(duel.duel_vs_best, plan_a)
+    plan_b = _valid_plan({"plan": body["plan_b"]})
+    return _engine_call(duel.duel, plan_a, plan_b)
+
+
+@app.post("/api/fairness")
+def fairness_plan(body: dict = Body(...)):
+    from engine import fairness
+
+    return _engine_call(fairness.fairness, _valid_plan(body))
+
+
+@app.post("/api/calendar")
+def calendar_plan(body: dict = Body(...)):
+    from engine import calendar
+
+    return _engine_call(calendar.calendar, _valid_plan(body))
+
+
 @app.get("/api/health")
 def health():
     return {"ok": True, "provider": os.getenv("LLM_PROVIDER", "offline"),

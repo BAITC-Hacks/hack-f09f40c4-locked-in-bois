@@ -93,7 +93,7 @@
         <p class="mut grade-copy" style="margin:6px 0 0">${escape(prose(worst.comment))}</p></aside>`
         : '<p class="tape peni">Неточностей, ошибок и зевков нет.</p>'}
       <section style="margin-top:24px" aria-label="Разбор ходов">
-        <div class="hsec"><h3 class="h2">Ходы партии</h3><p>Потеря при замене хода, остальные решения фиксированы</p></div>
+        <div class="hsec"><h3 class="h2">Ходы партии</h3><p>Упущенные баллы относительно лучшей замены; остальные решения фиксированы</p></div>
         <ol class="grade-moves">${data.moves.map((move) => moveRow(move, worst)).join('')}</ol>
         <p class="mut" style="font-size:12.5px;margin:10px 0 0">Потери отдельных ходов не складываются в отставание от оптимума. График показывает потолок в порядке выбора мер; итоговый Score от порядка не зависит.</p>
       </section>`;

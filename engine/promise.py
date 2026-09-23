@@ -63,7 +63,7 @@ def _checked(promise):
         if district not in district_names():
             raise ValueError(f"Неизвестный район: {district}")
     if kind == "include" and measures_by_id()[mid]["type"] == "city" and district is not None:
-        raise ValueError(f"Для городской меры {mid} район должен быть null")
+        raise ValueError(f"Для городской меры {mid} район не указывается: поле district нужно опустить или передать null")
     if "value" in required:
         if type(value) not in (int, float):
             raise ValueError("Значение обещания должно быть конечным числом")

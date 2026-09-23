@@ -200,7 +200,7 @@ def template(plan: dict, facts: dict) -> dict:
                 if missed else "Адресный проект достался каждому району — справедливое начало, но ещё не равный результат. ")
     return {"council": council, "newspaper": {
         "masthead": "Астана Times", "date": "IV квартал 2028", "headlines": headlines,
-        "editorial": (f"За {facts['cost']} единиц бюджета город получает Score {facts['score']:.2f}; "
+        "editorial": (f"При расходах {facts['cost']} ед. бюджета город получает Score {facts['score']:.2f}; "
                       f"{rank_label.lower()} — {number(facts['rank'])} из {number(facts['total_valid'])}. "
                       + fairness + f"Индекс {district_case(winner['district'], 'gen')} вырос на {winner['delta_D']:+.2f}, "
                       "и редакция считает этот рост поводом требовать таких же шансов для остальных. "

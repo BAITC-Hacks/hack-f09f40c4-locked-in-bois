@@ -114,7 +114,7 @@ def fairness(plan) -> dict:
         "gini_percent": _change(100 * gini_before, 100 * gini_after),
         "cost": round(total_cost, 2), "districts_with_project": len(projects),
         "districts_total": len(districts), "money_vs_people": rows,
-        "money_vs_people_label": "Деньги vs люди",
+        "money_vs_people_label": "Доли расходов и населения",
         "most_gain": {"districts": leaders, "delta_D": most},
         "least_gain": {"districts": laggards, "delta_D": least},
         "verdict": verdict,

@@ -15,10 +15,14 @@ import pytest
 from api.agent import guard
 from api.main import app
 from engine.approval import CONSTANTS, approval
+from engine.calendar import calendar
+from engine.duel import duel_vs_best
+from engine.fairness import fairness
 from engine.grading import grade
 from engine.model import district_names, load_dataset, load_events, plan_cost
 from engine.optimize import _replace, optimize_info
 from engine.promise import price, promise_catalog
+from engine.receipt import receipt
 from engine.score import compute, diff2, evaluate
 from engine.stress import robust_info, stress_test
 from engine.validate import validate
@@ -114,6 +118,7 @@ def readme_facts():
     for name, plan in (("doc", doc), ("optimum", optimum)):
         stresses[name] = stress_test(plan)
         facts.extend([stresses[name], grade(plan)])
+        facts.extend([receipt(plan), duel_vs_best(plan), fairness(plan), calendar(plan)])
         facts.extend(price(promise, plan=plan) for promise in promises)
     facts.append(promise_catalog())
     robust = robust_info()["crisis_proof"]
@@ -161,9 +166,9 @@ def test_readme_backtick_file_paths_exist(readme):
     assert paths, "В README не найдены ссылки на файлы"
     missing = []
     for name in sorted(paths):
+        if name in {"doc.json", ".env", "data/leaderboard.db"} or name.startswith(".venv/"):
+            continue
         candidates = [ROOT / name]
-        if name == ".venv/Scripts/python":
-            candidates.append(ROOT / (name + ".exe"))
         # README abbreviates engine modules and screenshot filenames in prose.
         if "/" not in name:
             if name.endswith(".py"):

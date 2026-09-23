@@ -48,7 +48,7 @@ def calendar(plan, base_values=None) -> dict:
         name = district["name"]
         counts = [state[3][di] for state in states]
         districts[name] = {
-            "label": f"Часы ожидания в {district['cases']['loc']}",
+            "label": f"Накопленное время в красной зоне в {district['cases']['loc']}",
             "waiting_quarter_cells": sum(counts[1:]),
             "red_counts": counts,
             "n_crit_before": counts[0], "n_crit": counts[-1],
@@ -73,7 +73,7 @@ def calendar(plan, base_values=None) -> dict:
                 "first_red_q": first_red, "first_cleared_q": first_cleared,
                 "cleared_q": cleared,
                 "clearance_label": (f"Выход из красной зоны: квартал {cleared}"
-                                    if cleared is not None else "Не устранено за горизонт плана"),
+                                    if cleared is not None else "Выход из красной зоны не достигнут к концу плана"),
                 "waiting_quarter_cells": sum(q > 0 for q in red_quarters),
                 "thin_margin": thin,
             }
@@ -92,8 +92,8 @@ def calendar(plan, base_values=None) -> dict:
         "n_crit": timeline[-1]["n_crit"], "crit_cells": timeline[-1]["crit_cells"],
         "waiting_quarter_cells": sum(d["waiting_quarter_cells"] for d in districts.values()),
         "waiting_quarters": list(range(1, horizon + 1)),
-        "waiting_label": "Часы ожидания",
-        "waiting_unit": "квартал-ячейки",
+        "waiting_label": "Накопленное время в красной зоне",
+        "waiting_unit": "ячейка·квартал",
         "waiting_note": (f"Сумма красных ячеек на отметках кварталов 1–{horizon}; "
                          "исходное состояние не учитывается. Без взвешивания по населению."),
         "thin_margin_cells": thin_margin_cells,

@@ -286,7 +286,16 @@ async function mockCall(method, path, body) {
   if (p === '/api/health') return { ok: true, provider: 'mock' };
   if (p === '/api/validate') return localValidate(plan);
   const need = (pl) => { const v = localValidate(pl); if (!v.valid) throw new HttpError(422, v.reason); };
-  if (p === '/api/score') { need(plan); return fx('score'); }
+  if (p === '/api/score') {
+    need(plan);
+    const normalize = (pl) => planDecs(pl).map((d) => ({ measure: d.measure, district: d.district ?? null }))
+      .sort((a, b) => a.measure.localeCompare(b.measure));
+    const fixturePlan = (await fx('dataset')).reference.doc_example;
+    if (JSON.stringify(normalize(plan)) !== JSON.stringify(normalize(fixturePlan))) {
+      throw new HttpError(422, 'В деморежиме считается только пример из ТЗ — запустите сервер');
+    }
+    return fx('score');
+  }
   if (p === '/api/optimize') return fx('optimize');
   if (p === '/api/analyze') return fx('analyze');
   if (p === '/api/narrative') return fx(body.event_id ? 'narrative_crisis' : 'narrative');
@@ -310,7 +319,7 @@ const S = {
   crisis: null,                                         // {event, swap, result, before}
   tab: 'cabinet',
 };
-const IND_SHORT = { T1: 'дороги', T2: 'общ. транспорт', E1: 'зелень', E2: 'воздух', S1: 'школы', S2: 'поликлиники', B1: 'улицы', B2: 'ДТП', C1: 'ЖКХ', C2: 'обращения' };
+const IND_SHORT = { T1: 'дороги', T2: 'общ. транспорт', E1: 'зелень', E2: 'воздух', S1: 'школы', S2: 'поликлиники', B1: 'улицы', B2: 'безопасность движения', C1: 'ЖКХ', C2: 'обращения' };
 const QL = ['старт', 'I кв. 27', 'II кв. 27', 'III кв. 27', 'IV кв. 27', 'I кв. 28', 'II кв. 28', 'III кв. 28', 'IV кв. 28'];
 const indShort = (c) => IND_SHORT[c] || S.ind[c]?.name || c;
 const dirName = (id) => S.dir[id]?.name || id;
@@ -877,7 +886,7 @@ function aiBadges(x) {
   const prov = x.provider || 'offline';
   return `<span class="mono border border-rule px-2 py-0.5 text-[11px] text-graph">${prov === 'offline' ? 'офлайн-шаблон' : esc(prov)}</span>
     ${x.grounded === false ? '<span class="mono border border-alarm px-2 py-0.5 text-[11px] red">проверка чисел не пройдена — шаблон</span>'
-      : '<span class="mono border border-peni px-2 py-0.5 text-[11px] text-peni">✓ все числа сверены с движком</span>'}`;
+      : '<span class="mono border border-peni px-2 py-0.5 text-[11px] text-peni">✓ все числа найдены в данных движка</span>'}`;
 }
 function fillAI() {
   const el = $('#vAI'); if (!el) return;
@@ -890,6 +899,7 @@ function fillAI() {
     return;
   }
   const a = r.data, rec = a.recommendation || {}, recPlan = planDecs(rec.plan);
+  const trace = Array.isArray(a.tool_trace) ? a.tool_trace : [];
   const block = (t, xs) => `<div class="notice"><h3>${t}</h3><ul>${(xs && xs.length ? xs : ['—']).map((x) => `<li>${esc(x)}</li>`).join('')}</ul></div>`;
   el.innerHTML = `${head(`<span class="flex flex-wrap gap-1.5">${aiBadges(a)}</span>`)}
     ${a.summary ? `<p class="m-0 mb-4 max-w-[72ch] text-[17px] leading-[1.45]">${esc(a.summary)}</p>` : ''}
@@ -897,7 +907,16 @@ function fillAI() {
     <div class="notice mt-3 flex flex-col gap-3 sm:flex-row sm:items-center" style="border-top:4px solid var(--pen)">
       <div class="flex-1"><h3>Рекомендация${rec.expected_score != null ? ` → Score ${num(rec.expected_score)}` : ''}</h3><div class="text-[14.5px]">${esc(rec.why || 'Рекомендации нет.')}</div>
         ${recPlan.length ? `<div class="mono mt-2 flex flex-wrap gap-1.5 text-[11.5px]">${recPlan.map((d) => `<span class="border border-rule bg-paper px-1.5 py-0.5">${esc(decShort(d))}</span>`).join('')}</div>` : ''}</div>
-      ${recPlan.length ? '<button id="applyRec" class="btn btn-pen shrink-0">Применить рекомендацию</button>' : ''}</div>`;
+      ${recPlan.length ? '<button id="applyRec" class="btn btn-pen shrink-0">Применить рекомендацию</button>' : ''}</div>
+    <details class="notice mt-3 min-w-0">
+      <summary class="cursor-pointer font-semibold">Вызовы инструментов (${trace.length})</summary>
+      ${trace.length ? `<ol class="mt-3 list-decimal space-y-3 pl-5">${trace.map((call) => `<li>
+        <b class="mono text-[13px]" style="overflow-wrap:anywhere">${esc(call.name ?? call.tool)}</b>
+        <div class="mt-1 text-[12px] text-graph">Аргументы:</div>
+        <pre class="mono m-0 whitespace-pre-wrap text-[12px]" style="overflow-wrap:anywhere">${esc(JSON.stringify(call.args ?? {}, null, 2))}</pre>
+      </li>`).join('')}</ol>` : '<p class="mb-0 mt-3 text-[13px] text-graph">офлайн-шаблон: инструменты не вызывались</p>'}
+      <p class="mb-0 mt-3 text-[13px] text-graph">Попыток проверки чисел: ${esc(a.guard?.attempts ?? '—')}</p>
+    </details>`;
   const ab = $('#applyRec'); if (ab) ab.onclick = () => applyRecommendedPlan(recPlan);
 }
 
@@ -1084,7 +1103,7 @@ function crisisComment(c = S.crisis) {
   if (r.swap_was_optimal) parts.push('Это лучшая из возможных замен.');
   else if (bp) parts.push(`Лучшей была бы замена ${bp.out} → ${decShort(bp.in)}: ${sign(bp.gain)}, Score ${num(bp.score)}.`);
   const a = r.approval;
-  if (a) parts.push(a.reelected ? `Рейтинг ${num(a.city, 1)}% — аким удерживает кресло.` : `Рейтинг ${num(a.city, 1)}% — ниже 50%: кризис стоил акиму кресла.`);
+  if (a) parts.push(a.reelected ? `Рейтинг ${num(a.city, 1)}% — аким удерживает кресло.` : `Рейтинг ${num(a.city, 1)}% — ниже 50%: после кризиса аким не переизбран.`);
   return parts.join(' ');
 }
 function renderCrisisResult() {

@@ -83,7 +83,7 @@ def duel(plan_a, plan_b) -> dict:
     values_a, adjustment_a = _display_terms(state_a)
     values_b, adjustment_b = _display_terms(state_b)
     weights = load_dataset()["score_weights"]
-    labels = {"avg": "Средний индекс города", "min": "Минимальный индекс района",
+    labels = {"avg": "Вклад среднего индекса города в Score", "min": "Вклад минимального индекса района в Score",
               "crit": "Штраф за критические показатели"}
     formulas = {"avg": f"{weights['avg']:g}·ΔD_avg", "min": f"{weights['min']:g}·Δmin(D)",
                 "crit": "−ΔN_crit" if weights["crit_penalty"] == 1
@@ -106,7 +106,7 @@ def duel(plan_a, plan_b) -> dict:
     else:
         letter, other = ("А", "Б") if winner == "A" else ("Б", "А")
         verdict = f"План {letter} лучше плана {other} на {abs(delta):.2f} балла"
-    verdict += (f"; разница А минус Б: средний индекс {terms['avg']['delta']:+.2f}, "
+    verdict += (f"; разница вкладов в Score (А минус Б): средний индекс {terms['avg']['delta']:+.2f}, "
                 f"минимальный индекс {terms['min']['delta']:+.2f}, "
                 f"штраф за критические показатели {terms['crit']['delta']:+.2f}."
                 )

@@ -171,7 +171,7 @@ def test_input_forms_purity_json_rounding_and_russian_labels():
                 check(item)
     check(result)
     assert result["title"] == "Календарь обещаний"
-    assert result["districts"]["Нура"]["label"] == "Часы ожидания в Нуре"
+    assert result["districts"]["Нура"]["label"] == "Накопленное время в красной зоне в Нуре"
     result["cells"][0]["values"][0] = -999
     assert calendar(plan, base)["cells"][0]["values"][0] != -999
 

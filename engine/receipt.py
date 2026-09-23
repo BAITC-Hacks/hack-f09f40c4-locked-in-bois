@@ -66,7 +66,7 @@ def receipt(plan) -> dict:
     minimum = min(ds)
     weakest = names[ds.index(minimum)]
     before_penalties = sw["avg"] * avg + sw["min"] * minimum
-    lines.append({"kind": "minimum", "label": f"Минимальный индекс: район {districts[weakest]['cases']['gen']}",
+    lines.append({"kind": "minimum", "label": f"Минимальный индекс — у {districts[weakest]['cases']['gen']}",
                   "district": weakest, "D_after": minimum,
                   "formula": f"{sw['min']:.2f} × min(D_after)", "additive": True,
                   **_term(sw["min"] * minimum, sw["avg"] * avg, before_penalties)})

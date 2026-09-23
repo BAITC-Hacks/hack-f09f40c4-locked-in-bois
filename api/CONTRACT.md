@@ -11,7 +11,7 @@ This contract follows the implemented routes in `api/main.py`: the PLAN.md §4 e
 - **Indicator arrays** (`before`, `after`) have 10 values in the order of `dataset.indicators`: `T1 T2 E1 E2 S1 S2 B1 B2 C1 C2`.
 - All scores are floats rounded to 2 decimals. Every number comes from `engine/`. The LLM never computes numbers.
 - Displayed differences use `engine.score.diff2(a, b)`: subtract the two rounded values. JSON numbers need not retain trailing zeros. `realized_share` retains exact ratio precision.
-- Plan endpoints accept either `{"plan": {"decisions": [...]}}` or `{"decisions": [...]}`; `/api/promise` has its own body described below.
+- Plan endpoints accept either `{"plan": {"decisions": [...]}}` or `{"decisions": [...]}`; `/api/promise` and `/api/duel` have their own bodies described below.
 - An invalid plan on a scoring endpoint → HTTP 422 `{"detail": "<Russian reason>"}`.
 
 ## Endpoints (PLAN.md §4 verbatim)
@@ -867,6 +867,75 @@ Move = {
 
 </details>
 
+
+### `POST /api/receipt`
+
+Тело: `{"plan": {"decisions": [...]}}` (также принимается план без обёртки).
+Вызывает `engine.receipt.receipt`: возвращает `score`, `cost`, `d_avg`, `d_min`,
+`d_min_district`, `n_crit`, `lines`, `districts`, `critical_penalties`, `decisions`,
+`application_order`, `synergy_lines`, `clip_notes` и пояснения округления.
+В итог складываются только строки `lines` с `additive: true`; промежуточные
+итоги повторно не прибавляются. `rounding_adjustment` уже включена в `amount`.
+Невалидный план → 422 с причиной валидатора.
+
+### `POST /api/duel`
+
+Тело: `{"plan_a": {"decisions": [...]}, "plan_b": {"decisions": [...]}}`.
+Вызывает `engine.duel.duel`: возвращает сводки `a`, `b` (план, Score, стоимость,
+районные индексы и критические ячейки), `score_delta`, `cost_delta`, `d_avg_delta`,
+`d_min_delta`, `n_crit_delta`, `winner: "A" | "B" | "tie"`, `display_tie`,
+`terms`, `districts`, `decisions`, `verdict`, `rounding_note`.
+Все разности имеют направление **А минус Б** и рассчитаны через `diff2`.
+`terms.avg`, `terms.min`, `terms.crit` содержат `a`, `b`, `delta` — вклады
+среднего индекса, минимального индекса и штрафа; поправка округления включена
+в слагаемое минимума. Победитель определяется до округления.
+
+Если ключ `plan_b` отсутствует, вызывается `engine.duel.duel_vs_best`:
+ответ содержит `best`, `best_at_same_cost` (каждый — полное сравнение выше),
+`cost_limit`, `same_cost_label`. Второй эталон имеет стоимость **не выше**
+стоимости плана А. Отсутствующий или невалидный `plan_a`, а также переданный
+невалидный `plan_b` (включая `null`) → 422 с причиной валидатора.
+
+### `POST /api/fairness`
+
+Тело: `{"plan": {"decisions": [...]}}` (также принимается план без обёртки).
+Вызывает `engine.fairness.fairness`: возвращает `spread`, `gini`, `gini_percent`
+(каждый содержит `before`, `after`, `delta`), `cost`, `districts_with_project`,
+`districts_total`, `money_vs_people`, `most_gain`, `least_gain`, `verdict` и подписи.
+Джини взвешен по населению; `gini_percent` — та же величина в процентах.
+Общегородские расходы распределяются пропорционально населению для учёта затрат;
+это не утверждение о равенстве пользы. Метрики не входят в Score или рейтинг акима.
+Невалидный план → 422 с причиной валидатора.
+
+### `POST /api/calendar`
+
+Тело: `{"plan": {"decisions": [...]}}` (также принимается план без обёртки).
+Вызывает `engine.calendar.calendar`: возвращает `score`, `threshold`,
+`horizon_quarters`, `timeline`, `cells`, `districts`, `n_crit`, `crit_cells`,
+`waiting_quarter_cells`, `waiting_quarters`, `thin_margin_cells` и подписи.
+`timeline` включает исходное состояние; `waiting_quarter_cells` — сумма числа
+критических ячеек на отметках кварталов 1–8, без исходного состояния и без
+взвешивания по населению. Единица — квартал-ячейка, а не часы ожидания жителей.
+Для каждой ячейки `first_cleared_q` — первый выход из красной зоны,
+`cleared_q` — выход после последнего критического квартала; `null` означает,
+что выхода в пределах горизонта нет. `thin_margin_cells` содержит ранее
+критические ячейки с конечным запасом до порога менее одного балла.
+Невалидный план → 422 с причиной валидатора.
+
+Проверенные ответы новых маршрутов через `TestClient` (пример из условия и
+глобальный оптимум из `/api/optimize`; для дуэли `plan_b` опущен):
+
+| Поле ответа | Пример из условия | Глобальный оптимум |
+|---|---:|---:|
+| receipt: `score` / `cost` | 56.54 / 95 | 57.24 / 98 |
+| receipt: `d_avg` / `d_min` | 58.08 / 52.96 | 58.58 / 54.09 |
+| duel: `best.score_delta` | −0.70 | 0.00 |
+| duel: `best_at_same_cost.score_delta` | −0.69 | 0.00 |
+| fairness: `spread.after` / `spread.delta` | 10.47 / −3.34 | 10.02 / −3.79 |
+| fairness: `gini_percent.after` | 3.27 | 3.34 |
+| fairness: `districts_with_project` | 2 | 1 |
+| calendar: `waiting_quarter_cells` | 8 | 10 |
+| calendar: `n_crit` | 0 | 0 |
 
 ## Status
 

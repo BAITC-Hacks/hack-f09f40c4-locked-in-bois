@@ -1,4 +1,9 @@
-"""Offline judge report: python scripts/judge_check.py [--full].
+"""Offline judge report (Python 3.10+):
+
+Windows: .venv/Scripts/python scripts/judge_check.py [--full]
+macOS/Linux: .venv/bin/python scripts/judge_check.py [--full]
+With an activated environment or actions/setup-python, use python instead.
+Without an environment, macOS/Linux may require python3.
 
 Golden constants below are independent verification fixtures, never inputs to
 the score formula. All reported results are calculated by the existing engine.
@@ -241,8 +246,12 @@ def _run_checks(report, full):
 
 
 def main(argv=None):
-    if hasattr(sys.stdout, "reconfigure"):
-        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    # Configure before argparse so help and diagnostics also survive redirected
+    # output with a legacy encoding on any OS. In-memory test streams may not
+    # expose reconfigure().
+    for stream in (sys.stdout, sys.stderr):
+        if hasattr(stream, "reconfigure"):
+            stream.reconfigure(encoding="utf-8", errors="replace")
     parser = argparse.ArgumentParser(description="Автономная проверка кейса «Аким на 5 часов»")
     parser.add_argument("--full", action="store_true", help="повторить полный перебор в памяти (около 21 с)")
     args = parser.parse_args(argv)

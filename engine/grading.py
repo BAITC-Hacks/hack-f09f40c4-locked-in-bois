@@ -235,7 +235,7 @@ def _traps(decisions, index, state, without, candidates, current):
     if share <= 0.5:
         traps.append({"kind": "lag", "realized_percent": round(share * 100, 2)})
         comments.append(f"К концу горизонта реализовано лишь {share * 100:.2f}% эффекта "
-                        f"из-за задержки {measure['lag']:.2f} квартала.")
+                        f"из-за задержки запуска на {measure['lag']:.2f} квартала.")
     ids = {d["measure"] for d in decisions}
     for synergy in data["synergies"]:
         if measure["id"] in synergy["pair"] and set(synergy["pair"]) <= ids:

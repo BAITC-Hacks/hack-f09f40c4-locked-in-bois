@@ -142,6 +142,7 @@ def _context(plan):
     return {"score": score, "approval": political, "optimizer": opt,
             "stress": _stress(plan), "grading": _grade(plan),
             "best_approval": best_approval,
+            "same_cost_approval": approval(_plan(opt["best_at_same_cost"]["plan"]))["city"],
             "best_unserved_percent": round(sum(d["pop"] for d in missed) * 100, 2)}
 
 
@@ -231,8 +232,10 @@ def _offline_analyze(plan, facts):
     ]
     if o["best_at_same_cost"]["score"] > s["score"]:
         rec = o["best_at_same_cost"]
+        x = facts["same_cost_approval"]
         why = (f"При расходах не выше текущих {s['cost']} можно получить Score {rec['score']:.2f} "
-               f"вместо {s['score']:.2f}; стоимость рекомендации — {rec['cost']}.")
+               f"вместо {s['score']:.2f}; стоимость рекомендации — {rec['cost']}."
+               f" Рейтинг акима при нём — {x:.2f}{' (ниже порога переизбрания)' if x < a['threshold'] else ''}.")
     elif o["balanced"] and _plan(o["balanced"]["plan"]) != plan:
         rec = o["balanced"]
         why = (f"В своём бюджете план уже оптимален по Score. Альтернатива с поддержкой не ниже "
