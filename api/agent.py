@@ -129,45 +129,63 @@ def _context(plan):
 
 
 def _offline_analyze(plan, facts):
+    from .narrative import district_case, indicator_label, join_words, number
+
     s, a, o = facts["score"], facts["approval"], facts["optimizer"]
+    data = load_dataset()
     measures = measures_by_id()
+
+    def measure(mid):
+        return f"{mid} «{measures[mid]['name']}»"
+
+    def location(name):
+        return f"в {district_case(name, 'loc')}" if name else "по всему городу"
+
+    def cell(c):
+        return f"{indicator_label(c['indicator'])} {location(c['district'])}"
+
     contributions = sorted(s["contributions"], key=lambda c: c["marginal"], reverse=True)
-    strengths = [f"{c['measure']} «{measures[c['measure']]['name']}» ({c['district'] or 'весь город'}) "
-                 f"даёт {c['marginal']:+.2f} к Score" + (" — лучший вклад в набор." if i == 0 else ".")
+    strengths = [f"Мера {measure(c['measure'])} {location(c['district'])} "
+                 f"даёт {c['marginal']:+.2f} к Score" + (" — наибольший вклад в этом плане." if i == 0 else ".")
                  for i, c in enumerate(contributions[:2])]
     if s["resolved_crit_cells"]:
-        strengths.append("Выведены из критической зоны: " + "; ".join(
-            f"{c['district']} / {c['indicator']}: {c['before']:.2f} → {c['after']:.2f}"
+        strengths.append("Из красной зоны вышли показатели: " + "; ".join(
+            f"{cell(c)}: {c['before']:.2f} → {c['after']:.2f}"
             for c in s["resolved_crit_cells"]) + ".")
     if s["synergies_triggered"]:
-        strengths.append("Сработали синергии: " + "; ".join(
-            f"{' + '.join(c['pair'])} ({c['district']})" for c in s["synergies_triggered"]) + ".")
-    risks = [f"Критическая ячейка: {c['district']} / {c['indicator']} = {c['value']:.2f} "
-             f"(<{load_dataset()['crit_threshold']})." for c in s["crit_cells"]]
+        strengths.append("Меры усиливают друг друга: " + "; ".join(
+            f"{join_words(measure(mid) for mid in c['pair'])} {location(c['district'])}"
+            for c in s["synergies_triggered"]) + ".")
+    risks = [f"В красной зоне остаётся {cell(c)}: {c['value']:.2f} "
+             f"при пороге {data['crit_threshold']}." for c in s["crit_cells"]]
     lagged = [d for d in plan["decisions"] if measures[d["measure"]]["lag"] >= 3]
     if lagged:
-        risks.append(f"За {load_dataset()['horizon_quarters']} кварталов реализуется лишь " + "; ".join(
-            f"{d['measure']}: {s['realized_share'][d['measure']] * 100:g}% "
-            f"(лаг {measures[d['measure']]['lag']})" for d in lagged) + ".")
+        risks.append(f"За {data['horizon_quarters']} кварталов долгие проекты дадут лишь часть расчётного эффекта: " + "; ".join(
+            f"{measure(d['measure'])} {location(d['district'])} — {s['realized_share'][d['measure']] * 100:g}% "
+            f"(задержка запуска — {measures[d['measure']]['lag']} кв.)" for d in lagged) + ".")
     if a["city"] < a["threshold"]:
-        risks.append(f"Рейтинг акима {a['city']:.2f} ниже {a['threshold']}: это слой политического риска, не Score.")
-    missed = [d for d in load_dataset()["districts"] if not a["districts"][d["name"]]["got_district_measure"]]
+        risks.append(f"Рейтинг акима — {a['city']:.2f} при пороге поддержки {a['threshold']}: есть риск отставки. "
+                     "Рейтинг отражает политический риск и не входит в Score.")
+    missed = [d for d in data["districts"] if not a["districts"][d["name"]]["got_district_measure"]]
     if missed:
-        risks.append("Без районных мер: " + ", ".join(f"{d['name']} ({d['pop'] * 100:g}% жителей)" for d in missed) + ".")
+        risks.append("Районные проекты не предусмотрены: " + "; ".join(
+            f"в {d['cases']['loc']} — {d['pop'] * 100:g}% горожан" for d in missed)
+            + ". Эти районы получают только общегородские меры.")
     movers = sorted(a["districts"], key=lambda name: a["districts"][name]["delta_D"], reverse=True)[:2]
-    consequences = [f"{name}: D {s['districts'][name]['D_before']:.2f} → "
+    consequences = [f"Индекс {district_case(name, 'gen')}: {s['districts'][name]['D_before']:.2f} → "
                     f"{s['districts'][name]['D_after']:.2f}." for name in movers]
     low = contributions[-1]
-    consequences.append(f"Наименьший вклад у {low['measure']}: {low['marginal']:+.2f} Score при цене "
+    consequences.append(f"Наименьший вклад у меры {measure(low['measure'])}: {low['marginal']:+.2f} Score при стоимости "
                         f"{low['cost']}; отдача на единицу бюджета — {low['marginal_per_cost']:.2f} Score.")
     best_targets = sorted({d["district"] for d in o["best"]["plan"]["decisions"] if d["district"]})
     tradeoffs = [
-        f"Оптимум формулы — {o['best']['score']:.2f}: все районные меры идут в "
-        f"{', '.join(best_targets)}; {facts['best_unserved_percent']:g}% жителей получают только городские меры. "
-        f"Рейтинг этого оптимума — {facts['best_approval']['city']:.2f}; вашего плана — {a['city']:.2f} (не часть Score).",
+        f"Максимальный Score — {o['best']['score']:.2f}: все районные меры идут в "
+        f"{join_words(district_case(name, 'acc') for name in best_targets)}; "
+        f"{facts['best_unserved_percent']:g}% жителей получают только общегородские меры. "
+        f"Рейтинг акима при таком плане — {facts['best_approval']['city']:.2f}, при вашем — {a['city']:.2f}. Рейтинг не входит в Score.",
         f"При расходах не выше {s['cost']} лучший Score — {o['best_at_same_cost']['score']:.2f} "
         f"за {o['best_at_same_cost']['cost']}; сейчас — {s['score']:.2f}.",
-        f"Не использовано {s['remaining']} из {load_dataset()['budget']} единиц бюджета; остаток не даёт бонуса.",
+        f"Не использовано {s['remaining']} из {data['budget']} единиц бюджета; остаток не даёт бонуса.",
     ]
     if o["best_at_same_cost"]["score"] > s["score"]:
         rec = o["best_at_same_cost"]
@@ -181,9 +199,9 @@ def _offline_analyze(plan, facts):
         rec = {"plan": plan}
         why = "План уже оптимален в своём бюджете."
     recommended = _plan(rec["plan"])
-    return {"summary": f"Score {s['score']:.2f} ({s['delta']:+.2f} к базовым {s['baseline']:.2f}); "
-            f"место {o['rank']} из {o['total_valid']}, лучше {o['percentile']:.2f}% планов. "
-            f"Самый слабый район — {s['d_min_district']}: D {s['d_min']:.2f}.",
+    return {"summary": f"План даёт Score {s['score']:.2f} — {s['delta']:+.2f} к исходным {s['baseline']:.2f}. "
+            f"Он занимает место {number(o['rank'])} из {number(o['total_valid'])} и опережает {o['percentile']:.2f}% допустимых планов. "
+            f"Самый низкий районный индекс — у {district_case(s['d_min_district'], 'gen')}: {s['d_min']:.2f}.",
             "strengths": strengths, "risks": risks, "consequences": consequences, "tradeoffs": tradeoffs,
             "recommendation": {"plan": recommended, "why": why, "expected_score": evaluate(recommended)["score"]}}
 
@@ -456,10 +474,12 @@ def _narrative_facts(plan, event_id=None, swap=None):
     measures = measures_by_id()
     districts = [{"district": d["name"], "profile": d["profile"], "pop_percent": d["pop"] * 100,
                   **a["districts"][d["name"]], "D_after": s["districts"][d["name"]]["D_after"],
+                  "measure_ids": [c["measure"] for c in active_plan["decisions"] if c["district"] == d["name"]],
                   "projects": [measures[c["measure"]]["name"] for c in active_plan["decisions"] if c["district"] == d["name"]]}
                  for d in load_dataset()["districts"]]
     ranked = sorted(s["contributions"], key=lambda c: c["marginal"], reverse=True)
     return {"districts": districts, "crit_cells": s["crit_cells"], "crit_threshold": load_dataset()["crit_threshold"],
+            "unserved_percent": round(sum(d["pop_percent"] for d in districts if not d["got_district_measure"]), 2),
             "score": s["score"], "cost": s["cost"], "rank": o["rank"], "total_valid": o["total_valid"],
             "approval": a, "top_measures": ranked[:2], "bottom_measures": ranked[-2:],
             "realized_share": s["realized_share"], "crisis": crisis}
@@ -481,25 +501,53 @@ def narrative(plan: dict, lang: str = "ru", event_id: str | None = None, swap: d
 
 
 def brief(plan: dict) -> str:
+    from .narrative import district_case, indicator_label, join_words
+
     plan = _plan(plan)
     context = _context(plan)
     analysis = _offline_analyze(plan, context)
     s, a = context["score"], context["approval"]
     measures = measures_by_id()
-    lines = ["# Кабинет акима — решение команды", "", "| Мера | Название | Район | Цена | Лаг |",
+    verdict = "поддержки хватает для переизбрания" if a["reelected"] else "поддержка ниже порога переизбрания"
+    lines = ["# Кабинет акима — решение команды", "",
+             f"**Score {s['score']:.2f}; рейтинг акима {a['city']:.2f} — {verdict}.**", "",
+             f"Бюджет: **{s['cost']} из {load_dataset()['budget']}**; остаток — **{s['remaining']}**. "
+             f"Горизонт расчёта — {load_dataset()['horizon_quarters']} кварталов.", "",
+             "## Что делаем", "", "| Мера | Название | Где | Стоимость | Задержка, кв. |",
              "|---|---|---|---:|---:|"]
     for d in plan["decisions"]:
         m = measures[d["measure"]]
-        lines.append(f"| {m['id']} | {m['name']} | {d['district'] or 'Весь город'} | {m['cost']} | {m['lag']} |")
-    lines += ["", analysis["summary"], "", f"Рейтинг акима: **{a['city']:.2f}** — слой политического риска, не часть Score.",
-              "", "| Район | D до | D после |", "|---|---:|---:|"]
+        where = f"В {district_case(d['district'], 'loc')}" if d["district"] else "Весь город"
+        lines.append(f"| {m['id']} | «{m['name']}» | {where} | {m['cost']} | {m['lag']} |")
+    lines += ["", "## Что получаем", "", analysis["summary"], "",
+              "| Район | Индекс до | Индекс после |", "|---|---:|---:|"]
     lines += [f"| {name} | {d['D_before']:.2f} | {d['D_after']:.2f} |" for name, d in s["districts"].items()]
-    for title, key in (("Сильные стороны", "strengths"), ("Риски", "risks")):
-        lines += ["", f"**{title}**", "", *[f"- {text}" for text in analysis[key]]]
+    lines += ["", "**Сильные стороны**", "", *[f"- {text}" for text in analysis["strengths"][:2]]]
+    if s["resolved_crit_cells"]:
+        lines.append("- Из красной зоны вышли: " + "; ".join(
+            f"{indicator_label(c['indicator'])} в {district_case(c['district'], 'loc')}: "
+            f"{c['before']:.2f} → {c['after']:.2f}" for c in s["resolved_crit_cells"]) + ".")
+    if s["synergies_triggered"]:
+        lines.append("- Меры усиливают друг друга: " + "; ".join(
+            f"{join_words(c['pair'])} в {district_case(c['district'], 'loc')}"
+            for c in s["synergies_triggered"]) + ".")
+    lines += ["", "**Риски**", ""]
+    lines += [f"- {indicator_label(c['indicator'])} в {district_case(c['district'], 'loc')}: "
+              f"{c['value']:.2f} — ниже порога {load_dataset()['crit_threshold']}." for c in s["crit_cells"]]
+    lagged = [d for d in plan["decisions"] if measures[d["measure"]]["lag"] >= 3]
+    if lagged:
+        lines.append("- Долгие проекты дадут лишь часть расчётного эффекта: " + "; ".join(
+            f"{d['measure']} — {s['realized_share'][d['measure']] * 100:g}%" for d in lagged) + ".")
+    missed = [d for d in load_dataset()["districts"] if not a["districts"][d["name"]]["got_district_measure"]]
+    if missed:
+        lines.append("- Без районных проектов: " + join_words(
+            f"{d['name']} ({d['pop'] * 100:g}% горожан)" for d in missed) + ".")
+    lines.append(f"- Порог переизбрания — {a['threshold']}. Рейтинг акима отражает политический риск и не входит в Score.")
     rec = analysis["recommendation"]
-    lines += ["", "**Рекомендация**", "", rec["why"],
-              "; ".join(f"{d['measure']} — {d['district'] or 'весь город'}" for d in rec["plan"]["decisions"]) + ".",
-              "", "**Находка: Score и справедливость**", "", analysis["tradeoffs"][0],
-              "Лучший результат формулы не гарантирует поддержки жителей: адресное внимание к районам имеет политическую цену.",
+    lines += ["", "## Рекомендация", "", rec["why"], "",
+              "- Состав: " + "; ".join(f"{d['measure']} — " + (
+                  f"в {district_case(d['district'], 'loc')}" if d["district"] else "весь город")
+                  for d in rec["plan"]["decisions"]) + ".",
+              "- Компромисс: " + analysis["tradeoffs"][0],
               "", "Все числа посчитаны движком `engine/`; ИИ только объясняет."]
     return "\n".join(lines) + "\n"

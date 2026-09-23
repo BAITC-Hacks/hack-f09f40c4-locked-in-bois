@@ -117,7 +117,90 @@ def test_guard_offline_outputs_for_golden_plans(doc):
         assert agent.guard(result, [context]) == []
         narrative = agent.narrative(plan)
         assert agent.guard(narrative, [agent._narrative_facts(plan)]) == []
+        assert agent.guard({"brief": agent.brief(plan)}, [context]) == []
         assert result["recommendation"]["expected_score"] == evaluate(result["recommendation"]["plan"])["score"]
+
+
+def test_offline_russian_analyze_and_brief(doc):
+    result = agent.analyze(doc)
+    assert "694 395" in result["summary"]
+    assert "все районные меры идут в Нуру" in result["tradeoffs"][0]
+    assert "Индекс Сарыарки:" in " ".join(result["consequences"])
+    assert "S1 (школы и детсады) в Нуре: 38.00 → 48.00" in " ".join(result["strengths"])
+    assert "«Школа + детсад (модульное строительство)» в Нуре" in result["strengths"][0]
+    text = json.dumps(result, ensure_ascii=False)
+    for name in district_names():
+        assert f"{name} / " not in text
+    output = agent.brief(doc)
+    assert output.splitlines()[2].startswith("**Score 56.54; рейтинг акима 50.78")
+    assert "| Индекс до | Индекс после |" in output
+    assert "| «Школа + детсад (модульное строительство)» | В Нуре |" in output
+    assert "\n- " in output and "694 395" in output
+
+
+@pytest.mark.parametrize("district", load_dataset()["districts"], ids=lambda d: d["name"])
+@pytest.mark.parametrize("mood", ["positive", "neutral", "negative"])
+def test_council_voices_with_engine_deltas(district, mood):
+    name = district["name"]
+    other = next(n for n in district_names() if n != name)
+    plan = {"decisions": [
+        {"measure": mid, "district": name if mood == "positive" or (mood == "neutral" and mid == "M11") else other}
+        for mid in ("M4", "M9", "M10", "M11")
+    ] + [{"measure": "M12", "district": None}]}
+    result = agent.narrative(plan)
+    deputy = next(d for d in result["council"] if d["district"] == name)
+    actual = approval(plan)["districts"][name]
+    assert deputy["mood"] == mood
+    assert deputy["deputy"] == f"Депутат от {district['cases']['gen']}"
+    assert f"{actual['delta_D']:+.2f}" in deputy["quote"]
+    assert agent.guard(result, [agent._narrative_facts(plan)]) == []
+    assert result == agent.narrative(list(reversed(plan["decisions"])))
+
+
+def test_council_measure_names_are_quoted(doc):
+    quote = agent.narrative(doc)["council"][-1]["quote"]
+    assert "«Освещение и камеры», «Школа + детсад» и «Центр семейного здоровья»" in quote
+    # With only two local projects, preserve the complete dataset names.
+    plan = deepcopy(doc)
+    next(d for d in plan["decisions"] if d["measure"] == "M10")["district"] = "Байконур"
+    quote = agent.narrative(plan)["council"][-1]["quote"]
+    assert "«Школа + детсад (модульное строительство)» и «Центр семейного здоровья / поликлиника»" in quote
+
+
+def test_newspaper_coverage_approval_and_social_facts(doc):
+    best = optimize_info(doc)["best"]["plan"]
+    for plan in (doc, best):
+        facts = agent._narrative_facts(plan)
+        paper = agent.narrative(plan)["newspaper"]
+        headlines = paper["headlines"]
+        missed = [d for d in load_dataset()["districts"]
+                  if not approval(plan)["districts"][d["name"]]["got_district_measure"]]
+        percent = round(sum(d["pop"] for d in missed) * 100, 2)
+        coverage = next(h for h in headlines if "районных проектов" in h["title"])
+        assert all(d["name"] in coverage["title"] for d in missed)
+        assert coverage["lead"].startswith(f"{percent:g}%")
+        title = "Аким удержал кресло" if facts["approval"]["reelected"] else "Горсовет обсуждает отставку"
+        political = next(h for h in headlines if h["title"] == title)
+        assert f"{facts['approval']['city']:.2f}" in political["lead"]
+        assert all(not any(char.isdigit() for char in h["title"]) for h in headlines)
+        assert "В Нуре" in headlines[0]["title"]
+        assert "62.5%" in headlines[0]["lead"]
+        assert "694 395" in paper["editorial"]
+        assert "\n" not in paper["editorial"]
+        assert paper["masthead"] == "Астана Times" and paper["date"] == "IV квартал 2028"
+        assert any(h["title"] == "Ни одного района в красной зоне" for h in headlines)
+
+
+def test_newspaper_all_districts_and_remaining_critical_cells():
+    plan = {"decisions": [{"measure": mid, "district": name} for mid, name in zip(
+        ("M1", "M4", "M9", "M10", "M13"), district_names())]}
+    result = agent.narrative(plan)
+    paper = result["newspaper"]
+    assert any(h["title"] == "Каждый район получил свой проект" for h in paper["headlines"])
+    assert paper["crit_sidebar"] == evaluate(plan)["crit_cells"]
+    assert paper["crit_sidebar"]
+    assert any("В Нуре" in h["title"] and "ниже красной черты" in h["lead"] for h in paper["headlines"])
+    assert agent.guard(result, [agent._narrative_facts(plan)]) == []
 
 
 def test_invented_numbers_twice_fall_back(monkeypatch, doc, caplog):
@@ -322,6 +405,26 @@ def test_narrative_crisis_swap(doc):
         assert d["delta_D"] == a["districts"][d["district"]]["delta_D"]
         assert d["approval"] == a["districts"][d["district"]]["approval"]
     assert agent.guard(result, [agent._narrative_facts(doc, event["id"], swap)]) == []
+
+
+@pytest.mark.parametrize("event_id,swap,recovery", [
+    ("heating_almaty", None, "Меру пока не заменили"),
+    ("heating_almaty", {"out": "M5", "in": {"measure": "M14", "district": None}}, "Потерю удалось возместить."),
+    ("smog_saryarka", {"out": "M12", "in": {"measure": "M4", "district": "Сарыарка"}}, "Потерю удалось возместить лишь частично."),
+    ("heating_almaty", {"out": "M7", "in": {"measure": "M13", "district": "Алматы"}}, "Замена не возместила потерю."),
+])
+def test_newspaper_crisis_recovery_language(doc, event_id, swap, recovery):
+    facts = agent._narrative_facts(doc, event_id, swap)
+    result = agent.narrative(doc, event_id=event_id, swap=swap)
+    crisis = facts["crisis"]
+    headline = result["newspaper"]["headlines"][-1]
+    assert headline["title"] == crisis["event"]["title"]
+    assert f"{crisis['crisis_cost']:.2f}" in headline["lead"]
+    assert recovery in headline["lead"]
+    if swap:
+        assert f"{crisis['recovered']:+.2f}" in headline["lead"]
+    assert "место исходного плана до кризиса" in result["newspaper"]["editorial"]
+    assert agent.guard(result, [facts]) == []
 
 
 def test_online_narrative_overrides_engine_fields(monkeypatch, doc):

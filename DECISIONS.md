@@ -9,3 +9,6 @@ One line per choice made without asking. Newest at the bottom.
 - Crisis events shift the district's *starting* indicator by the event effect (before measures); score under crisis = same formula on the shocked base. `crisis_cost = s0 − s1`, `recovered = s2 − s1`.
 - `/api/submit` recomputes the score server-side and ignores the client's `score` field.
 - Added `balanced` to the optimizer cache: best plan with approval ≥ 50. It is the AI's "politically survivable" recommendation.
+- Every displayed difference (delta, marginal, delta_D, gain, crisis_cost, recovered) = difference of the 2-dp rounded values, so 56.54 − 52.56 shows +3.98, not +3.99 from full precision (`engine.score.diff2`).
+- LLM loop budget `LLM_TIMEOUT` (default 60 s) with `reasoning_effort=low` for gpt-5 models; on timeout the offline template is returned with `fallback_reason`.
+- District case forms (`cases.gen/acc/loc`) added to `dataset.json` so offline Russian text declines district names correctly.
