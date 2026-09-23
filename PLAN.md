@@ -1,3 +1,5 @@
+> **Примечание.** Это исходный план сборки на старте хакатона. Фактическая реализация, числа и отличия от плана описаны в [README.md](README.md) и [DECISIONS.md](DECISIONS.md) (например, живой показ с QR-кодом не делался; константы рейтинга откалиброваны заново).
+
 # HackAlem AI — «Аким на 5 часов» — BUILD PLAN (4h, 2 people)
 
 Drop this file into the repo root. Feed it to Claude Code / Codex as the spec. Do not deviate unless you're cutting scope (cut order is at the bottom).
