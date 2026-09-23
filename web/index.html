@@ -1,0 +1,1053 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Аким 2028 — AQLS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,700;0,900;1,400;1,700&family=PT+Serif:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<script src="https://cdn.tailwindcss.com"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          accent: { DEFAULT: '#19b8d8', soft: '#0e3a47', ink: '#062a33' },
+          base: { 950: '#070b14', 900: '#0b1120', 850: '#0f1628', 800: '#141c30', 700: '#1e293b', 600: '#334155' },
+        },
+        fontFamily: {
+          sans: ['Inter', 'system-ui', 'Segoe UI', 'Roboto', 'Arial', 'sans-serif'],
+          display: ['"Playfair Display"', 'Georgia', 'Times New Roman', 'serif'],
+          serif: ['"PT Serif"', 'Georgia', 'Times New Roman', 'serif'],
+        },
+      },
+    },
+  };
+</script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+  :root { --accent: #19b8d8; --danger: #ef4444; --ok: #22c55e; }
+  html { background: #070b14; }
+  body { background: radial-gradient(1200px 600px at 80% -10%, rgba(25,184,216,.08), transparent 60%), #070b14; color: #e2e8f0; font-feature-settings: "tnum" 1, "cv11" 1; }
+  .card { background: #0f1628; border: 1px solid #1e293b; border-radius: 16px; }
+  .card-h { font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: #94a3b8; font-weight: 600; }
+  .skel { background: linear-gradient(90deg, #141c30 0%, #1e293b 50%, #141c30 100%); background-size: 200% 100%; animation: skel 1.2s infinite linear; border-radius: 10px; }
+  @keyframes skel { from { background-position: 200% 0 } to { background-position: -200% 0 } }
+  .spin { width: 14px; height: 14px; border: 2px solid rgba(148,163,184,.35); border-top-color: var(--accent); border-radius: 50%; animation: spin .8s linear infinite; display: inline-block; vertical-align: -2px; }
+  @keyframes spin { to { transform: rotate(360deg) } }
+  .tab-btn[aria-selected="true"] { color: #fff; background: #141c30; box-shadow: inset 0 -2px 0 var(--accent); }
+  .measure { transition: transform .12s ease, border-color .12s ease, background .12s ease; }
+  .measure:hover:not([disabled]) { transform: translateY(-1px); border-color: #334155; }
+  .measure[data-selected="true"] { border-color: var(--accent); background: linear-gradient(180deg, rgba(25,184,216,.10), rgba(25,184,216,.02)); }
+  .measure[disabled] { opacity: .38; cursor: not-allowed; }
+  .no-scrollbar::-webkit-scrollbar { display: none; } .no-scrollbar { scrollbar-width: none; }
+  .pulse-ring { box-shadow: 0 0 0 0 rgba(239,68,68,.55); animation: pring 1.8s infinite; }
+  @keyframes pring { 70% { box-shadow: 0 0 0 12px rgba(239,68,68,0) } 100% { box-shadow: 0 0 0 0 rgba(239,68,68,0) } }
+  .fade-in { animation: fin .35s ease both; } @keyframes fin { from { opacity: 0; transform: translateY(6px) } to { opacity: 1; transform: none } }
+
+  /* ---------- newspaper ---------- */
+  .paper { background: #f4efe4; color: #1c1917; font-family: "PT Serif", Georgia, serif;
+    background-image: radial-gradient(rgba(120,100,60,.06) 1px, transparent 1px); background-size: 3px 3px;
+    box-shadow: 0 30px 80px rgba(0,0,0,.55), 0 0 0 1px rgba(0,0,0,.2); }
+  .paper .masthead { font-family: "Playfair Display", Georgia, serif; font-weight: 900; letter-spacing: -.01em; line-height: .9; }
+  .paper .rule-2 { border-top: 3px double #1c1917; }
+  .paper .rule { border-top: 1px solid #1c1917; }
+  .paper .hl { font-family: "Playfair Display", Georgia, serif; font-weight: 900; line-height: 1.02; letter-spacing: -.01em; }
+  .paper .cols-2 { column-count: 2; column-gap: 1.6rem; column-rule: 1px solid rgba(28,25,23,.25); }
+  @media (max-width: 640px) { .paper .cols-2 { column-count: 1; } }
+  .paper .dropcap::first-letter { float: left; font-family: "Playfair Display", serif; font-weight: 900; font-size: 3.6em; line-height: .8; padding: .08em .08em 0 0; }
+  .paper p { text-align: justify; hyphens: auto; }
+  .paper .kicker { font-family: Inter, sans-serif; font-size: 10.5px; letter-spacing: .18em; text-transform: uppercase; font-weight: 700; }
+  .paper .red { color: #b91c1c; }
+  .paper .redbox { border: 2px solid #b91c1c; }
+  .paper .redbar { background: #b91c1c; color: #fff; }
+</style>
+</head>
+<body class="min-h-screen font-sans antialiased">
+
+<!-- ================= HEADER ================= -->
+<header class="sticky z-30 border-b border-base-700/70 bg-base-950/85 backdrop-blur" style="top: env(safe-area-inset-top, 0px)">
+  <div class="mx-auto flex max-w-7xl items-center gap-3 px-4 py-3">
+    <div class="flex items-center gap-2.5 shrink-0">
+      <div class="grid h-8 w-8 place-items-center rounded-lg bg-accent text-base-950 font-extrabold text-sm">А</div>
+      <div class="leading-tight">
+        <div class="text-sm font-bold tracking-tight">Аким · 2028</div>
+        <div class="text-[11px] text-slate-400">Астана, симулятор решений</div>
+      </div>
+    </div>
+    <nav id="tabs" class="no-scrollbar ml-2 flex flex-1 gap-1 overflow-x-auto" role="tablist"></nav>
+    <span id="modeBadge" class="hidden shrink-0 rounded-full border border-base-600 px-2.5 py-1 text-[11px] text-slate-300 sm:inline-flex"></span>
+  </div>
+</header>
+
+<div id="banner" class="hidden border-b border-amber-500/30 bg-amber-500/10 px-4 py-2 text-center text-xs text-amber-200"></div>
+
+<main class="mx-auto max-w-7xl px-4 pb-32 pt-6 lg:pb-16">
+  <section id="tab-cabinet" data-tab="cabinet"></section>
+  <section id="tab-verdict" data-tab="verdict" hidden></section>
+  <section id="tab-paper" data-tab="paper" hidden></section>
+  <section id="tab-board" data-tab="board" hidden></section>
+</main>
+
+<!-- mobile action bar (cabinet) -->
+<div id="mobileBar" class="fixed inset-x-0 bottom-0 z-30 border-t border-base-700 bg-base-950/95 px-4 pt-3 backdrop-blur lg:hidden" style="padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px))"></div>
+
+<!-- modal root -->
+<div id="modal" class="fixed inset-0 z-50 hidden items-end justify-center bg-black/70 p-0 backdrop-blur-sm sm:items-center sm:p-6"></div>
+<div id="toast" class="pointer-events-none fixed bottom-24 left-1/2 z-[60] -translate-x-1/2 lg:bottom-8"></div>
+
+<script>
+'use strict';
+/* =====================================================================
+   CONFIG — the ONE place to point the page at a backend.
+   ?mock=1        → use web/mock/ (dataset.json + engine.js) instead of the API
+   ?api=https://… → API base URL (default: same origin as the page)
+   ?session=room1 → leaderboard room (QR audience)
+   ===================================================================== */
+const QS = new URLSearchParams(location.search);
+const CONFIG = {
+  API_BASE: (QS.get('api') || '').replace(/\/$/, ''),
+  MOCK: QS.get('mock') === '1',
+  SESSION: (QS.get('session') || '').slice(0, 40),
+  TIMEOUT_MS: 12000,
+};
+
+/* ---------------- tiny helpers ---------------- */
+const $ = (s, r = document) => r.querySelector(s);
+const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const num = (x, d = 2) => (x == null || isNaN(x) ? '—' : Number(x).toFixed(d).replace('.', ','));
+const int = (x) => (x == null || isNaN(x) ? '—' : Math.round(Number(x)).toLocaleString('ru-RU'));
+const sign = (x, d = 2) => (x == null || isNaN(x) ? '—' : (x > 0 ? '+' : x < 0 ? '−' : '±') + num(Math.abs(x), d));
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+const plural = (n, one, few, many) => { const a = n % 10, b = n % 100; return a === 1 && b !== 11 ? one : a >= 2 && a <= 4 && (b < 10 || b >= 20) ? few : many; };
+function toast(msg) {
+  const t = $('#toast');
+  t.innerHTML = `<div class="fade-in rounded-xl border border-base-600 bg-base-800 px-4 py-2.5 text-sm shadow-2xl">${esc(msg)}</div>`;
+  clearTimeout(toast._t); toast._t = setTimeout(() => (t.innerHTML = ''), 2600);
+}
+function loadScript(src) {
+  return new Promise((res, rej) => { const s = document.createElement('script'); s.src = src; s.onload = res; s.onerror = rej; document.head.appendChild(s); });
+}
+const skel = (h = 'h-24', extra = '') => `<div class="skel ${h} ${extra}"></div>`;
+const spinner = (t = 'Загрузка…') => `<span class="inline-flex items-center gap-2 text-slate-400"><span class="spin"></span>${esc(t)}</span>`;
+
+/* ---------------- API layer ---------------- */
+let MOCK = null;           // mock engine instance
+let SOURCE = null;         // 'api' | 'mock'
+async function getMock() {
+  if (MOCK) return MOCK;
+  if (!window.MockEngine) await loadScript('mock/engine.js');
+  const ds = await fetch('mock/dataset.json').then((r) => r.json());
+  await sleep(0);
+  MOCK = window.MockEngine.create(ds);
+  return MOCK;
+}
+const LB_KEY = 'akim2028.leaderboard';
+function lbLoad() {
+  try { const x = JSON.parse(localStorage.getItem(LB_KEY)); if (Array.isArray(x)) return x; } catch (e) {}
+  const now = Date.now();
+  return [
+    { team: 'Оптимум (перебор всех планов)', aqls: 57.24, approval: 49.19, budget_used: 100, session: '', ts: now - 9e5, reelected: false },
+    { team: 'Байтерек', aqls: 56.41, approval: 63.2, budget_used: 97, session: '', ts: now - 8e5, reelected: true },
+    { team: 'Нурлы жол', aqls: 55.87, approval: 58.1, budget_used: 92, session: '', ts: now - 7e5, reelected: true },
+    { team: 'Хан Шатыр', aqls: 54.62, approval: 51.4, budget_used: 81, session: '', ts: now - 6e5, reelected: true },
+    { team: 'Акорда', aqls: 53.95, approval: 46.8, budget_used: 100, session: '', ts: now - 5e5, reelected: false },
+  ];
+}
+function lbSave(x) { try { localStorage.setItem(LB_KEY, JSON.stringify(x)); } catch (e) {} }
+
+async function mockCall(method, path, body) {
+  const e = await getMock();
+  await sleep(180 + Math.random() * 220); // feel like a network
+  const decs = body && body.decisions;
+  if (path === '/api/dataset') return e.dataset;
+  if (path === '/api/validate') return e.validate(decs, { budget: body.budget_limit });
+  if (path === '/api/evaluate') return e.verdict(decs);
+  if (path === '/api/narrative') return e.narrative(decs, body.verdict);
+  if (path === '/api/shock') return e.shock(decs);
+  if (path === '/api/shock/resolve') return e.resolve(body);
+  if (path.startsWith('/api/leaderboard')) {
+    const all = lbLoad();
+    if (method === 'POST') {
+      const v = e.verdict(decs);
+      const row = { team: body.team, session: body.session || '', aqls: v.aqls, approval: v.approval, budget_used: v.budget_used, reelected: v.reelected, ts: Date.now() };
+      all.push(row); lbSave(all); return row;
+    }
+    const s = new URL(path, location.href).searchParams.get('session') || '';
+    return { session: s, entries: all.filter((r) => (r.session || '') === s).sort((a, b) => b.aqls - a.aqls) };
+  }
+  throw new Error('mock: unknown path ' + path);
+}
+
+async function api(method, path, body) {
+  if (SOURCE === 'mock') return mockCall(method, path, body);
+  const ctl = new AbortController();
+  const timer = setTimeout(() => ctl.abort(), CONFIG.TIMEOUT_MS);
+  try {
+    const r = await fetch(CONFIG.API_BASE + path, {
+      method, signal: ctl.signal,
+      headers: body ? { 'Content-Type': 'application/json' } : {},
+      body: body ? JSON.stringify(body) : undefined,
+    });
+    if (!r.ok) { let detail = ''; try { detail = (await r.json()).detail; } catch (e) {} throw new Error(`HTTP ${r.status}${detail ? ': ' + (typeof detail === 'string' ? detail : JSON.stringify(detail)) : ''}`); }
+    return await r.json();
+  } finally { clearTimeout(timer); }
+}
+
+/* ---------------- dataset normalisation (tolerant to backend naming) ---------------- */
+function normalizeDataset(raw) {
+  const ds = { ...raw };
+  ds.budget = raw.budget ?? raw.budget_total ?? 100;
+  ds.slots = raw.slots ?? raw.max_decisions ?? 5;
+  ds.max_per_direction = raw.max_per_direction ?? raw.direction_limit ?? 2;
+  ds.quarters = raw.quarters ?? 8;
+  ds.baseline_aqls = raw.baseline_aqls ?? raw.baseline ?? 52.56;
+  ds.max_aqls = raw.max_aqls ?? 57.24;
+  ds.total_plans = raw.total_plans ?? 694395;
+  ds.reelection_threshold = raw.reelection_threshold ?? 50;
+  ds.directions = (raw.directions || []).map((d) => (typeof d === 'string' ? { id: d, name: d } : { id: d.id, name: d.name ?? d.title ?? d.id }));
+  ds.districts = (raw.districts || []).map((d) => (typeof d === 'string' ? { id: d, name: d } : { ...d, name: d.name ?? d.title ?? d.id }));
+  ds.measures = (raw.measures || []).map((m) => ({
+    ...m,
+    direction: m.direction ?? m.direction_id,
+    cost: m.cost ?? m.price,
+    lag: m.lag ?? m.lag_quarters ?? 0,
+    scope: m.scope ?? (m.district_level || m.is_district ? 'district' : 'city'),
+    effects: Array.isArray(m.effects) ? Object.fromEntries(m.effects.map((e) => [e.metric ?? e.direction ?? e.name, e.value ?? e.delta])) : (m.effects || {}),
+  }));
+  if (!ds.directions.length) ds.directions = [...new Set(ds.measures.map((m) => m.direction))].map((id) => ({ id, name: id }));
+  return ds;
+}
+
+/* ---------------- state ---------------- */
+const S = {
+  ds: null, slots: [], validation: null, validating: false, valSeq: 0,
+  verdict: null, verdictLoading: false, verdictError: null,
+  narrative: null, narrativeLoading: false, narrativeError: null,
+  crisis: null, crisisResolved: null,
+  tab: 'cabinet',
+};
+const M = () => Object.fromEntries(S.ds.measures.map((m) => [m.id, m]));
+const DIR = () => Object.fromEntries(S.ds.directions.map((d) => [d.id, d]));
+const DIST = () => Object.fromEntries(S.ds.districts.map((d) => [d.id, d]));
+const decisions = () => S.slots.filter(Boolean).map((s) => ({ measure_id: s.measure_id, district_id: s.district_id || null }));
+const decLabel = (d) => { const m = M()[d.measure_id]; if (!m) return d.measure_id; const k = d.district_id && DIST()[d.district_id]; return k ? `${m.name} · ${k.name}` : m.name; };
+const SHORT = { eco: 'экология', transport: 'транспорт', health: 'здоровье', edu: 'образование', housing: 'ЖКХ' };
+const shortDir = (id) => SHORT[id] || (DIR()[id] ? DIR()[id].name.toLowerCase() : id);
+
+/* ---------------- tabs ---------------- */
+const TABS = [
+  { id: 'cabinet', name: 'Кабинет акима' },
+  { id: 'verdict', name: 'Вердикт' },
+  { id: 'paper', name: 'Астана Times' },
+  { id: 'board', name: 'Лидерборд' },
+];
+function renderTabs() {
+  $('#tabs').innerHTML = TABS.map((t) => `<button role="tab" data-go="${t.id}" aria-selected="${S.tab === t.id}"
+    class="tab-btn whitespace-nowrap rounded-lg px-3 py-2 text-sm font-medium text-slate-400 hover:text-white">${t.name}</button>`).join('');
+}
+function go(tab, push = true) {
+  S.tab = tab;
+  $$('main > section').forEach((s) => (s.hidden = s.dataset.tab !== tab));
+  $('#mobileBar').hidden = tab !== 'cabinet';
+  renderTabs();
+  if (tab === 'verdict') renderVerdict();
+  if (tab === 'paper') renderPaper();
+  if (tab === 'board') startBoard(); else stopBoard();
+  if (push) history.replaceState(null, '', location.pathname + location.search + '#' + tab);
+  window.scrollTo(0, 0);
+}
+document.addEventListener('click', (e) => { const b = e.target.closest('[data-go]'); if (b) go(b.dataset.go); });
+
+/* =====================================================================
+   КАБИНЕТ АКИМА
+   ===================================================================== */
+function renderCabinetShell() {
+  $('#tab-cabinet').innerHTML = `
+    <div class="mb-6 flex flex-wrap items-end justify-between gap-4">
+      <div>
+        <div class="card-h mb-1">Кабинет акима · I кв. 2027</div>
+        <h1 class="text-2xl font-bold tracking-tight sm:text-3xl">Пять решений. Сто единиц. Два года до выборов.</h1>
+        <p class="mt-1.5 max-w-2xl text-sm text-slate-400">Выберите пять мер: не больше двух в одном направлении, бюджет не больше 100. Районные меры привязываются к одному району.</p>
+      </div>
+      <div class="flex gap-2">
+        <button id="btnExample" class="rounded-lg border border-base-600 px-3 py-2 text-sm text-slate-200 hover:border-accent hover:text-white">Пример из ТЗ</button>
+        <button id="btnClear" class="rounded-lg border border-base-700 px-3 py-2 text-sm text-slate-400 hover:text-white">Очистить</button>
+      </div>
+    </div>
+    <div class="grid gap-6 lg:grid-cols-[1fr_340px]">
+      <div id="measures" class="space-y-7">${skel('h-40')}${skel('h-40')}${skel('h-40')}</div>
+      <aside id="rail" class="lg:sticky lg:top-20 lg:self-start">${skel('h-96')}</aside>
+    </div>`;
+  $('#btnExample').onclick = () => { if (!S.ds) return; loadPlan(S.ds.example_plan || []); toast('Загружен пример из ТЗ'); };
+  $('#btnClear').onclick = () => { if (!S.ds) return; S.slots = Array(S.ds.slots).fill(null); onPlanChange(); };
+}
+
+function planState() {
+  const ms = M();
+  const used = S.slots.filter(Boolean).reduce((s, x) => s + (ms[x.measure_id]?.cost || 0), 0);
+  const counts = Object.fromEntries(S.ds.directions.map((d) => [d.id, 0]));
+  S.slots.filter(Boolean).forEach((x) => { const m = ms[x.measure_id]; if (m) counts[m.direction] = (counts[m.direction] || 0) + 1; });
+  const filled = S.slots.filter(Boolean).length;
+  return { used, left: S.ds.budget - used, over: used > S.ds.budget, counts, filled, full: filled >= S.ds.slots };
+}
+
+function renderMeasures() {
+  const ps = planState();
+  const inPlan = Object.fromEntries(S.slots.map((s, i) => s && [s.measure_id, { ...s, slot: i }]).filter(Boolean));
+  const html = S.ds.directions.map((d) => {
+    const list = S.ds.measures.filter((m) => m.direction === d.id);
+    const cnt = ps.counts[d.id] || 0;
+    const dirFull = cnt >= S.ds.max_per_direction;
+    return `<div>
+      <div class="mb-3 flex items-center gap-3">
+        <h2 class="text-base font-semibold">${esc(d.name)}</h2>
+        <span class="rounded-full px-2 py-0.5 text-[11px] font-semibold ${dirFull ? 'bg-accent/15 text-accent' : 'bg-base-800 text-slate-400'}">${cnt}/${S.ds.max_per_direction}</span>
+        <div class="h-px flex-1 bg-base-700"></div>
+      </div>
+      <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+      ${list.map((m) => {
+        const sel = inPlan[m.id];
+        let reason = '';
+        if (!sel) { if (ps.full) reason = 'Все 5 слотов заняты'; else if (dirFull) reason = `В направлении уже ${S.ds.max_per_direction} решения`; }
+        const eff = Object.entries(m.effects || {}).map(([k, v]) => `<span class="rounded-md bg-base-800 px-1.5 py-0.5 text-[11px] text-slate-300">${v > 0 ? '+' : ''}${esc(String(v).replace('.', ','))} ${esc(shortDir(k))}</span>`).join('');
+        const distName = sel && sel.district_id && DIST()[sel.district_id] ? DIST()[sel.district_id].name : '';
+        return `<button class="measure card relative flex flex-col gap-2 p-4 text-left" data-mid="${esc(m.id)}" data-selected="${!!sel}" ${reason ? `disabled title="${esc(reason)}"` : ''}>
+          <div class="flex items-start justify-between gap-2">
+            <span class="rounded-md px-1.5 py-0.5 text-[10.5px] font-semibold uppercase tracking-wider ${m.scope === 'district' ? 'bg-amber-400/10 text-amber-300' : 'bg-accent/10 text-accent'}">${m.scope === 'district' ? 'Район' : 'Город'}</span>
+            <span class="text-right"><span class="text-xl font-bold tabular-nums">${esc(m.cost)}</span><span class="ml-0.5 text-xs text-slate-400">ед.</span></span>
+          </div>
+          <div class="font-semibold leading-snug">${esc(m.name)}</div>
+          ${m.description ? `<div class="text-[13px] leading-snug text-slate-400">${esc(m.description)}</div>` : ''}
+          <div class="mt-auto flex flex-wrap items-center gap-1.5 pt-1">
+            <span class="rounded-md border border-base-600 px-1.5 py-0.5 text-[11px] text-slate-300">эффект через ${esc(m.lag)} кв.</span>${eff}
+          </div>
+          ${sel ? `<div class="absolute -right-2 -top-2 rounded-full bg-accent px-2 py-0.5 text-[11px] font-bold text-base-950 shadow-lg">Слот ${sel.slot + 1}${distName ? ' · ' + esc(distName) : ''}</div>` : ''}
+        </button>`;
+      }).join('')}
+      </div></div>`;
+  }).join('');
+  $('#measures').innerHTML = html;
+  $$('#measures [data-mid]').forEach((b) => (b.onclick = () => pickMeasure(b.dataset.mid)));
+}
+
+function renderRail() {
+  const ps = planState();
+  const v = S.validation;
+  const ms = M();
+  const pct = Math.min(100, (ps.used / S.ds.budget) * 100);
+  const canSubmit = v && v.valid && !ps.over && !S.validating && ps.full;
+  let msg;
+  if (S.validating && !v) msg = `<div class="text-sm">${spinner('Проверяем план…')}</div>`;
+  else if (ps.over) msg = `<div class="flex gap-2 text-sm text-red-300"><b>!</b><span>Перерасход: ${ps.used} из ${S.ds.budget}. Уберите одну из дорогих мер.</span></div>`;
+  else if (v) msg = `<div class="flex items-start gap-2 text-sm ${v.valid ? 'text-emerald-300' : 'text-amber-200'}">
+      <span class="mt-0.5 grid h-4 w-4 shrink-0 place-items-center rounded-full ${v.valid ? 'bg-emerald-400/20' : 'bg-amber-400/20'} text-[10px] font-bold">${v.valid ? '✓' : '!'}</span>
+      <span>${esc(v.message || (v.errors || [])[0] || (v.valid ? 'План корректен' : 'План пока неполный'))}${S.validating ? ' <span class="spin ml-1"></span>' : ''}</span></div>`;
+  else msg = `<div class="text-sm text-slate-400">Выберите пять решений.</div>`;
+
+  $('#rail').innerHTML = `
+    <div class="card p-4">
+      <div class="card-h mb-3">План акима</div>
+      <ol class="space-y-2">
+        ${S.slots.map((s, i) => {
+          if (!s) return `<li class="flex items-center gap-3 rounded-xl border border-dashed border-base-600 px-3 py-2.5 text-sm text-slate-500"><span class="grid h-6 w-6 place-items-center rounded-full bg-base-800 text-xs">${i + 1}</span>Пустой слот</li>`;
+          const m = ms[s.measure_id];
+          const k = s.district_id && DIST()[s.district_id];
+          return `<li class="fade-in flex items-center gap-3 rounded-xl border border-base-700 bg-base-850 px-3 py-2">
+            <span class="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-accent text-xs font-bold text-base-950">${i + 1}</span>
+            <div class="min-w-0 flex-1"><div class="truncate text-sm font-medium">${esc(m ? m.name : s.measure_id)}</div>
+              <div class="text-[11px] text-slate-400">${m ? esc(m.cost) + ' ед. · ' + esc(DIR()[m.direction]?.name || '') : ''}${k ? ' · <span class="text-amber-300">' + esc(k.name) + '</span>' : ''}</div></div>
+            <button class="rounded-md px-1.5 text-lg leading-none text-slate-500 hover:text-white" data-remove="${i}" aria-label="Убрать">×</button>
+          </li>`;
+        }).join('')}
+      </ol>
+
+      <div class="mt-5">
+        <div class="flex items-baseline justify-between text-sm"><span class="text-slate-400">Бюджет</span>
+          <span class="font-bold tabular-nums ${ps.over ? 'text-red-400' : ''}">${ps.used} <span class="font-normal text-slate-500">/ ${S.ds.budget}</span></span></div>
+        <div class="mt-2 h-2.5 overflow-hidden rounded-full bg-base-800"><div class="h-full rounded-full transition-all duration-300 ${ps.over ? 'bg-red-500' : 'bg-accent'}" style="width:${pct}%"></div></div>
+        <div class="mt-1.5 text-[12px] ${ps.over ? 'text-red-400' : 'text-slate-400'}">${ps.over ? `Перерасход на ${ps.used - S.ds.budget} ед.` : `Остаток ${ps.left} ед. — <span class="text-slate-300">не сгорает и не даёт бонуса</span>`}</div>
+      </div>
+
+      <div class="mt-5 grid grid-cols-5 gap-1.5">
+        ${S.ds.directions.map((d) => { const c = ps.counts[d.id] || 0; const over = c > S.ds.max_per_direction; return `
+          <div class="rounded-lg border ${over ? 'border-red-500/60' : c ? 'border-accent/40' : 'border-base-700'} px-1 py-1.5 text-center" title="${esc(d.name)}">
+            <div class="text-sm font-bold tabular-nums ${over ? 'text-red-400' : c ? 'text-accent' : 'text-slate-500'}">${c}/${S.ds.max_per_direction}</div>
+            <div class="truncate text-[10px] text-slate-400">${esc(shortDir(d.id))}</div></div>`; }).join('')}
+      </div>
+
+      <div class="mt-5 min-h-[44px] rounded-xl bg-base-850 px-3 py-2.5" aria-live="polite">${msg}</div>
+
+      <button id="btnSubmit" class="mt-4 w-full rounded-xl px-4 py-3 text-sm font-bold transition ${canSubmit ? 'bg-accent text-base-950 hover:brightness-110' : 'cursor-not-allowed bg-base-800 text-slate-500'}" ${canSubmit ? '' : 'disabled'}>Принять решения</button>
+    </div>`;
+  $$('#rail [data-remove]').forEach((b) => (b.onclick = () => { S.slots[+b.dataset.remove] = null; onPlanChange(); }));
+  $('#btnSubmit').onclick = submitPlan;
+
+  $('#mobileBar').innerHTML = `
+    <div class="flex items-center gap-3">
+      <div class="min-w-0 flex-1">
+        <div class="flex items-baseline gap-2 text-sm"><b class="tabular-nums ${ps.over ? 'text-red-400' : ''}">${ps.used}/${S.ds.budget}</b><span class="text-slate-400">· ${ps.filled}/${S.ds.slots} решений</span></div>
+        <div class="mt-1 h-1.5 overflow-hidden rounded-full bg-base-800"><div class="h-full ${ps.over ? 'bg-red-500' : 'bg-accent'}" style="width:${pct}%"></div></div>
+        <div class="mt-1 truncate text-[11px] ${v && v.valid && !ps.over ? 'text-emerald-300' : 'text-slate-400'}">${ps.over ? 'Перерасход бюджета' : esc(v ? (v.message || '') : 'Выберите пять решений')}</div>
+      </div>
+      <button id="btnSubmitM" class="shrink-0 rounded-xl px-4 py-3 text-sm font-bold ${canSubmit ? 'bg-accent text-base-950' : 'bg-base-800 text-slate-500'}" ${canSubmit ? '' : 'disabled'}>Принять</button>
+    </div>`;
+  $('#btnSubmitM').onclick = submitPlan;
+}
+
+function pickMeasure(mid) {
+  const m = M()[mid];
+  const idx = S.slots.findIndex((s) => s && s.measure_id === mid);
+  if (idx >= 0) { S.slots[idx] = null; onPlanChange(); return; }
+  const free = S.slots.findIndex((s) => !s);
+  if (free < 0) { toast('Все пять слотов заняты — уберите одно решение'); return; }
+  if (m.scope === 'district') {
+    openDistrictPicker(m, (districtId) => { S.slots[free] = { measure_id: mid, district_id: districtId }; onPlanChange(); });
+  } else { S.slots[free] = { measure_id: mid, district_id: null }; onPlanChange(); }
+}
+
+function openDistrictPicker(m, onPick) {
+  const dirId = m.direction;
+  openModal(`
+    <div class="card fade-in w-full max-w-lg rounded-b-none p-5 sm:rounded-2xl">
+      <div class="card-h">Районная мера · ${esc(m.cost)} ед.</div>
+      <h3 class="mt-1 text-lg font-bold">${esc(m.name)}</h3>
+      <p class="mt-1 text-sm text-slate-400">В каком районе запускаем? Меньше индекс — сильнее эффект на месте. Больше жителей — больше вклад в AQLS.</p>
+      <div class="mt-4 space-y-2">
+        ${S.ds.districts.map((k) => {
+          const idx = k.indices && k.indices[dirId];
+          const low = idx != null && idx < 40;
+          return `<button data-pick="${esc(k.id)}" class="flex w-full items-center gap-3 rounded-xl border border-base-700 bg-base-850 px-3 py-3 text-left hover:border-accent">
+            <span class="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-base-800 text-xs font-bold">${esc((k.name || '').slice(0, 2))}</span>
+            <span class="min-w-0 flex-1"><span class="block font-semibold">${esc(k.name)}</span>
+              <span class="block text-[12px] text-slate-400">${k.population ? int(k.population) + ' жителей · ' : ''}AQLS ${num(k.aqls)}</span></span>
+            ${idx != null ? `<span class="text-right"><span class="block text-[10px] uppercase tracking-wider text-slate-500">${esc(shortDir(dirId))}</span><span class="font-bold tabular-nums ${low ? 'text-red-400' : ''}">${esc(idx)}</span></span>` : ''}
+          </button>`;
+        }).join('')}
+      </div>
+      <button data-close class="mt-4 w-full rounded-xl border border-base-700 py-2.5 text-sm text-slate-400 hover:text-white">Отмена</button>
+    </div>`);
+  $$('#modal [data-pick]').forEach((b) => (b.onclick = () => { closeModal(); onPick(b.dataset.pick); }));
+}
+
+function openModal(html, { dismissable = true } = {}) {
+  const md = $('#modal');
+  md.innerHTML = html; md.classList.remove('hidden'); md.classList.add('flex');
+  md.onclick = (e) => { if ((dismissable && e.target === md) || e.target.closest('[data-close]')) closeModal(); };
+  document.body.style.overflow = 'hidden';
+}
+function closeModal() { const md = $('#modal'); md.classList.add('hidden'); md.classList.remove('flex'); md.innerHTML = ''; document.body.style.overflow = ''; }
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !$('#modal').classList.contains('hidden') && !$('#modal [data-lock]')) closeModal(); });
+
+function loadPlan(decs) {
+  S.slots = Array(S.ds.slots).fill(null);
+  (decs || []).slice(0, S.ds.slots).forEach((d, i) => (S.slots[i] = { measure_id: d.measure_id, district_id: d.district_id || null }));
+  onPlanChange();
+}
+
+let valTimer = null;
+function onPlanChange() {
+  renderMeasures();
+  S.validating = true;
+  renderRail();
+  clearTimeout(valTimer);
+  valTimer = setTimeout(runValidate, 120);
+}
+async function runValidate() {
+  const seq = ++S.valSeq;
+  try {
+    const res = await api('POST', '/api/validate', { decisions: decisions() });
+    if (seq !== S.valSeq) return;
+    S.validation = res;
+  } catch (e) {
+    if (seq !== S.valSeq) return;
+    S.validation = { valid: false, message: 'Сервер проверки недоступен: ' + e.message, errors: [] };
+  }
+  S.validating = false;
+  renderRail();
+}
+
+/* =====================================================================
+   ВЕРДИКТ
+   ===================================================================== */
+async function submitPlan() {
+  const decs = decisions();
+  S.verdict = null; S.verdictError = null; S.verdictLoading = true;
+  S.narrative = null; S.narrativeError = null; S.narrativeLoading = true;
+  S.crisis = null; S.crisisResolved = null;
+  S.submitted = decs;
+  go('verdict');
+  loadNarrative(decs);
+  try {
+    S.verdict = await api('POST', '/api/evaluate', { decisions: decs });
+  } catch (e) { S.verdictError = e.message; }
+  S.verdictLoading = false;
+  if (S.tab === 'verdict') renderVerdict();
+}
+async function loadNarrative(decs, verdict) {
+  S.narrativeLoading = true; S.narrativeError = null;
+  try { S.narrative = await api('POST', '/api/narrative', { decisions: decs, verdict }); }
+  catch (e) { S.narrativeError = e.message; }
+  S.narrativeLoading = false;
+  if (S.tab === 'verdict') renderCouncil();
+  if (S.tab === 'paper') renderPaper();
+}
+
+const charts = {};
+function chart(id, cfg) { if (charts[id]) charts[id].destroy(); const c = document.getElementById(id); if (!c) return; charts[id] = new Chart(c, cfg); }
+
+function emptyState(title, text, btn = 'В кабинет', to = 'cabinet') {
+  return `<div class="card mx-auto max-w-xl p-8 text-center"><div class="text-lg font-semibold">${esc(title)}</div>
+    <p class="mt-2 text-sm text-slate-400">${esc(text)}</p>
+    <button data-go="${to}" class="mt-5 rounded-xl bg-accent px-4 py-2.5 text-sm font-bold text-base-950">${esc(btn)}</button></div>`;
+}
+
+function gaugeSVG(value, thr) {
+  const v = Math.max(0, Math.min(100, Number(value) || 0));
+  const R = 80, cx = 100, cy = 95;
+  const pt = (p) => { const a = Math.PI * (1 - p / 100); return [cx + R * Math.cos(a), cy - R * Math.sin(a)]; };
+  const [x1, y1] = pt(v);
+  const [tx1, ty1] = pt(thr); const a = Math.PI * (1 - thr / 100);
+  const tIn = [cx + (R - 16) * Math.cos(a), cy - (R - 16) * Math.sin(a)], tOut = [cx + (R + 12) * Math.cos(a), cy - (R + 12) * Math.sin(a)];
+  const ok = v >= thr;
+  return `<svg viewBox="0 -16 200 128" class="w-full max-w-[260px]">
+    <path d="M ${cx - R} ${cy} A ${R} ${R} 0 0 1 ${cx + R} ${cy}" fill="none" stroke="#1e293b" stroke-width="14" stroke-linecap="round"/>
+    <path d="M ${cx - R} ${cy} A ${R} ${R} 0 0 1 ${x1.toFixed(2)} ${y1.toFixed(2)}" fill="none" stroke="${ok ? '#19b8d8' : '#ef4444'}" stroke-width="14" stroke-linecap="round"/>
+    <line x1="${tIn[0]}" y1="${tIn[1]}" x2="${tOut[0]}" y2="${tOut[1]}" stroke="#e2e8f0" stroke-width="2"/>
+    <text x="${tOut[0]}" y="${tOut[1] - 4}" text-anchor="middle" fill="#94a3b8" font-size="8.5">${thr}% · переизбрание</text>
+    <text x="100" y="86" text-anchor="middle" fill="#fff" font-size="30" font-weight="800">${Math.round(v)}%</text>
+    <text x="${cx - R}" y="110" text-anchor="middle" fill="#64748b" font-size="8">0</text>
+    <text x="${cx + R}" y="110" text-anchor="middle" fill="#64748b" font-size="8">100</text>
+  </svg>`;
+}
+
+function renderVerdict() {
+  const root = $('#tab-verdict');
+  if (!S.submitted && !S.verdict) { root.innerHTML = emptyState('Вердикта пока нет', 'Сначала примите пять решений в кабинете акима.'); return; }
+  if (S.verdictError) {
+    root.innerHTML = `<div class="card mx-auto max-w-xl p-8 text-center"><div class="text-lg font-semibold">Не удалось посчитать вердикт</div>
+      <p class="mt-2 text-sm text-slate-400">${esc(S.verdictError)}</p>
+      <button id="retryVerdict" class="mt-5 rounded-xl bg-accent px-4 py-2.5 text-sm font-bold text-base-950">Повторить</button></div>`;
+    $('#retryVerdict').onclick = submitPlan; return;
+  }
+  if (S.verdictLoading || !S.verdict) {
+    root.innerHTML = `<div class="mb-5 text-sm">${spinner('Считаем два года правления…')}</div>
+      <div class="grid gap-4 lg:grid-cols-3">${skel('h-56')}${skel('h-56')}${skel('h-56')}</div>
+      <div class="mt-4 grid gap-4 lg:grid-cols-3">${skel('h-72', 'lg:col-span-2')}${skel('h-72')}</div>`;
+    return;
+  }
+  const v = S.verdict;
+  const thr = v.reelection_threshold ?? S.ds.reelection_threshold;
+  const base = v.baseline ?? S.ds.baseline_aqls, max = v.max_aqls ?? S.ds.max_aqls;
+  const reelected = v.reelected ?? (v.approval >= thr);
+  const regretPct = Math.max(0, Math.min(100, ((v.aqls - base) / (max - base)) * 100));
+  const total = v.total_plans ?? S.ds.total_plans;
+  const cr = S.crisisResolved;
+
+  root.innerHTML = `
+    ${cr ? `<div class="fade-in mb-5 flex flex-wrap items-center gap-3 rounded-2xl border border-accent/30 bg-accent/5 px-4 py-3 text-sm">
+        <span class="rounded-full bg-accent/15 px-2 py-0.5 text-[11px] font-bold uppercase tracking-wider text-accent">После кризиса</span>
+        <span class="flex-1 text-slate-300">${esc(cr.comment || '')}</span></div>`
+      : `<button id="crisisCta" class="fade-in mb-5 flex w-full items-center gap-4 rounded-2xl border border-red-500/40 bg-red-500/10 px-4 py-3 text-left hover:bg-red-500/15">
+        <span class="pulse-ring grid h-9 w-9 shrink-0 place-items-center rounded-full bg-red-500 font-black text-white">!</span>
+        <span class="flex-1"><span class="block text-[11px] font-bold uppercase tracking-widest text-red-300">II кв. 2028 · 5-й час</span>
+        <span class="block text-sm font-semibold text-white">В городе кризис. Акиму придётся заменить одно решение.</span></span>
+        <span class="shrink-0 rounded-lg bg-red-500 px-3 py-2 text-sm font-bold text-white">Открыть кризис</span></button>`}
+
+    <div class="grid gap-4 lg:grid-cols-3">
+      <div class="card fade-in flex flex-col p-5">
+        <div class="card-h">AQLS · индекс качества жизни</div>
+        <div class="mt-3 flex items-end gap-3">
+          <div class="text-7xl font-extrabold leading-none tracking-tight tabular-nums">${num(v.aqls)}</div>
+        </div>
+        <div class="mt-3 flex flex-wrap items-center gap-2 text-sm">
+          <span class="rounded-full px-2.5 py-1 font-bold tabular-nums ${v.aqls >= base ? 'bg-emerald-400/15 text-emerald-300' : 'bg-red-500/15 text-red-300'}">${sign(v.aqls - base)}</span>
+          <span class="text-slate-400">к ${num(base)} в начале срока</span>
+        </div>
+        <div class="mt-auto pt-5 text-[12px] text-slate-500">IV кв. 2028 · потрачено ${esc(v.budget_used ?? '—')} из ${S.ds.budget}</div>
+      </div>
+
+      <div class="card fade-in flex flex-col items-center p-5">
+        <div class="card-h self-start">Рейтинг акима</div>
+        <div class="mt-2 flex w-full justify-center">${gaugeSVG(v.approval, thr)}</div>
+        <div class="mt-1 rounded-full px-3 py-1 text-sm font-bold ${reelected ? 'bg-accent/15 text-accent' : 'bg-red-500/15 text-red-300'}">${reelected ? 'Переизбран на второй срок' : 'Уволен: рейтинг ниже порога'}</div>
+      </div>
+
+      <div class="card fade-in flex flex-col p-5">
+        <div class="card-h">Счётчик сожаления</div>
+        <div class="mt-4 text-sm leading-relaxed text-slate-300">максимум <b class="text-white">${num(max)}</b>, ваше место <b class="text-white">${int(v.rank)}</b> из ${int(total)}, топ <b class="text-accent">${num(v.top_percent, v.top_percent < 1 ? 2 : 1)}%</b></div>
+        <div class="relative mt-6 h-3 rounded-full bg-base-800">
+          <div class="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-accent/30 to-accent" style="width:${regretPct}%"></div>
+          <div class="absolute -top-1.5 h-6 w-1.5 -translate-x-1/2 rounded bg-white shadow" style="left:${regretPct}%"></div>
+        </div>
+        <div class="mt-2 flex justify-between text-[11px] text-slate-500"><span>${num(base)} · старт</span><span>${num(max)} · оптимум</span></div>
+        <div class="mt-auto pt-4 text-sm text-slate-400">До оптимума не хватило <b class="tabular-nums text-white">${num(Math.max(0, max - v.aqls))}</b>. ${reelected ? '' : 'Но и оптимум не гарантирует переизбрания.'}</div>
+      </div>
+    </div>
+
+    <div class="mt-4 grid gap-4 lg:grid-cols-3">
+      <div class="card p-5 lg:col-span-2">
+        <div class="flex items-baseline justify-between"><div class="card-h">Граница Парето · бюджет → лучший AQLS</div><div class="text-[11px] text-slate-500">точка — ваш план</div></div>
+        <div class="mt-3 h-64"><canvas id="chPareto"></canvas></div>
+      </div>
+      <div class="card p-5">
+        <div class="card-h">AQLS по кварталам</div>
+        <div class="mt-3 h-64"><canvas id="chTimeline"></canvas></div>
+      </div>
+    </div>
+
+    <div class="mt-4 grid gap-4 lg:grid-cols-3">
+      <div class="card p-5 lg:col-span-2">
+        <div class="card-h">Районы · до → после</div>
+        <div class="mt-3 overflow-x-auto">${districtTable(v)}</div>
+      </div>
+      <div class="card p-5">
+        <div class="card-h">Вклад каждой меры</div>
+        <div class="mt-1 text-[11px] text-slate-500">насколько упадёт AQLS, если убрать меру</div>
+        <div class="mt-3 h-64"><canvas id="chContrib"></canvas></div>
+      </div>
+    </div>
+
+    <div class="mt-4">${aiPanel(v)}</div>
+
+    <div class="mt-4 card p-5">
+      <div class="flex items-baseline justify-between"><div class="card-h">Совет районов</div><div class="text-[11px] text-slate-500">депутаты маслихата о вашем плане</div></div>
+      <div id="council" class="mt-4"></div>
+    </div>
+
+    <div class="mt-6 flex flex-wrap gap-2">
+      <button data-go="paper" class="rounded-xl bg-accent px-4 py-2.5 text-sm font-bold text-base-950">Открыть «Астана Times»</button>
+      <button data-go="cabinet" class="rounded-xl border border-base-600 px-4 py-2.5 text-sm">Изменить план</button>
+      <button data-go="board" class="rounded-xl border border-base-600 px-4 py-2.5 text-sm">В лидерборд</button>
+    </div>`;
+
+  const cta = $('#crisisCta'); if (cta) cta.onclick = openCrisis;
+  const ab = $('#applyRec'); if (ab) ab.onclick = applyRecommendation;
+  renderCouncil();
+  drawVerdictCharts(v, base);
+}
+
+function districtTable(v) {
+  const dirs = S.ds.directions;
+  const cell = (x, b) => {
+    const red = x != null && x < 40;
+    const d = b != null && x != null ? x - b : null;
+    return `<td class="px-2 py-2 text-center tabular-nums ${red ? 'bg-red-500/15 text-red-300 font-semibold' : ''}">${num(x, 1)}${d != null && Math.abs(d) >= 0.05 ? `<div class="text-[10px] ${d > 0 ? 'text-emerald-400' : 'text-red-400'}">${sign(d, 1)}</div>` : ''}</td>`;
+  };
+  return `<table class="w-full min-w-[620px] text-sm">
+    <thead><tr class="border-b border-base-700 text-[11px] uppercase tracking-wider text-slate-500">
+      <th class="py-2 pr-2 text-left font-semibold">Район</th>
+      ${dirs.map((d) => `<th class="px-2 py-2 font-semibold">${esc(shortDir(d.id))}</th>`).join('')}
+      <th class="px-2 py-2 font-semibold">AQLS до → после</th><th class="py-2 pl-2 text-right font-semibold">Δ</th></tr></thead>
+    <tbody>${(v.districts || []).map((r) => `<tr class="border-b border-base-800 last:border-0">
+      <td class="py-2 pr-2 font-medium">${esc(r.name)}</td>
+      ${dirs.map((d) => cell(r.indices_after?.[d.id], r.indices_before?.[d.id])).join('')}
+      <td class="px-2 py-2 text-center tabular-nums"><span class="${r.before < 40 ? 'text-red-400' : 'text-slate-400'}">${num(r.before)}</span> → <b class="${r.after < 40 ? 'text-red-400' : ''}">${num(r.after)}</b></td>
+      <td class="py-2 pl-2 text-right font-bold tabular-nums ${r.delta > 0.005 ? 'text-emerald-400' : r.delta < -0.005 ? 'text-red-400' : 'text-slate-400'}">${sign(r.delta)}</td></tr>`).join('')}
+    </tbody></table>
+    <div class="mt-2 text-[11px] text-slate-500">Красным — показатели ниже 40.</div>`;
+}
+
+function aiPanel(v) {
+  const a = v.analysis || v.ai || {};
+  const block = (title, items, tone) => `<div class="rounded-xl bg-base-850 p-4">
+    <div class="mb-2 flex items-center gap-2 text-sm font-semibold"><span class="h-2 w-2 rounded-full ${tone}"></span>${title}</div>
+    <ul class="space-y-1.5 text-[13.5px] leading-snug text-slate-300">${(items && items.length ? items : ['—']).map((x) => `<li>${esc(x)}</li>`).join('')}</ul></div>`;
+  const rec = a.recommendation;
+  const recText = typeof rec === 'string' ? rec : rec?.text;
+  const recPlan = rec && typeof rec === 'object' ? rec.decisions || rec.plan : null;
+  const offline = (v.mode && v.mode !== 'llm' && v.mode !== 'online') || a.mode === 'offline' || a.offline;
+  return `<div class="card p-5">
+    <div class="flex flex-wrap items-center gap-2"><div class="card-h">ИИ-аналитик акимата</div>
+      ${offline ? '<span class="rounded-full border border-base-600 px-2 py-0.5 text-[10px] text-slate-400">офлайн-шаблон</span>' : ''}</div>
+    <div class="mt-4 grid gap-3 md:grid-cols-2">
+      ${block('Сильные стороны', a.strengths, 'bg-emerald-400')}
+      ${block('Риски', a.risks, 'bg-red-400')}
+      ${block('Последствия', a.consequences, 'bg-slate-300')}
+      ${block('Компромиссы', a.tradeoffs || a.compromises, 'bg-amber-300')}
+    </div>
+    <div class="mt-3 flex flex-col gap-3 rounded-xl border border-accent/30 bg-accent/5 p-4 sm:flex-row sm:items-center">
+      <div class="flex-1"><div class="mb-1 text-sm font-semibold text-accent">Рекомендация</div>
+        <div class="text-[13.5px] leading-snug text-slate-200">${esc(recText || 'Рекомендация недоступна.')}</div></div>
+      ${recPlan && recPlan.length ? '<button id="applyRec" class="shrink-0 rounded-xl bg-accent px-4 py-2.5 text-sm font-bold text-base-950">Применить рекомендацию</button>' : ''}
+    </div></div>`;
+}
+function applyRecommendation() {
+  const a = S.verdict?.analysis || S.verdict?.ai || {};
+  const rec = a.recommendation; const plan = rec && (rec.decisions || rec.plan);
+  if (!plan) return;
+  loadPlan(plan); go('cabinet'); toast('Рекомендация загружена в кабинет');
+}
+
+function renderCouncil() {
+  const el = $('#council'); if (!el) return;
+  if (S.narrativeLoading && !S.narrative) { el.innerHTML = `<div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">${Array(5).fill(skel('h-40')).join('')}</div>`; return; }
+  const c = S.narrative?.council;
+  if (!c || !c.length) { el.innerHTML = `<div class="text-sm text-slate-400">${S.narrativeError ? 'Совет не собрался: ' + esc(S.narrativeError) : 'Депутаты пока молчат.'}</div>`; return; }
+  const moodCls = { support: ['bg-accent text-base-950', 'text-accent', 'За'], neutral: ['bg-slate-600 text-white', 'text-slate-300', 'Воздержался'], oppose: ['bg-red-500 text-white', 'text-red-300', 'Против'] };
+  el.innerHTML = `<div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">${c.map((d) => {
+    const mc = moodCls[d.mood] || moodCls.neutral;
+    const initials = d.initials || (d.deputy || '').split(/\s+/).map((w) => w[0]).join('').slice(0, 2);
+    return `<div class="fade-in flex flex-col rounded-xl border border-base-700 bg-base-850 p-4">
+      <div class="flex items-center gap-3"><div class="grid h-11 w-11 shrink-0 place-items-center rounded-full text-sm font-extrabold ${mc[0]}">${esc(initials)}</div>
+        <div class="min-w-0"><div class="truncate text-sm font-semibold">${esc(d.deputy || 'Депутат')}</div><div class="text-[11px] text-slate-400">${esc(d.district || '')}</div></div></div>
+      <div class="mt-3 flex-1 text-[13px] italic leading-snug text-slate-300">${esc(d.reaction || d.text || '')}</div>
+      <div class="mt-3 text-[11px] font-bold uppercase tracking-wider ${mc[1]}">${mc[2]}</div></div>`;
+  }).join('')}</div>`;
+}
+
+function drawVerdictCharts(v, base) {
+  Chart.defaults.color = '#94a3b8';
+  Chart.defaults.font.family = 'Inter, system-ui, sans-serif';
+  Chart.defaults.borderColor = 'rgba(51,65,85,.45)';
+  const accent = '#19b8d8';
+  const par = (v.pareto || []).map((p) => ({ x: p.cost, y: p.best ?? p.aqls }));
+  const me = v.user_point ? { x: v.user_point.cost, y: v.user_point.aqls } : { x: v.budget_used, y: v.aqls };
+  chart('chPareto', {
+    type: 'scatter',
+    data: { datasets: [
+      { label: 'Ваш план', data: [me], pointRadius: 9, pointHoverRadius: 11, backgroundColor: '#fff', borderColor: accent, borderWidth: 4, order: 0 },
+      { label: 'Лучший план за эти деньги', data: par, showLine: true, stepped: 'before', borderColor: accent, backgroundColor: 'rgba(25,184,216,.35)', pointRadius: 2.5, borderWidth: 2, order: 1 },
+    ] },
+    options: { maintainAspectRatio: false, animation: { duration: 500 },
+      plugins: { legend: { labels: { boxWidth: 10, usePointStyle: true } },
+        tooltip: { callbacks: { label: (c) => `${c.dataset.label}: ${c.parsed.x} ед. → ${num(c.parsed.y)}` } } },
+      scales: { x: { title: { display: true, text: 'Потрачено, ед.' }, suggestedMax: 100 }, y: { title: { display: true, text: 'AQLS' }, suggestedMin: base } } },
+  });
+  const tl = v.timeline || [];
+  chart('chTimeline', {
+    type: 'line',
+    data: { labels: tl.map((t) => t.label || `Q${t.quarter}`), datasets: [
+      { label: 'AQLS', data: tl.map((t) => t.aqls), borderColor: accent, backgroundColor: 'rgba(25,184,216,.12)', fill: true, tension: .3, pointRadius: 3 },
+      { label: 'Старт', data: tl.map(() => base), borderColor: '#475569', borderDash: [5, 5], pointRadius: 0, borderWidth: 1.5 },
+    ] },
+    options: { maintainAspectRatio: false, plugins: { legend: { display: false } },
+      scales: { x: { ticks: { maxRotation: 0, autoSkip: true, maxTicksLimit: 5 } }, y: { suggestedMin: base - 0.2 } } },
+  });
+  const co = (v.contributions || []).slice().sort((a, b) => b.delta - a.delta);
+  chart('chContrib', {
+    type: 'bar',
+    data: { labels: co.map((c) => { const n = c.name || decLabel(c); return n.length > 26 ? n.slice(0, 25) + '…' : n; }),
+      datasets: [{ data: co.map((c) => c.delta), backgroundColor: co.map((c, i) => (i === 0 ? accent : 'rgba(25,184,216,.45)')), borderRadius: 6 }] },
+    options: { indexAxis: 'y', maintainAspectRatio: false, plugins: { legend: { display: false },
+      tooltip: { callbacks: { label: (c) => `${sign(c.parsed.x)} AQLS` } } },
+      scales: { x: { title: { display: true, text: 'Δ AQLS' } }, y: { ticks: { font: { size: 11 } } } } },
+  });
+}
+
+/* =====================================================================
+   КРИЗИС (5-й час)
+   ===================================================================== */
+const CR = { removeIdx: null, add: null, validation: null, validating: false, submitting: false, result: null, error: null, seq: 0 };
+async function openCrisis() {
+  Object.assign(CR, { removeIdx: null, add: null, validation: null, validating: false, submitting: false, result: null, error: null });
+  openModal(`<div data-lock class="card fade-in w-full max-w-4xl rounded-b-none p-6 sm:rounded-2xl">${spinner('Что-то случилось в городе…')}</div>`, { dismissable: false });
+  try { S.crisis = await api('POST', '/api/shock', { decisions: S.verdict?.decisions || S.submitted }); }
+  catch (e) { CR.error = e.message; }
+  renderCrisis();
+}
+function crisisPlan() { return (S.verdict?.decisions || S.submitted || []).map((d) => ({ measure_id: d.measure_id, district_id: d.district_id || null })); }
+function crisisNext() {
+  const plan = crisisPlan();
+  if (CR.removeIdx == null || !CR.add) return null;
+  const n = plan.slice(); n[CR.removeIdx] = CR.add; return n;
+}
+function renderCrisis() {
+  const md = $('#modal'); if (md.classList.contains('hidden')) return;
+  const keep = [md.querySelector('[data-lock]')?.scrollTop || 0, md.querySelector('[data-addlist]')?.scrollTop || 0];
+  const restore = () => { const a = md.querySelector('[data-lock]'), b = md.querySelector('[data-addlist]'); if (a) a.scrollTop = keep[0]; if (b) b.scrollTop = keep[1]; };
+  const sh = S.crisis;
+  if (CR.error || !sh) {
+    md.innerHTML = `<div data-lock class="card w-full max-w-xl p-6 text-center"><div class="font-semibold">Кризис не загрузился</div>
+      <p class="mt-2 text-sm text-slate-400">${esc(CR.error || 'Нет данных')}</p>
+      <div class="mt-4 flex justify-center gap-2"><button id="crRetry" class="rounded-xl bg-accent px-4 py-2 text-sm font-bold text-base-950">Повторить</button>
+      <button data-close class="rounded-xl border border-base-600 px-4 py-2 text-sm">Закрыть</button></div></div>`;
+    $('#crRetry').onclick = openCrisis; return;
+  }
+  const limit = sh.budget_limit ?? S.ds.budget;
+  const plan = crisisPlan();
+  const ms = M();
+  if (CR.result) return renderCrisisResult(sh);
+  const next = crisisNext();
+  const cost = (next || plan).reduce((s, d) => s + (ms[d.measure_id]?.cost || 0), 0);
+  const over = cost > limit;
+  const pct = Math.min(100, (cost / limit) * 100);
+  // candidate measures: not currently in plan (except removed slot), direction constraint after removal
+  const remaining = plan.filter((_, i) => i !== CR.removeIdx);
+  const cnt = {}; remaining.forEach((d) => { const m = ms[d.measure_id]; cnt[m.direction] = (cnt[m.direction] || 0) + 1; });
+  const canSubmit = next && CR.validation && CR.validation.valid && !CR.validating && !CR.submitting;
+
+  md.innerHTML = `<div data-lock class="card fade-in max-h-[92vh] w-full max-w-5xl overflow-y-auto rounded-b-none sm:rounded-2xl">
+    <div class="border-b border-red-500/30 bg-gradient-to-br from-red-500/15 to-transparent p-5 sm:p-6">
+      <div class="flex items-center gap-2"><span class="rounded-full bg-red-500 px-2.5 py-0.5 text-[11px] font-black uppercase tracking-widest text-white">Кризис</span>
+        <span class="text-[12px] font-semibold uppercase tracking-wider text-red-300">${esc(sh.quarter || '5-й час')}</span></div>
+      <h3 class="mt-2 text-2xl font-extrabold tracking-tight sm:text-3xl">${esc(sh.title)}</h3>
+      <p class="mt-2 max-w-3xl text-sm leading-relaxed text-slate-300">${esc(sh.description || '')}</p>
+      ${(sh.effects || []).length ? `<div class="mt-3 flex flex-wrap gap-2">${sh.effects.map((e) => `<span class="rounded-lg border border-red-400/30 bg-base-950/40 px-2.5 py-1 text-[12px] text-red-100">${esc(e)}</span>`).join('')}</div>` : ''}
+    </div>
+    <div class="grid gap-5 p-5 sm:p-6 lg:grid-cols-[1fr_1.3fr]">
+      <div>
+        <div class="card-h mb-2">1 · Уберите одно решение</div>
+        <div class="space-y-2">${plan.map((d, i) => { const m = ms[d.measure_id]; const on = CR.removeIdx === i; return `
+          <button data-rm="${i}" class="flex w-full items-center gap-3 rounded-xl border px-3 py-2.5 text-left ${on ? 'border-red-400 bg-red-500/10' : 'border-base-700 bg-base-850 hover:border-base-600'}">
+            <span class="grid h-5 w-5 shrink-0 place-items-center rounded-full border ${on ? 'border-red-400 bg-red-500 text-white' : 'border-base-600'} text-[11px]">${on ? '×' : ''}</span>
+            <span class="min-w-0 flex-1"><span class="block truncate text-sm font-medium ${on ? 'line-through text-slate-400' : ''}">${esc(decLabel(d))}</span>
+            <span class="text-[11px] text-slate-400">${esc(m?.cost)} ед. · ${esc(DIR()[m?.direction]?.name || '')}</span></span></button>`; }).join('')}</div>
+      </div>
+      <div>
+        <div class="card-h mb-2">2 · Добавьте одно</div>
+        ${CR.removeIdx == null ? '<div class="rounded-xl border border-dashed border-base-600 p-4 text-sm text-slate-500">Сначала выберите, от чего отказаться.</div>' : `
+        <div data-addlist class="grid max-h-[340px] gap-2 overflow-y-auto pr-1 sm:grid-cols-2">${S.ds.measures.filter((m) => !remaining.some((d) => d.measure_id === m.id)).map((m) => {
+          const dirFull = (cnt[m.direction] || 0) >= S.ds.max_per_direction;
+          const on = CR.add && CR.add.measure_id === m.id;
+          return `<div class="rounded-xl border px-3 py-2.5 ${on ? 'border-accent bg-accent/10' : 'border-base-700 bg-base-850'} ${dirFull ? 'opacity-40' : ''}">
+            <button data-add="${esc(m.id)}" ${dirFull ? 'disabled' : ''} class="w-full text-left">
+              <div class="flex items-start justify-between gap-2"><span class="text-sm font-medium leading-snug">${esc(m.name)}</span><span class="shrink-0 text-sm font-bold tabular-nums">${esc(m.cost)}</span></div>
+              <div class="text-[11px] text-slate-400">${esc(shortDir(m.direction))} · ${m.scope === 'district' ? 'район' : 'город'} · через ${esc(m.lag)} кв.${dirFull ? ' · направление заполнено' : ''}</div></button>
+            ${on && m.scope === 'district' ? `<select data-dist class="mt-2 w-full rounded-lg border border-base-600 bg-base-900 px-2 py-1.5 text-sm">
+              <option value="">— район —</option>${S.ds.districts.map((k) => `<option value="${esc(k.id)}" ${CR.add.district_id === k.id ? 'selected' : ''}>${esc(k.name)}</option>`).join('')}</select>` : ''}
+          </div>`; }).join('')}</div>`}
+      </div>
+    </div>
+    <div class="sticky bottom-0 border-t border-base-700 bg-base-900/95 p-4 backdrop-blur sm:px-6">
+      <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
+        <div class="min-w-0 flex-1">
+          <div class="flex items-baseline gap-2 text-sm"><span class="text-slate-400">Бюджет после кризиса</span><b class="tabular-nums ${over ? 'text-red-400' : ''}">${cost} / ${limit}</b></div>
+          <div class="mt-1.5 h-2 overflow-hidden rounded-full bg-base-800"><div class="h-full ${over ? 'bg-red-500' : 'bg-accent'}" style="width:${pct}%"></div></div>
+          <div class="mt-1.5 text-[12px] ${CR.validation?.valid ? 'text-emerald-300' : 'text-amber-200'}">${CR.validating ? spinner('Проверяем…') : esc(next ? (CR.validation?.message || '') : over ? `Сейчас план стоит ${cost} — нужно уложиться в ${limit}.` : 'Замените ровно одно решение.')}</div>
+        </div>
+        <button id="crGo" class="shrink-0 rounded-xl px-5 py-3 text-sm font-bold ${canSubmit ? 'bg-red-500 text-white hover:brightness-110' : 'cursor-not-allowed bg-base-800 text-slate-500'}" ${canSubmit ? '' : 'disabled'}>${CR.submitting ? '<span class="spin"></span> Пересчитываем…' : 'Применить замену'}</button>
+      </div>
+    </div></div>`;
+
+  $$('#modal [data-rm]').forEach((b) => (b.onclick = () => { CR.removeIdx = +b.dataset.rm; CR.add = null; CR.validation = null; renderCrisis(); }));
+  $$('#modal [data-add]').forEach((b) => (b.onclick = () => {
+    const m = ms[b.dataset.add];
+    CR.add = { measure_id: m.id, district_id: m.scope === 'district' ? (CR.add?.measure_id === m.id ? CR.add.district_id : null) : null };
+    crisisValidate();
+  }));
+  const sel = $('#modal [data-dist]'); if (sel) sel.onchange = () => { CR.add.district_id = sel.value || null; crisisValidate(); };
+  $('#crGo').onclick = crisisSubmit;
+  restore();
+}
+async function crisisValidate() {
+  const next = crisisNext(); const seq = ++CR.seq;
+  CR.validating = true; renderCrisis();
+  try { const r = await api('POST', '/api/validate', { decisions: next, budget_limit: S.crisis.budget_limit }); if (seq === CR.seq) CR.validation = r; }
+  catch (e) { if (seq === CR.seq) CR.validation = { valid: false, message: 'Проверка недоступна: ' + e.message }; }
+  if (seq === CR.seq) { CR.validating = false; renderCrisis(); }
+}
+async function crisisSubmit() {
+  CR.submitting = true; renderCrisis();
+  try {
+    const r = await api('POST', '/api/shock/resolve', { decisions: crisisPlan(), shock_id: S.crisis.id, remove_index: CR.removeIdx, add: CR.add });
+    if (r.ok === false) { CR.validation = r.validation || { valid: false, message: 'Замена не прошла проверку' }; CR.submitting = false; renderCrisis(); return; }
+    CR.result = r;
+  } catch (e) { CR.validation = { valid: false, message: 'Ошибка: ' + e.message }; }
+  CR.submitting = false; renderCrisis();
+}
+function renderCrisisResult(sh) {
+  const r = CR.result; const b = r.before || S.verdict; const a = r.verdict;
+  const tile = (label, x, y, fmt, suffix = '') => `<div class="rounded-xl bg-base-850 p-4"><div class="card-h">${label}</div>
+    <div class="mt-2 flex items-baseline gap-2 tabular-nums"><span class="text-lg text-slate-400">${fmt(x)}${suffix}</span><span class="text-slate-500">→</span>
+    <span class="text-3xl font-extrabold">${fmt(y)}${suffix}</span></div>
+    <div class="mt-1 text-sm font-semibold ${y - x >= 0 ? 'text-emerald-300' : 'text-red-300'}">${sign(y - x, fmt === int ? 0 : 2)}${suffix}</div></div>`;
+  $('#modal').innerHTML = `<div data-lock class="card fade-in max-h-[92vh] w-full max-w-3xl overflow-y-auto rounded-b-none p-5 sm:rounded-2xl sm:p-6">
+    <div class="flex items-center gap-2"><span class="rounded-full bg-red-500 px-2.5 py-0.5 text-[11px] font-black uppercase tracking-widest text-white">Кризис пройден</span>
+      <span class="text-[12px] text-slate-400">${esc(sh.title)}</span></div>
+    <div class="mt-4 grid gap-3 sm:grid-cols-2">
+      ${tile('AQLS', b?.aqls, a.aqls, num)}
+      ${tile('Рейтинг акима', b?.approval, a.approval, int, '%')}
+    </div>
+    <div class="mt-3 rounded-xl bg-base-850 p-3 text-center text-sm font-semibold ${a.reelected ?? a.approval >= S.ds.reelection_threshold ? 'text-accent' : 'text-red-300'}">
+      ${(a.reelected ?? a.approval >= S.ds.reelection_threshold) ? 'Аким удерживает кресло' : 'Рейтинг ниже порога переизбрания'}</div>
+    <div class="mt-3 rounded-xl border border-accent/30 bg-accent/5 p-4">
+      <div class="mb-1 text-sm font-semibold text-accent">Комментарий ИИ</div>
+      <p class="text-[14px] leading-relaxed text-slate-200">${esc(r.comment || r.ai_comment || '—')}</p></div>
+    <div class="mt-5 flex flex-wrap gap-2">
+      <button id="crVerdict" class="rounded-xl bg-accent px-4 py-2.5 text-sm font-bold text-base-950">Вердикт после кризиса</button>
+      <button id="crPaper" class="rounded-xl border border-base-600 px-4 py-2.5 text-sm">Открыть газету</button></div></div>`;
+  const apply = () => {
+    S.verdict = a; S.crisisResolved = r;
+    if (r.decisions) { S.submitted = r.decisions; loadPlan(r.decisions); }
+    closeModal();
+    loadNarrative(r.decisions || S.submitted, a);
+  };
+  $('#crVerdict').onclick = () => { apply(); go('verdict'); };
+  $('#crPaper').onclick = () => { apply(); go('paper'); };
+}
+
+/* =====================================================================
+   АСТАНА TIMES
+   ===================================================================== */
+function renderPaper() {
+  const root = $('#tab-paper');
+  if (!S.submitted) { root.innerHTML = emptyState('Газета ещё не вышла', 'Тираж печатается после того, как аким примет решения.'); return; }
+  if (S.narrativeLoading && !S.narrative) {
+    root.innerHTML = `<div class="paper mx-auto max-w-5xl rounded-sm p-6 sm:p-10"><div class="text-center font-display text-5xl font-black opacity-30">Астана Times</div>
+      <div class="mt-6 text-center text-sm text-stone-600"><span class="spin" style="border-top-color:#1c1917"></span> Вёрстка номера…</div>
+      <div class="mt-6 space-y-3 opacity-40">${Array(5).fill('<div class="h-3 rounded bg-stone-400/60"></div>').join('')}</div></div>`;
+    return;
+  }
+  const n = S.narrative?.newspaper;
+  if (!n) {
+    root.innerHTML = `<div class="card mx-auto max-w-xl p-8 text-center"><div class="font-semibold">Редакция не ответила</div>
+      <p class="mt-2 text-sm text-slate-400">${esc(S.narrativeError || 'Нет текста номера')}</p>
+      <button id="paperRetry" class="mt-4 rounded-xl bg-accent px-4 py-2.5 text-sm font-bold text-base-950">Повторить</button></div>`;
+    $('#paperRetry').onclick = () => loadNarrative(S.submitted, S.verdict); return;
+  }
+  const lead = n.lead || {};
+  const body = Array.isArray(lead.body) ? lead.body : String(lead.body || n.body || '').split(/\n{2,}/).filter(Boolean);
+  const zones = n.critical_zones || [];
+  const quotes = (S.narrative.council || []).slice(0, 3);
+  const stats = n.stats || (S.verdict ? [
+    { label: 'AQLS', value: num(S.verdict.aqls) }, { label: 'Рейтинг акима', value: Math.round(S.verdict.approval) + '%' }, { label: 'Бюджет', value: `${S.verdict.budget_used}/100` }] : []);
+  root.innerHTML = `
+    <article id="newspaper" class="paper fade-in mx-auto max-w-5xl rounded-sm px-5 py-6 sm:px-10 sm:py-9">
+      <div class="flex items-center justify-between kicker text-stone-600"><span>Ежеквартальная газета столицы</span><span class="hidden sm:inline">Основана в 1998</span><span>Цена 150 ₸</span></div>
+      <div class="rule-2 mt-2"></div>
+      <h1 class="masthead py-3 text-center text-[13vw] sm:text-7xl md:text-8xl">${esc(n.masthead || 'Астана Times')}</h1>
+      <div class="rule"></div>
+      <div class="flex items-center justify-between py-1.5 kicker text-stone-700"><span>${esc(n.edition || 'IV квартал 2028')}</span><span>${esc(n.issue || '')}</span><span>Астана</span></div>
+      <div class="rule-2"></div>
+
+      <h2 class="hl mt-6 text-center text-3xl sm:text-5xl">${esc(n.headline || '')}</h2>
+      ${n.subheadline ? `<p class="mx-auto mt-3 max-w-3xl text-center font-serif text-lg italic text-stone-700" style="text-align:center">${esc(n.subheadline)}</p>` : ''}
+
+      <div class="mt-6 grid gap-6 border-t border-stone-800 pt-5 md:grid-cols-12">
+        <div class="md:col-span-8">
+          <div class="kicker red">Главное</div>
+          <h3 class="hl mt-1 text-2xl">${esc(lead.title || 'Итоги двух лет')}</h3>
+          <div class="cols-2 mt-3 text-[15.5px] leading-relaxed">
+            ${body.map((p, i) => `<p class="${i === 0 ? 'dropcap' : ''} mb-3">${esc(p)}</p>`).join('')}
+            ${(n.articles || []).map((a) => `<h4 class="hl mt-2 text-lg" style="break-after:avoid">${esc(a.title)}</h4><p class="mb-3">${esc(a.body)}</p>`).join('')}
+          </div>
+          ${n.editorial ? `<div class="mt-5 border-t-2 border-stone-900 pt-4">
+            <div class="kicker text-stone-600">Мнение</div>
+            <h3 class="hl mt-1 text-xl italic">${esc(n.editorial.title || 'Колонка редактора')}</h3>
+            <p class="mt-2 text-[15.5px] italic leading-relaxed">${esc(n.editorial.body || n.editorial)}</p></div>` : ''}
+        </div>
+        <aside class="space-y-5 md:col-span-4 md:border-l md:border-stone-800 md:pl-6">
+          <div class="redbox">
+            <div class="redbar px-3 py-1.5 kicker">Критические зоны</div>
+            <div class="divide-y divide-red-900/20 px-3">
+              ${zones.length ? zones.map((z) => `<div class="py-2.5"><div class="flex items-baseline justify-between"><b class="font-serif text-[16px]">${esc(z.district || z.name)}</b>
+                <span class="red font-display text-xl font-black">${num(z.aqls)}</span></div><div class="text-[13px] text-stone-700">${esc(z.note || '')}</div></div>`).join('')
+                : '<div class="py-3 text-[14px] italic text-stone-700">Ни один район не опустился ниже 40. Редакция проверила дважды.</div>'}
+            </div>
+          </div>
+          <div class="border-y-2 border-stone-900 py-3">
+            <div class="kicker mb-2 text-stone-600">Цифры квартала</div>
+            <div class="grid grid-cols-3 gap-2 text-center">${stats.map((s) => `<div><div class="font-display text-2xl font-black leading-none">${esc(s.value)}</div><div class="mt-1 text-[11px] text-stone-600">${esc(s.label)}</div></div>`).join('')}</div>
+          </div>
+          ${quotes.length ? `<div><div class="kicker mb-2 text-stone-600">Говорят депутаты</div>${quotes.map((q) => `
+            <blockquote class="mb-3 border-l-2 border-stone-800 pl-3"><p class="text-[14px] italic leading-snug" style="text-align:left">${esc(q.reaction)}</p>
+            <div class="mt-1 text-[12px] text-stone-600">— ${esc(q.deputy)}, ${esc(q.district)}</div></blockquote>`).join('')}</div>` : ''}
+        </aside>
+      </div>
+      <div class="rule mt-6"></div>
+      <div class="flex justify-between pt-1.5 text-[11px] text-stone-600"><span>Данные — модель AQLS по решениям читателя</span><span>${S.narrative.mode && S.narrative.mode !== 'llm' ? 'Текст: офлайн-шаблон' : 'Текст: ИИ-редакция'}</span></div>
+    </article>
+    <div class="mx-auto mt-6 flex max-w-5xl flex-wrap justify-center gap-2">
+      <button data-go="verdict" class="rounded-xl border border-base-600 px-4 py-2.5 text-sm">← К вердикту</button>
+      <button data-go="board" class="rounded-xl bg-accent px-4 py-2.5 text-sm font-bold text-base-950">В лидерборд</button></div>`;
+}
+
+/* =====================================================================
+   ЛИДЕРБОРД
+   ===================================================================== */
+const B = { timer: null, rows: null, error: null, updated: 0, loading: false, mine: null };
+function startBoard() { renderBoard(); refreshBoard(); clearInterval(B.timer); B.timer = setInterval(refreshBoard, 5000); }
+function stopBoard() { clearInterval(B.timer); B.timer = null; }
+async function refreshBoard() {
+  B.loading = true; renderBoardTable();
+  try {
+    const r = await api('GET', '/api/leaderboard' + (CONFIG.SESSION ? '?session=' + encodeURIComponent(CONFIG.SESSION) : ''));
+    B.rows = (Array.isArray(r) ? r : r.entries || r.rows || []).slice().sort((a, b) => (b.aqls ?? 0) - (a.aqls ?? 0));
+    B.error = null; B.updated = Date.now();
+  } catch (e) { B.error = e.message; }
+  B.loading = false; renderBoardTable();
+}
+function renderBoard() {
+  const has = !!S.verdict;
+  $('#tab-board').innerHTML = `
+    <div class="mb-6 flex flex-wrap items-end justify-between gap-4">
+      <div><div class="card-h mb-1">Лидерборд${CONFIG.SESSION ? ' · комната ' + esc(CONFIG.SESSION) : ''}</div>
+        <h1 class="text-2xl font-bold tracking-tight sm:text-3xl">Кто лучше управляет Астаной</h1>
+        <p class="mt-1.5 text-sm text-slate-400">Сортировка по AQLS. Но смотрите на рейтинг: лучший индекс не всегда переизбирают.</p></div>
+    </div>
+    <div class="grid gap-4 lg:grid-cols-[340px_1fr]">
+      <form id="lbForm" class="card h-fit p-5">
+        <div class="card-h mb-3">Отправить результат</div>
+        ${has ? `<div class="mb-3 rounded-xl bg-base-850 p-3 text-sm">Ваш AQLS <b class="tabular-nums">${num(S.verdict.aqls)}</b> · рейтинг <b class="tabular-nums">${Math.round(S.verdict.approval)}%</b></div>`
+          : '<div class="mb-3 rounded-xl border border-dashed border-base-600 p-3 text-sm text-slate-400">Сначала получите вердикт в кабинете.</div>'}
+        <label class="text-[12px] text-slate-400" for="team">Название команды</label>
+        <input id="team" maxlength="40" required autocomplete="off" placeholder="Например, «Сарыарка вперёд»" class="mt-1 w-full rounded-xl border border-base-600 bg-base-900 px-3 py-2.5 text-sm outline-none focus:border-accent" ${has ? '' : 'disabled'}>
+        <button class="mt-3 w-full rounded-xl px-4 py-2.5 text-sm font-bold ${has ? 'bg-accent text-base-950' : 'cursor-not-allowed bg-base-800 text-slate-500'}" ${has ? '' : 'disabled'}>Отправить</button>
+        <div id="lbMsg" class="mt-2 min-h-[18px] text-[12px] text-slate-400"></div>
+      </form>
+      <div class="card overflow-hidden">
+        <div class="flex items-center justify-between border-b border-base-700 px-5 py-3"><div class="card-h">Таблица</div><div id="lbStatus" class="text-[11px] text-slate-500"></div></div>
+        <div id="lbTable" class="overflow-x-auto"></div>
+      </div>
+    </div>`;
+  $('#lbForm').onsubmit = async (e) => {
+    e.preventDefault();
+    const team = $('#team').value.trim(); if (!team || !S.verdict) return;
+    $('#lbMsg').innerHTML = spinner('Отправляем…');
+    try {
+      await api('POST', '/api/leaderboard', { team, session: CONFIG.SESSION, decisions: S.verdict.decisions || S.submitted, aqls: S.verdict.aqls, approval: S.verdict.approval });
+      B.mine = team; $('#lbMsg').textContent = 'Готово — вы в таблице.'; $('#team').value = '';
+      refreshBoard();
+    } catch (err) { $('#lbMsg').textContent = 'Не удалось отправить: ' + err.message; }
+  };
+  renderBoardTable();
+}
+function renderBoardTable() {
+  const t = $('#lbTable'), st = $('#lbStatus'); if (!t) return;
+  st.innerHTML = B.loading ? '<span class="spin"></span>' : B.error ? `<span class="text-red-400">нет связи</span>` : B.updated ? `обновлено ${new Date(B.updated).toLocaleTimeString('ru-RU')} · каждые 5 с` : '';
+  if (!B.rows) { t.innerHTML = B.error ? `<div class="p-5 text-sm text-slate-400">Лидерборд недоступен: ${esc(B.error)}</div>` : `<div class="space-y-2 p-5">${Array(4).fill(skel('h-10')).join('')}</div>`; return; }
+  if (!B.rows.length) { t.innerHTML = '<div class="p-6 text-center text-sm text-slate-400">Пока пусто. Будьте первыми.</div>'; return; }
+  const thr = S.ds?.reelection_threshold ?? 50;
+  t.innerHTML = `<table class="w-full min-w-[520px] text-sm"><thead><tr class="text-[11px] uppercase tracking-wider text-slate-500">
+    <th class="px-5 py-2.5 text-left font-semibold">#</th><th class="py-2.5 text-left font-semibold">Команда</th><th class="px-3 py-2.5 text-right font-semibold">AQLS</th>
+    <th class="px-3 py-2.5 text-right font-semibold">Рейтинг</th><th class="px-3 py-2.5 text-left font-semibold">Итог</th><th class="px-5 py-2.5 text-right font-semibold">Бюджет</th></tr></thead>
+    <tbody>${B.rows.map((r, i) => { const re = r.reelected ?? (r.approval >= thr); const mine = B.mine && r.team === B.mine; return `
+      <tr class="border-t border-base-800 ${mine ? 'bg-accent/10' : ''}">
+        <td class="px-5 py-3 font-bold tabular-nums ${i === 0 ? 'text-accent' : 'text-slate-400'}">${i + 1}</td>
+        <td class="py-3 font-medium">${esc(r.team)}</td>
+        <td class="px-3 py-3 text-right font-bold tabular-nums">${num(r.aqls)}</td>
+        <td class="px-3 py-3 text-right tabular-nums ${re ? '' : 'text-red-400'}">${r.approval != null ? Math.round(r.approval) + '%' : '—'}</td>
+        <td class="px-3 py-3"><span class="rounded-full px-2 py-0.5 text-[11px] font-bold ${re ? 'bg-accent/15 text-accent' : 'bg-red-500/15 text-red-300'}">${re ? 'Переизбран' : 'Уволен'}</span></td>
+        <td class="px-5 py-3 text-right tabular-nums text-slate-400">${r.budget_used ?? '—'}</td></tr>`; }).join('')}</tbody></table>`;
+}
+
+/* =====================================================================
+   BOOT
+   ===================================================================== */
+async function boot() {
+  renderTabs();
+  renderCabinetShell();
+  let raw = null;
+  if (!CONFIG.MOCK) {
+    try { raw = await api('GET', '/api/dataset'); SOURCE = 'api'; }
+    catch (e) {
+      console.warn('API недоступен, переходим на демо-данные', e);
+      const b = $('#banner'); b.textContent = 'Сервер недоступен — работаем на демо-данных. Все экраны доступны.'; b.classList.remove('hidden');
+    }
+  }
+  if (!raw) { SOURCE = 'mock'; try { raw = await mockCall('GET', '/api/dataset'); } catch (e) {
+    $('#measures').innerHTML = `<div class="card p-6 text-sm text-red-300">Не удалось загрузить данные: ${esc(e.message)}. Откройте страницу через веб-сервер (не file://).</div>`; return; } }
+  S.ds = normalizeDataset(raw);
+  S.slots = Array(S.ds.slots).fill(null);
+  const mb = $('#modeBadge'); mb.textContent = SOURCE === 'api' ? 'API · живые данные' : 'демо-данные'; mb.classList.remove('hidden');
+  onPlanChange();
+  const h = location.hash.replace('#', '');
+  if (h === 'board') go('board', false); else go('cabinet', false);
+}
+boot();
+</script>
+</body>
+</html>
