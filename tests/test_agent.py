@@ -150,7 +150,7 @@ def test_clean_online_and_engine_score_override(monkeypatch, doc):
     assert initial["score"]["score"] == 56.54
     assert initial["approval"] == approval(doc)
     assert req["response_format"] == {"type": "json_object"}
-    assert 0 < req["timeout"] <= 30
+    assert 0 < req["timeout"] <= 60
     assert req["model"] == "gpt-5-mini"
 
 
@@ -283,7 +283,7 @@ def test_nvidia_configuration(monkeypatch, doc):
     monkeypatch.setattr(agent, "OpenAI", factory)
     assert agent.analyze(doc)["provider"] == "nvidia"
     assert options == {"api_key": "fake-nvidia", "base_url": "https://integrate.api.nvidia.com/v1",
-                       "timeout": 30.0, "max_retries": 0}
+                       "timeout": 60.0, "max_retries": 0}
     assert client.requests[0]["model"] == "meta/llama-3.3-70b-instruct"
 
 

@@ -240,7 +240,7 @@ def _provider():
 
 
 def _client_factory(api_key, base_url):
-    return OpenAI(api_key=api_key, base_url=base_url, timeout=30.0, max_retries=0)
+    return OpenAI(api_key=api_key, base_url=base_url, timeout=float(os.getenv("LLM_TIMEOUT", "60")), max_retries=0)
 
 
 def _cache_key(function, plan, lang, config, event_id=None, swap=None):
@@ -293,6 +293,8 @@ def _complete(client, model, messages, deadline, use_tools=False):
               "response_format": {"type": "json_object"}}
     if use_tools:
         kwargs.update(tools=TOOLS, tool_choice="auto", parallel_tool_calls=False)
+    if str(model).startswith(("gpt-5", "o3", "o4")):
+        kwargs["reasoning_effort"] = "low"  # judges' patience > eloquence
     # Unsupported response_format and all other provider failures fall back offline.
     result = client.chat.completions.create(**kwargs)
     if monotonic() > deadline:
@@ -356,7 +358,7 @@ def _explain(config, messages, facts, fallback, finalize, agent=False):
         return offline
     client = None
     try:
-        deadline = monotonic() + 30
+        deadline = monotonic() + float(os.getenv("LLM_TIMEOUT", "60"))
         client = _client_factory(api_key=key, base_url=base)
         while True:
             message = _complete(client, model, messages, deadline, use_tools=agent and len(trace) < 6)
