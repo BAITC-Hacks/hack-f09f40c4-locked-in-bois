@@ -143,7 +143,7 @@ def test_submit_ignores_client_score(client, plan):
     assert not db.DB_PATH.exists()
     response = client.post("/api/submit", json={"team": "  Команда  ", "plan": plan, "score": 99})
     assert response.status_code == 200
-    assert response.json() == {"ok": True, "id": 1, "rank": 1}
+    assert response.json() == {"ok": True, "id": 1, "rank": 1, "session": ""}
     response = client.get("/api/leaderboard")
     assert response.status_code == 200
     entry, = response.json()
@@ -221,3 +221,14 @@ def test_brief_rejects_invalid_plan(client, plan_json):
     response = client.get("/api/brief", params={"plan": plan_json})
     assert response.status_code == 422
     assert isinstance(response.json()["detail"], str)
+
+
+def test_leaderboard_rooms(client, monkeypatch, tmp_path):
+    monkeypatch.setattr(db, "DB_PATH", tmp_path / "rooms.db")
+    plan = {"decisions": load_dataset()["reference"]["doc_example"]["decisions"]}
+    a = client.post("/api/submit", json={"team": "A", "plan": plan, "session": "room1"}).json()
+    b = client.post("/api/submit", json={"team": "B", "plan": plan, "session": "room 2!"}).json()
+    client.post("/api/submit", json={"team": "C", "plan": plan})
+    assert a["session"] == "room1" and b["session"] == "room2" and a["rank"] == 1 and b["rank"] == 1
+    assert [r["team"] for r in client.get("/api/leaderboard", params={"session": "room1"}).json()] == ["A"]
+    assert {r["team"] for r in client.get("/api/leaderboard").json()} == {"A", "B", "C"}

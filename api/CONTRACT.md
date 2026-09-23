@@ -46,7 +46,8 @@ This file = PLAN.md §4 verbatim, plus the extra fields the backend returns (mar
   - `swap = {"out": "M7", "in": {"measure": "M13", "district": "Алматы"}}`. The new plan must stay valid (same budget of 100), otherwise 422 with the reason.
   - **+** `score_before_crisis`, `score_after_crisis_no_swap`, `best_possible_swap:{out,in,score,gain}`, `swap_was_optimal: bool`, `new_plan`.
 - `POST /api/submit` {team, plan, score} → `{ok: true, id, rank}`. **The server recomputes the score from the plan and ignores the client-sent `score`**, so the leaderboard can't be spoofed.
-- `GET /api/leaderboard` → `[{team, score, cost, approval, plan, created_at}]` sorted by score desc (top 50).
+- `GET /api/leaderboard` → `[{team, score, cost, approval, plan, created_at, session}]` sorted by score desc (top 50).
+  - **+** Rooms for live audience play: `POST /api/submit` accepts `session` (letters, digits, `-`, `_`, max 12; returned as `session`, and `rank` is the rank inside that room). `GET /api/leaderboard?session=room1` returns only that room; without the parameter, all submissions.
 - `GET /api/brief?plan=<urlencoded plan JSON>` → `text/markdown` one-pager (also accepts `POST /api/brief` {plan}).
 
 ## §12 endpoints
