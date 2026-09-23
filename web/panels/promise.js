@@ -18,14 +18,27 @@
   const keyOf = (row) => JSON.stringify(constraint(row));
   const clone = (value) => JSON.parse(JSON.stringify(value));
 
+  function errorDetail(err, mock = false) {
+    const detail = err?.detail ?? err?.data?.detail ?? err?.response?.data?.detail ?? err?.message ?? err;
+    if (typeof detail === 'string' && /[А-Яа-яЁё]/.test(detail)) return detail;
+    if (err?.name === 'SyntaxError') return mock ? 'Получены некорректные демоданные.' : 'Получены некорректные данные расчёта. Повторите попытку.';
+    return mock ? 'Не удалось загрузить демоданные. Проверьте соединение и повторите попытку.'
+      : 'Не удалось выполнить запрос. Проверьте соединение и повторите попытку.';
+  }
+
   async function fixture(name) {
-    const response = await fetch(new URL(name + '.json', mockBase));
-    const data = await response.json();
-    if (!response.ok) throw { status: response.status, detail: data.detail };
-    return data;
+    try {
+      const response = await fetch(new URL(name + '.json', mockBase));
+      if (!response.ok) {
+        const data = await response.json().catch(() => ({}));
+        throw { status: response.status, detail: data.detail };
+      }
+      return await response.json();
+    } catch (err) { throw { status: err?.status, detail: errorDetail(err, true) }; }
   }
 
   function mount(el, ctx) {
+    const restoreFocus = el.contains(document.activeElement);
     mounts.get(el)?.destroy();
     let alive = true, sequence = 0, catalog = [], dataset, saved;
     let selected = new Map(), custom = new Map();
@@ -58,26 +71,35 @@
         .akim-promise .promise-hero{padding:20px 0 10px}
         .akim-promise .promise-custom-row{display:flex;align-items:center;gap:8px}
         .akim-promise .promise-custom-row label{flex:1;min-width:0}
+        .akim-promise :focus-visible{outline:3px solid var(--pen-ink,#076a7e);outline-offset:4px}
+        .akim-promise .promise-sr{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;border:0}
         .akim-promise [hidden]{display:none!important}
         @media(min-width:1024px){.akim-promise .promise-layout{grid-template-columns:minmax(0,1fr) minmax(0,1.15fr)}}
       </style>
       <header class="hsec"><h2 class="h2">Цена обещания</h2><p>Сколько баллов Score стоит сдержать слово</p></header>
       ${ctx.mock ? '<p class="tape" style="margin:0 0 16px">Демо: записанный расчёт для плана из ТЗ и отмеченного обещания. Выбор обещаний и проверка другого плана доступны при подключении к серверу.</p>' : ''}
-      <div data-content></div>`;
+      <p class="promise-sr" data-status role="status" aria-atomic="true"></p>
+      <div data-content tabindex="-1" role="region" aria-label="Каталог и расчёт обещаний"></div>`;
     el.replaceChildren(root);
     const content = root.querySelector('[data-content]');
+    if (restoreFocus) content.focus();
+    const announcement = root.querySelector('[data-status]');
     let results;
     const busy = (target, text) => {
+      const restoreFocus = target.contains(document.activeElement);
       target.setAttribute('aria-busy', 'true');
-      target.innerHTML = `<div class="plate promise-pad" role="status"><span class="spin" aria-hidden="true"></span> ${escape(text)}</div>`;
+      target.innerHTML = `<div class="plate promise-pad"><span class="spin" aria-hidden="true"></span> ${escape(text)}</div>`;
+      announcement.textContent = text;
+      if (restoreFocus) target.focus();
     };
     function error(target, err, retry) {
       target.setAttribute('aria-busy', 'false');
       const status = err?.status ?? err?.response?.status;
-      const detail = err?.detail ?? err?.data?.detail ?? err?.response?.data?.detail ?? err?.message ?? 'Нет связи с сервером';
-      const title = status === 422 ? 'План или обещание не прошли проверку'
-        : status === 500 ? 'Движок не смог рассчитать обещания' : 'Не удалось загрузить расчёт';
-      target.innerHTML = `<div class="notice"><div role="alert"><h3 class="red">${title}</h3><p class="promise-zero">${escape(typeof detail === 'string' ? detail : JSON.stringify(detail))}</p></div><button type="button" class="btn btn-line" style="margin-top:14px">Повторить</button></div>`;
+      const detail = errorDetail(err, ctx.mock);
+      const title = String(status) === '422' ? 'План или обещание не прошли проверку'
+        : String(status) === '500' ? 'Не удалось рассчитать цену обещаний' : 'Не удалось загрузить расчёт';
+      announcement.textContent = '';
+      target.innerHTML = `<div class="notice"><div role="alert"><h3 class="red">${title}</h3><p class="promise-zero">${escape(detail)}</p></div><button type="button" class="btn btn-line" style="margin-top:14px" aria-label="Повторить загрузку и расчёт обещаний">Повторить</button></div>`;
       target.querySelector('button').onclick = retry;
     }
     const isCurrent = (id) => alive && sequence === id;
@@ -89,7 +111,7 @@
     function choice(row) {
       const key = keyOf(row);
       return `<label class="ch promise-choice" data-selected="${selected.has(key)}">
-        <input type="checkbox" data-promise="${escape(key)}" ${selected.has(key) ? 'checked' : ''} ${ctx.mock ? 'disabled' : ''}>
+        <input type="checkbox" data-promise="${escape(key)}" aria-label="${escape(row.label + '. Цена отдельно: ' + alone(row))}" ${selected.has(key) ? 'checked' : ''} ${ctx.mock ? 'disabled' : ''}>
         <span>${escape(row.label)}</span><span class="mono promise-price ${row.feasible_alone === false ? 'red' : 'mut'}">${escape(alone(row))}</span></label>`;
     }
     function wireChoices(target) {
@@ -104,8 +126,13 @@
     }
     function renderCustom() {
       const target = root.querySelector('[data-custom]');
+      const active = target.contains(document.activeElement) ? document.activeElement : null;
+      const focusKey = active?.dataset.promise ?? active?.dataset.remove;
+      const focusAttribute = active?.hasAttribute('data-remove') ? 'data-remove' : 'data-promise';
       target.innerHTML = [...custom.values()].map((row) => `<div class="promise-custom-row">${choice(row)}<button type="button" class="x" data-remove="${escape(keyOf(row))}" aria-label="${escape('Удалить обещание: ' + row.label)}">×</button></div>`).join('');
       wireChoices(target);
+      if (focusKey != null) [...target.querySelectorAll(`[${focusAttribute}]`)]
+        .find((control) => control.getAttribute(focusAttribute) === focusKey)?.focus();
       target.querySelectorAll('[data-remove]').forEach((button) => {
         button.onclick = () => {
           selected.delete(button.dataset.remove);
@@ -135,7 +162,7 @@
             <div class="promise-choices" data-custom style="margin-top:12px"></div>
           </section>
         </div>
-        <div class="promise-result promise-stack" data-result aria-live="polite" aria-atomic="true" style="align-content:start"></div>
+        <div class="promise-result promise-stack" data-result tabindex="-1" role="region" aria-label="Результаты расчёта обещаний" style="align-content:start"></div>
       </div>`;
       results = root.querySelector('[data-result]');
       wireChoices(root.querySelector('[data-catalog]'));
@@ -181,7 +208,7 @@
       ${best ? `<section class="sheet-w promise-pad"><h3 class="sm promise-zero">Лучший план, который держит слово</h3>
         <div class="promise-metrics"><div><div class="lbl">Score с обещаниями</div><div class="mid peni">${escape(number(best.score))}</div></div><div><div class="lbl">Без ограничений</div><div class="mid">${escape(number(data.unconstrained_best))}</div></div><div><div class="lbl">Бюджет, ед.</div><div class="mid">${escape(number(best.cost))}</div></div></div>
         <ul class="promise-decisions">${best.plan.decisions.map((d) => `<li class="promise-decision"><span class="code">${escape(d.measure)}</span><span>${escape(measure(d.measure)?.name || d.measure)}<span class="mut" style="display:block">${escape(location(d.district))}</span></span></li>`).join('')}</ul>
-        <button type="button" class="btn btn-pen" data-apply ${typeof ctx.onApplyPlan === 'function' ? '' : 'disabled'}>Загрузить этот план</button>
+        <button type="button" class="btn btn-pen" data-apply aria-label="Загрузить этот план: лучший с выбранными обещаниями" ${typeof ctx.onApplyPlan === 'function' ? '' : 'disabled'}>Загрузить этот план</button>
         <p class="promise-note">Рейтинг акима: <span class="mono">${escape(number(best.approval))}%</span> — слой политического риска, не входит в Score.</p>
         <p data-apply-status role="status" class="promise-note"></p>
       </section>` : ''}
@@ -191,21 +218,30 @@
       ${data.promises.length ? `<section class="sheet-w promise-pad"><h3 class="sm" style="margin:0 0 12px">Цена каждого обещания отдельно</h3>${data.promises.map((row) => `<div class="promise-alone"><span>${escape(row.label)}</span><b class="mono promise-price ${row.feasible_alone ? 'peni' : 'red'}">${escape(alone(row))}</b></div>`).join('')}<p class="promise-note">Это отдельные расчёты. Общая цена показана выше.</p></section>` : ''}`;
       const apply = results.querySelector('[data-apply]');
       if (apply) apply.onclick = async () => {
-        apply.disabled = true;
+        if (!alive || apply.disabled || apply.getAttribute('aria-disabled') === 'true') return;
+        apply.setAttribute('aria-disabled', 'true');
         const status = results.querySelector('[data-apply-status]');
+        status.classList.remove('red');
+        status.textContent = 'Загружаем план…';
         try {
           await ctx.onApplyPlan(clone(best.plan));
           if (!alive) return;
           status.textContent = 'План загружен в кабинет.';
-          if (!ctx.mock) { ctx = { ...ctx, plan: clone(best.plan) }; await refresh(); }
+          if (!ctx.mock) {
+            ctx = { ...ctx, plan: clone(best.plan) };
+            await refresh('План загружен в кабинет. ');
+          }
         } catch (err) {
+          if (!alive) return;
           status.classList.add('red');
-          status.textContent = 'Не удалось загрузить план: ' + (err?.message || 'Повторите попытку.');
-        } finally { if (alive) apply.disabled = false; }
+          status.textContent = 'Не удалось загрузить план: ' + errorDetail(err);
+        } finally { if (alive) apply.removeAttribute('aria-disabled'); }
       };
     }
 
-    async function refresh() {
+    async function refresh(completion = '') {
+      // Event handlers can pass an Event; only explicit text is an announcement.
+      if (typeof completion !== 'string') completion = '';
       const id = ++sequence;
       busy(results, 'Ищем лучший план с выбранными обещаниями…');
       try {
@@ -214,6 +250,7 @@
         for (const row of data.promises) if (custom.has(keyOf(row))) custom.set(keyOf(row), row);
         renderCustom();
         render(data);
+        announcement.textContent = completion + 'Расчёт обещаний завершён. ' + prose(data.verdict);
       } catch (err) { if (isCurrent(id)) error(results, err, refresh); }
     }
 

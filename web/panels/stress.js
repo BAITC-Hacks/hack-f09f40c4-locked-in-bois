@@ -36,6 +36,8 @@
     .akim-stress .stress-metrics{display:flex;flex-wrap:wrap;gap:20px 32px;margin:18px 0}
     .akim-stress .stress-metrics dd{margin:6px 0 0}
     .akim-stress .stress-detail{white-space:pre-wrap;overflow-wrap:anywhere}
+    .akim-stress :focus-visible{outline:3px solid var(--pen-ink,#076a7e);outline-offset:4px}
+    .akim-stress .stress-sr{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip-path:inset(50%);white-space:nowrap;border:0}
     @media(max-width:767px){
       .akim-stress .stress-row{grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
       .akim-stress .stress-title,.akim-stress .stress-critical,.akim-stress .stress-insurance{grid-column:1/-1}
@@ -48,7 +50,8 @@
     const arrow = '<span role="img" aria-label="на">→</span>';
     return `<div>Замените <b class="mono">${escape(swap.out)}</b> ${arrow}
       <b class="mono">${escape(swap.in.measure)}</b>:
-      <b class="mono ${swap.recovered < 0 ? 'red' : 'peni'}" aria-label="Изменение Score: ${gain}">${gain}</b></div>
+      <span class="stress-sr">Изменение Score: ${escape(swap.recovered < 0 ? 'минус ' : swap.recovered > 0 ? 'плюс ' : '')}${escape(decimal(Math.abs(swap.recovered)))} балла.</span>
+      <b class="mono ${swap.recovered < 0 ? 'red' : 'peni'}" aria-hidden="true">${gain}</b></div>
       <div class="mut mt-1 text-[13px]">${escape(swap.in.district || 'Весь город')} · Score после замены <span class="mono">${escape(decimal(swap.score))}</span></div>
       ${swap.recovered < 0 ? '<div class="red mt-1 text-[13px]">Даже лучшая замена снижает Score.</div>' : ''}`;
   }
@@ -87,7 +90,7 @@
     </div>
     <div class="sheet-w mt-4">${data.scenarios.map((scenario) => scenarioHTML(scenario, data.worst_event)).join('')}</div>
     <section class="notice mt-4" style="border-top:4px solid var(--pen)">
-      <h3>План, который выдерживает всё</h3>
+      <h3>Лучший план по устойчивости к одиночным кризисам</h3>
       <p class="mut m-0 text-[14px]">Лучший план по худшему отдельному кризису. «Чёрная зима» показана отдельно.</p>
       <dl class="stress-metrics">
         <div><dt class="lbl">Score без кризисов</dt><dd class="mid">${escape(decimal(proof.score))}</dd></div>
@@ -99,32 +102,41 @@
         <ul class="stress-plan-list mono flex flex-wrap gap-2 text-[12px]" aria-label="Решения устойчивого плана">
           ${proof.plan.decisions.map((item) => `<li class="border border-rule bg-paper px-2 py-1">${escape(decision(item))}</li>`).join('')}
         </ul>
-        <button type="button" class="btn btn-pen" data-stress-apply>Загрузить этот план</button>
+        <button type="button" class="btn btn-pen" data-stress-apply aria-label="Загрузить этот план: лучший по устойчивости к одиночным кризисам">Загрузить этот план</button>
       </div>
       <p class="stress-detail m-0 mt-2 text-[14px]" data-stress-apply-status role="status"></p>
     </section>`;
   }
 
-  async function errorDetail(error) {
+  async function errorDetail(error, mock = false) {
+    let detail = error?.detail ?? error?.data?.detail ?? error?.response?.data?.detail;
     if (error && typeof error.json === 'function') {
-      try { const body = await error.json(); return body.detail ?? error.statusText; } catch (_) { /* No JSON error body. */ }
+      try { const body = await error.json(); detail = body.detail; } catch (_) { /* Use the Russian fallback below. */ }
     }
-    return error?.detail ?? error?.response?.data?.detail ?? error?.message
-      ?? (typeof error === 'string' ? error : 'Нет связи с сервером. Попробуйте ещё раз.');
+    const message = detail ?? error?.message ?? error;
+    if (typeof message === 'string' && /[А-Яа-яЁё]/.test(message)) return message;
+    if (error?.name === 'SyntaxError') return mock ? 'Получены некорректные демоданные.' : 'Получены некорректные данные расчёта. Повторите попытку.';
+    return mock ? 'Не удалось загрузить демоданные. Проверьте соединение и повторите попытку.'
+      : 'Не удалось выполнить запрос. Проверьте соединение и повторите попытку.';
   }
 
   const detailText = (detail) => typeof detail === 'string' ? detail : JSON.stringify(detail, null, 2);
 
   async function mount(el, ctx) {
+    const restoreFocus = el.contains(document.activeElement);
     const token = {};
     mounts.set(el, token);
     el.innerHTML = `<section class="akim-stress" aria-label="Стресс-тест кризисами">${styles}
       <div class="hsec"><h2 class="h2">Стресс-тест кризисами</h2><p>Как план переживёт кризисы</p></div>
-      <div data-stress-content aria-busy="true">
-        <div class="plate p-6" role="status"><span class="spin" role="img" aria-label="Загрузка"></span>
+      <p class="stress-sr" data-stress-status role="status" aria-atomic="true"></p>
+      <div data-stress-content aria-busy="true" tabindex="-1" role="region" aria-label="Результаты стресс-теста">
+        <div class="plate p-6"><span class="spin" aria-hidden="true"></span>
           Проверяем план во всех кризисных сценариях…</div>
       </div></section>`;
     const content = el.querySelector('[data-stress-content]');
+    const announcement = el.querySelector('[data-stress-status]');
+    announcement.textContent = 'Проверяем план во всех кризисных сценариях…';
+    if (restoreFocus) content.focus();
     const current = () => mounts.get(el) === token;
     try {
       let data;
@@ -138,11 +150,13 @@
       if (!current()) return;
       if (data?.detail != null) throw data;
       content.innerHTML = resultsHTML(data, ctx.mock);
+      announcement.textContent = 'Стресс-тест завершён. ' + prose(data.verdict);
       const button = content.querySelector('[data-stress-apply]');
+      button.disabled = typeof ctx.onApplyPlan !== 'function';
       const status = content.querySelector('[data-stress-apply-status]');
       button.onclick = async () => {
-        if (!current() || button.disabled) return;
-        button.disabled = true;
+        if (!current() || button.disabled || button.getAttribute('aria-disabled') === 'true') return;
+        button.setAttribute('aria-disabled', 'true');
         status.classList.remove('red');
         status.textContent = 'Загружаем план…';
         try {
@@ -155,19 +169,20 @@
             status.textContent = 'Не удалось загрузить план: ' + detailText(detail);
           }
         } finally {
-          if (current()) button.disabled = false;
+          if (current()) button.removeAttribute('aria-disabled');
         }
       };
     } catch (error) {
-      const detail = await errorDetail(error);
+      const detail = await errorDetail(error, ctx.mock);
       if (!current()) return;
       const status = error?.status ?? error?.response?.status;
       const title = String(status) === '422' ? 'План не прошёл проверку'
         : String(status) === '500' ? 'Ошибка сервера при стресс-тесте' : 'Не удалось выполнить стресс-тест';
+      announcement.textContent = '';
       content.innerHTML = `<div class="plate p-6">
         <div role="alert"><h3 class="sm red m-0">${title}</h3>
           <p class="stress-detail mut mt-2">${escape(detailText(detail))}</p></div>
-        <button type="button" class="btn btn-line mt-2" data-stress-retry>Повторить</button>
+        <button type="button" class="btn btn-line mt-2" data-stress-retry aria-label="Повторить стресс-тест">Повторить</button>
       </div>`;
       content.querySelector('[data-stress-retry]').onclick = () => mount(el, ctx);
     } finally {
