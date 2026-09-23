@@ -487,6 +487,7 @@ function renderRail() {
       </div>
       <div class="dirc mt-3">${S.ds.directions.map((d) => { const c = local.direction_counts[d.id] || 0; return `<div class="${c > S.ds.max_per_direction ? 'bad' : c ? 'on' : ''}" title="${esc(d.name)}"><b>${c}/${S.ds.max_per_direction}</b><span>${esc(d.name)}</span></div>`; }).join('')}</div>
       <div class="tape mt-3" aria-live="polite">${msgHtml}</div>
+      ${S.preview && canSubmit ? `<div class="mt-2 flex items-baseline justify-between border border-rule bg-white px-3 py-2" title="Прогноз движка до принятия решений"><span class="lbl">Прогноз</span>${S.preview.loading ? '<span class="spin"></span>' : S.preview.error ? '<span class="text-[12px] text-graph">недоступен</span>' : `<span class="mono text-[13px]"><b class="text-[15px]">${num(S.preview.score)}</b> <span class="peni">${sign(S.preview.delta)}</span> · рейтинг <b class="${S.preview.reelected ? 'peni' : 'red'}">${num(S.preview.approval, 1)}%</b></span>`}</div>` : ''}
       <button id="btnSubmit" class="btn btn-ink mt-3 w-full" ${canSubmit ? '' : 'disabled'}>Принять решения</button>
     </div>`;
   $$('#rail [data-remove]').forEach((b) => (b.onclick = () => { S.slots[+b.dataset.remove] = null; onPlanChange(); }));
@@ -568,7 +569,7 @@ function loadPlan(decs) {
 let valTimer = null;
 function onPlanChange() {
   renderMeasures();
-  S.validating = true; S.val = null;
+  S.validating = true; S.val = null; S.preview = null;
   renderRail();
   clearTimeout(valTimer);
   valTimer = setTimeout(runValidate, 120);
@@ -580,6 +581,32 @@ async function runValidate() {
   catch (e) { res = { valid: false, reason: 'Проверка недоступна: ' + e.message }; }
   if (seq !== S.valSeq) return;
   S.val = res; S.validating = false; renderRail();
+  syncPlanParam();
+  if (res.valid) loadPreview(seq);
+}
+/* live Score forecast in the rail once the plan is valid (same engine call as the verdict) */
+const PREVIEW = {};
+async function loadPreview(seq) {
+  const key = planKey(planOf());
+  if (!PREVIEW[key]) {
+    S.preview = { loading: true }; renderRail();
+    try { const d = await api('POST', '/api/score', { plan: planOf() }); PREVIEW[key] = { score: d.score, delta: d.delta, approval: d.approval?.city, reelected: d.approval?.reelected }; }
+    catch (e) { PREVIEW[key] = { error: e.message }; }
+  }
+  if (seq !== S.valSeq) return;
+  S.preview = PREVIEW[key]; renderRail();
+}
+/* shareable plan: ?plan=M7:Нура,M8:Нура,M12 */
+const planKey = (p) => planDecs(p).map((d) => d.measure + (d.district ? ':' + d.district : '')).join(',');
+function syncPlanParam() {
+  const u = new URL(location.href), k = planKey(planOf());
+  if (k) u.searchParams.set('plan', k); else u.searchParams.delete('plan');
+  history.replaceState(null, '', u.pathname + u.search + u.hash);
+}
+function planFromParam() {
+  const raw = QS.get('plan'); if (!raw) return null;
+  const decs = raw.split(',').map((x) => { const [measure, district] = x.split(':'); return { measure: measure.trim(), district: district ? district.trim() : null }; }).filter((d) => S.mi[d.measure]);
+  return decs.length ? decs : null;
 }
 
 /* =====================================================================
@@ -697,9 +724,28 @@ function renderVerdict() {
       <button data-go="paper" class="btn btn-ink">Открыть газету</button>
       <button data-go="board" class="btn btn-line">Сохранить в лидерборд</button>
       <button id="editPlan" class="btn btn-line">Изменить план</button>
+      <button id="copyLink" class="btn btn-line">Скопировать ссылку на план</button>
+      <button id="getBrief" class="btn btn-line">Одностраничник команды (.md)</button>
     </div>`;
   const cta = $('#crisisCta'); if (cta) cta.onclick = openCrisis;
   $('#editPlan').onclick = () => { loadPlan(S.plan); go('cabinet'); };
+  $('#copyLink').onclick = async () => {
+    const u = new URL(location.href); u.searchParams.set('plan', planKey(S.plan)); u.hash = '';
+    try { await navigator.clipboard.writeText(u.toString()); toast('Ссылка на план скопирована'); }
+    catch (e) { prompt('Ссылка на план:', u.toString()); }
+  };
+  $('#getBrief').onclick = async () => {
+    if (SOURCE === 'mock') { toast('Одностраничник доступен при запущенном сервере'); return; }
+    const b = $('#getBrief'); b.disabled = true; const t = b.textContent; b.innerHTML = '<span class="spin"></span> Готовим…';
+    try {
+      const r = await fetch(CONFIG.API_BASE + '/api/brief?plan=' + encodeURIComponent(JSON.stringify(S.plan)));
+      if (!r.ok) throw new Error('HTTP ' + r.status);
+      const blob = new Blob([await r.text()], { type: 'text/markdown;charset=utf-8' });
+      const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'kabinet-akima-plan.md'; a.click();
+      setTimeout(() => URL.revokeObjectURL(a.href), 1000); toast('Одностраничник скачан');
+    } catch (e) { toast('Не удалось получить одностраничник: ' + e.message); }
+    b.disabled = false; b.textContent = t;
+  };
   ['score', 'opt', 'ai', 'nar'].forEach(fillVerdict);
 }
 
@@ -1193,7 +1239,8 @@ async function boot() {
   const mb = $('#modeBadge');
   mb.textContent = SOURCE === 'api' ? 'движок онлайн' : 'демо: записанные ответы';
   if (SOURCE === 'api') api('GET', '/api/health').then((h) => { mb.textContent = `движок онлайн · тексты: ${h.provider === 'offline' ? 'шаблон' : 'ИИ, ' + h.provider}`; }).catch(() => {});
-  onPlanChange();
+  const shared = planFromParam();
+  if (shared) { loadPlan(shared); toast('Загружен план из ссылки'); } else onPlanChange();
   const h = location.hash.replace('#', '');
   go(h === 'board' ? 'board' : 'cabinet');
 }
