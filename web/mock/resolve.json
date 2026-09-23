@@ -1,0 +1,343 @@
+{
+ "score": 56.04,
+ "baseline": 51.4,
+ "delta": 4.64,
+ "cost": 96,
+ "remaining": 4,
+ "d_avg": 57.63,
+ "d_min": 52.34,
+ "d_min_district": "Нура",
+ "districts": {
+  "Есиль": {
+   "before": [
+    45,
+    62,
+    68,
+    72,
+    48,
+    55,
+    78,
+    60,
+    75,
+    70
+   ],
+   "after": [
+    45,
+    62,
+    68,
+    72,
+    48,
+    55,
+    78,
+    60,
+    75,
+    70
+   ],
+   "D_before": 62.99,
+   "D_after": 62.99,
+   "pop": 0.27
+  },
+  "Алматы": {
+   "before": [
+    40,
+    75,
+    50,
+    55,
+    60,
+    65,
+    62,
+    52,
+    50,
+    60
+   ],
+   "after": [
+    40,
+    75,
+    50,
+    55,
+    60,
+    65,
+    62,
+    52,
+    50,
+    60
+   ],
+   "D_before": 57.06,
+   "D_after": 57.06,
+   "pop": 0.24
+  },
+  "Сарыарка": {
+   "before": [
+    50,
+    70,
+    42,
+    30,
+    62,
+    68,
+    58,
+    55,
+    45,
+    55
+   ],
+   "after": [
+    50,
+    70,
+    51.0,
+    41.0,
+    62,
+    68,
+    59.5,
+    55,
+    47.5,
+    55
+   ],
+   "D_before": 53.55,
+   "D_after": 55.96,
+   "pop": 0.2
+  },
+  "Байконур": {
+   "before": [
+    52,
+    68,
+    55,
+    50,
+    58,
+    60,
+    52,
+    58,
+    55,
+    58
+   ],
+   "after": [
+    52,
+    68,
+    55,
+    50,
+    58,
+    60,
+    52,
+    58,
+    55,
+    58
+   ],
+   "D_before": 56.63,
+   "D_after": 56.63,
+   "pop": 0.13
+  },
+  "Нура": {
+   "before": [
+    55,
+    40,
+    45,
+    65,
+    38,
+    35,
+    55,
+    50,
+    60,
+    50
+   ],
+   "after": [
+    55,
+    40,
+    45,
+    65,
+    48.0,
+    43.75,
+    65.5,
+    51.75,
+    60,
+    50
+   ],
+   "D_before": 49.18,
+   "D_after": 52.34,
+   "pop": 0.16
+  }
+ },
+ "n_crit": 0,
+ "n_crit_before": 3,
+ "crit_cells": [],
+ "resolved_crit_cells": [
+  {
+   "district": "Сарыарка",
+   "indicator": "E2",
+   "before": 30,
+   "after": 41.0
+  },
+  {
+   "district": "Нура",
+   "indicator": "S1",
+   "before": 38,
+   "after": 48.0
+  },
+  {
+   "district": "Нура",
+   "indicator": "S2",
+   "before": 35,
+   "after": 43.75
+  }
+ ],
+ "synergies_triggered": [],
+ "contributions": [
+  {
+   "measure": "M7",
+   "district": "Нура",
+   "cost": 24,
+   "score_without": 54.59,
+   "marginal": 1.45,
+   "marginal_per_cost": 0.06
+  },
+  {
+   "measure": "M8",
+   "district": "Нура",
+   "cost": 20,
+   "score_without": 54.65,
+   "marginal": 1.39,
+   "marginal_per_cost": 0.07
+  },
+  {
+   "measure": "M10",
+   "district": "Нура",
+   "cost": 12,
+   "score_without": 55.59,
+   "marginal": 0.45,
+   "marginal_per_cost": 0.04
+  },
+  {
+   "measure": "M4",
+   "district": "Сарыарка",
+   "cost": 15,
+   "score_without": 54.88,
+   "marginal": 1.16,
+   "marginal_per_cost": 0.08
+  },
+  {
+   "measure": "M5",
+   "district": "Сарыарка",
+   "cost": 25,
+   "score_without": 54.87,
+   "marginal": 1.17,
+   "marginal_per_cost": 0.05
+  }
+ ],
+ "timeline": [
+  {
+   "q": 0,
+   "score": 51.4
+  },
+  {
+   "q": 1,
+   "score": 51.4
+  },
+  {
+   "q": 2,
+   "score": 51.47
+  },
+  {
+   "q": 3,
+   "score": 51.56
+  },
+  {
+   "q": 4,
+   "score": 52.86
+  },
+  {
+   "q": 5,
+   "score": 53.15
+  },
+  {
+   "q": 6,
+   "score": 54.45
+  },
+  {
+   "q": 7,
+   "score": 54.75
+  },
+  {
+   "q": 8,
+   "score": 56.04
+  }
+ ],
+ "realized_share": {
+  "M7": 0.625,
+  "M8": 0.625,
+  "M10": 0.875,
+  "M4": 0.75,
+  "M5": 0.625
+ },
+ "crisis_cost": 1.15,
+ "recovered": 0.65,
+ "score_before_crisis": 56.54,
+ "score_after_crisis_no_swap": 55.39,
+ "best_possible_swap": {
+  "out": "M12",
+  "in": {
+   "measure": "M4",
+   "district": "Сарыарка"
+  },
+  "score": 56.04,
+  "gain": 0.65
+ },
+ "swap_was_optimal": true,
+ "new_plan": {
+  "decisions": [
+   {
+    "measure": "M7",
+    "district": "Нура"
+   },
+   {
+    "measure": "M8",
+    "district": "Нура"
+   },
+   {
+    "measure": "M10",
+    "district": "Нура"
+   },
+   {
+    "measure": "M4",
+    "district": "Сарыарка"
+   },
+   {
+    "measure": "M5",
+    "district": "Сарыарка"
+   }
+  ]
+ },
+ "approval": {
+  "city": 49.87,
+  "threshold": 50,
+  "reelected": false,
+  "districts": {
+   "Есиль": {
+    "approval": 38.0,
+    "delta_D": 0.0,
+    "got_district_measure": false,
+    "crit_cells": 0
+   },
+   "Алматы": {
+    "approval": 38.0,
+    "delta_D": 0.0,
+    "got_district_measure": false,
+    "crit_cells": 0
+   },
+   "Сарыарка": {
+    "approval": 69.62,
+    "delta_D": 2.41,
+    "got_district_measure": true,
+    "crit_cells": 0
+   },
+   "Байконур": {
+    "approval": 38.0,
+    "delta_D": 0.0,
+    "got_district_measure": false,
+    "crit_cells": 0
+   },
+   "Нура": {
+    "approval": 72.66,
+    "delta_D": 3.16,
+    "got_district_measure": true,
+    "crit_cells": 0
+   }
+  }
+ }
+}

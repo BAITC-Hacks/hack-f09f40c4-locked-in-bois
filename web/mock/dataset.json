@@ -1,73 +1,510 @@
 {
-  "city": "Астана",
-  "horizon": "2027–2028",
-  "budget": 100,
-  "slots": 5,
-  "max_per_direction": 2,
-  "quarters": 8,
-  "baseline_aqls": 52.56,
-  "max_aqls": 57.24,
-  "total_plans": 694395,
-  "reelection_threshold": 50,
-  "directions": [
-    { "id": "eco", "name": "Экология" },
-    { "id": "transport", "name": "Транспорт" },
-    { "id": "health", "name": "Здравоохранение" },
-    { "id": "edu", "name": "Образование" },
-    { "id": "housing", "name": "ЖКХ и городская среда" }
-  ],
-  "districts": [
-    { "id": "almaty", "name": "Алматы", "population": 420000, "aqls": 54.0,
-      "indices": { "eco": 46, "transport": 55, "health": 58, "edu": 57, "housing": 54 },
-      "deputy": { "name": "Ержан Сарсенбаев", "initials": "ЕС" } },
-    { "id": "baikonur", "name": "Байконур", "population": 300000, "aqls": 51.0,
-      "indices": { "eco": 41, "transport": 52, "health": 55, "edu": 54, "housing": 53 },
-      "deputy": { "name": "Динара Абенова", "initials": "ДА" } },
-    { "id": "yesil", "name": "Есиль", "population": 330000, "aqls": 61.0,
-      "indices": { "eco": 63, "transport": 57, "health": 64, "edu": 62, "housing": 59 },
-      "deputy": { "name": "Тимур Жаксылыков", "initials": "ТЖ" } },
-    { "id": "saryarka", "name": "Сарыарка", "population": 250000, "aqls": 47.0,
-      "indices": { "eco": 37, "transport": 48, "health": 51, "edu": 50, "housing": 49 },
-      "deputy": { "name": "Гульнара Ахметова", "initials": "ГА" } },
-    { "id": "nura", "name": "Нура", "population": 110000, "aqls": 38.6,
-      "indices": { "eco": 44, "transport": 31, "health": 36, "edu": 39, "housing": 43 },
-      "deputy": { "name": "Асель Нурмагамбетова", "initials": "АН" } }
-  ],
-  "measures": [
-    { "id": "m01", "name": "Газификация частного сектора", "direction": "eco", "scope": "district", "cost": 24, "lag": 3,
-      "effects": { "eco": 22, "health": 6 }, "description": "Перевод частных домов с угля на газ: меньше смога зимой." },
-    { "id": "m02", "name": "Модернизация ТЭЦ-2", "direction": "eco", "scope": "city", "cost": 32, "lag": 5,
-      "effects": { "eco": 7, "health": 2 }, "description": "Электрофильтры и сероочистка на крупнейшем источнике выбросов." },
-    { "id": "m03", "name": "Зелёный пояс и парки", "direction": "eco", "scope": "city", "cost": 14, "lag": 6,
-      "effects": { "eco": 4, "housing": 1 }, "description": "Лесопосадки по периметру и 12 новых скверов." },
-    { "id": "m04", "name": "Выделенные полосы и BRT", "direction": "transport", "scope": "city", "cost": 16, "lag": 2,
-      "effects": { "transport": 5 }, "description": "Автобусы вне пробок на пяти магистралях." },
-    { "id": "m05", "name": "LRT: вторая очередь", "direction": "transport", "scope": "city", "cost": 38, "lag": 7,
-      "effects": { "transport": 9, "eco": 1 }, "description": "Продление лёгкого метро до вокзала «Нурлы жол»." },
-    { "id": "m06", "name": "Развязки и дороги района", "direction": "transport", "scope": "district", "cost": 15, "lag": 2,
-      "effects": { "transport": 18 }, "description": "Две развязки и ремонт улично-дорожной сети." },
-    { "id": "m07", "name": "Новая поликлиника", "direction": "health", "scope": "district", "cost": 20, "lag": 4,
-      "effects": { "health": 20 }, "description": "Поликлиника на 500 посещений в смену." },
-    { "id": "m08", "name": "Телемедицина и цифровая запись", "direction": "health", "scope": "city", "cost": 7, "lag": 1,
-      "effects": { "health": 2.5 }, "description": "Запись к врачу за минуту и онлайн-консультации." },
-    { "id": "m09", "name": "Подстанции скорой помощи", "direction": "health", "scope": "district", "cost": 10, "lag": 1,
-      "effects": { "health": 10 }, "description": "Доезд скорой быстрее 15 минут." },
-    { "id": "m10", "name": "Школа на 1500 мест", "direction": "edu", "scope": "district", "cost": 22, "lag": 5,
-      "effects": { "edu": 22 }, "description": "Снимает трёхсменку в самом переполненном районе." },
-    { "id": "m11", "name": "Детские сады по ГЧП", "direction": "edu", "scope": "district", "cost": 12, "lag": 2,
-      "effects": { "edu": 12 }, "description": "Шесть садиков через частных операторов." },
-    { "id": "m12", "name": "Замена теплосетей", "direction": "housing", "scope": "district", "cost": 18, "lag": 2,
-      "effects": { "housing": 18, "health": 2 }, "description": "Меняем 40 км изношенных труб до зимы." },
-    { "id": "m13", "name": "Дворы и освещение", "direction": "housing", "scope": "district", "cost": 8, "lag": 1,
-      "effects": { "housing": 9 }, "description": "Светлые дворы, площадки и тротуары." },
-    { "id": "m14", "name": "Цифровой акимат", "direction": "housing", "scope": "city", "cost": 6, "lag": 1,
-      "effects": { "housing": 2 }, "description": "Жалобы и заявки жителей закрываются за 72 часа." }
-  ],
-  "example_plan": [
-    { "measure_id": "m04", "district_id": null },
-    { "measure_id": "m01", "district_id": "saryarka" },
-    { "measure_id": "m09", "district_id": "nura" },
-    { "measure_id": "m11", "district_id": "nura" },
-    { "measure_id": "m12", "district_id": "saryarka" }
-  ]
+ "version": "hackalem-2026-akim-5h",
+ "source": "HackAlem AI — «Аким на 5 часов», документ «Датасет районов» (организаторы)",
+ "budget": 100,
+ "horizon_quarters": 8,
+ "decisions_required": 5,
+ "max_per_direction": 2,
+ "crit_threshold": 40,
+ "score_weights": {
+  "avg": 0.7,
+  "min": 0.3,
+  "crit_penalty": 1.0
+ },
+ "directions": [
+  {
+   "id": "transport",
+   "name": "Транспорт",
+   "indicators": [
+    "T1",
+    "T2"
+   ]
+  },
+  {
+   "id": "ecology",
+   "name": "Экология",
+   "indicators": [
+    "E1",
+    "E2"
+   ]
+  },
+  {
+   "id": "social",
+   "name": "Соцсфера",
+   "indicators": [
+    "S1",
+    "S2"
+   ]
+  },
+  {
+   "id": "safety",
+   "name": "Безопасность",
+   "indicators": [
+    "B1",
+    "B2"
+   ]
+  },
+  {
+   "id": "services",
+   "name": "Сервисы",
+   "indicators": [
+    "C1",
+    "C2"
+   ]
+  }
+ ],
+ "indicators": [
+  {
+   "code": "T1",
+   "direction": "transport",
+   "name": "Разгрузка дорог",
+   "meaning": "100 = нет пробок в час пик, 0 = стоит всё",
+   "weight": 0.1
+  },
+  {
+   "code": "T2",
+   "direction": "transport",
+   "name": "Доступность общественного транспорта",
+   "meaning": "100 = все жители в 500 м от остановки с интервалом ≤10 мин",
+   "weight": 0.1
+  },
+  {
+   "code": "E1",
+   "direction": "ecology",
+   "name": "Озеленение",
+   "meaning": "100 = ≥20 м² зелени на жителя",
+   "weight": 0.09
+  },
+  {
+   "code": "E2",
+   "direction": "ecology",
+   "name": "Качество воздуха",
+   "meaning": "100 = зимой AQI ≤50, 0 = хронический смог",
+   "weight": 0.11
+  },
+  {
+   "code": "S1",
+   "direction": "social",
+   "name": "Школы и детсады",
+   "meaning": "100 = 100% нормативной потребности, без 2-й смены",
+   "weight": 0.11
+  },
+  {
+   "code": "S2",
+   "direction": "social",
+   "name": "Поликлиники и первичная медпомощь",
+   "meaning": "100 = норматив на жителя выполнен полностью",
+   "weight": 0.11
+  },
+  {
+   "code": "B1",
+   "direction": "safety",
+   "name": "Безопасность улиц",
+   "meaning": "100 = освещение и камеры везде, минимум происшествий",
+   "weight": 0.09
+  },
+  {
+   "code": "B2",
+   "direction": "safety",
+   "name": "Безопасность дорожного движения",
+   "meaning": "100 = минимум ДТП с пострадавшими",
+   "weight": 0.09
+  },
+  {
+   "code": "C1",
+   "direction": "services",
+   "name": "Надёжность ЖКХ",
+   "meaning": "100 = нет аварий отопления/воды за год",
+   "weight": 0.1
+  },
+  {
+   "code": "C2",
+   "direction": "services",
+   "name": "Скорость решения обращений жителей",
+   "meaning": "100 = все обращения закрыты в срок",
+   "weight": 0.1
+  }
+ ],
+ "districts": [
+  {
+   "name": "Есиль",
+   "cases": {
+    "gen": "Есиля",
+    "acc": "Есиль",
+    "loc": "Есиле"
+   },
+   "pop": 0.27,
+   "profile": "Богатый, но с пробками на мостах и переполненными школами.",
+   "values": {
+    "T1": 45,
+    "T2": 62,
+    "E1": 68,
+    "E2": 72,
+    "S1": 48,
+    "S2": 55,
+    "B1": 78,
+    "B2": 60,
+    "C1": 75,
+    "C2": 70
+   }
+  },
+  {
+   "name": "Алматы",
+   "cases": {
+    "gen": "Алматы",
+    "acc": "Алматы",
+    "loc": "Алматы"
+   },
+   "pop": 0.24,
+   "profile": "Старый ЖКХ и пробки.",
+   "values": {
+    "T1": 40,
+    "T2": 75,
+    "E1": 50,
+    "E2": 55,
+    "S1": 60,
+    "S2": 65,
+    "B1": 62,
+    "B2": 52,
+    "C1": 50,
+    "C2": 60
+   }
+  },
+  {
+   "name": "Сарыарка",
+   "cases": {
+    "gen": "Сарыарки",
+    "acc": "Сарыарку",
+    "loc": "Сарыарке"
+   },
+   "pop": 0.2,
+   "profile": "Смог от частного сектора, слабое озеленение.",
+   "values": {
+    "T1": 50,
+    "T2": 70,
+    "E1": 42,
+    "E2": 40,
+    "S1": 62,
+    "S2": 68,
+    "B1": 58,
+    "B2": 55,
+    "C1": 45,
+    "C2": 55
+   }
+  },
+  {
+   "name": "Байконур",
+   "cases": {
+    "gen": "Байконура",
+    "acc": "Байконур",
+    "loc": "Байконуре"
+   },
+   "pop": 0.13,
+   "profile": "Середняк без ярких перекосов.",
+   "values": {
+    "T1": 52,
+    "T2": 68,
+    "E1": 55,
+    "E2": 50,
+    "S1": 58,
+    "S2": 60,
+    "B1": 52,
+    "B2": 58,
+    "C1": 55,
+    "C2": 58
+   }
+  },
+  {
+   "name": "Нура",
+   "cases": {
+    "gen": "Нуры",
+    "acc": "Нуру",
+    "loc": "Нуре"
+   },
+   "pop": 0.16,
+   "profile": "Главный «аутсайдер» по соцсфере и транспорту.",
+   "values": {
+    "T1": 55,
+    "T2": 40,
+    "E1": 45,
+    "E2": 65,
+    "S1": 38,
+    "S2": 35,
+    "B1": 55,
+    "B2": 50,
+    "C1": 60,
+    "C2": 50
+   }
+  }
+ ],
+ "measures": [
+  {
+   "id": "M1",
+   "direction": "transport",
+   "name": "Выделенные полосы для автобусов",
+   "type": "district",
+   "cost": 18,
+   "lag": 2,
+   "effects": {
+    "T1": 6,
+    "T2": 9
+   }
+  },
+  {
+   "id": "M2",
+   "direction": "transport",
+   "name": "Умные светофоры (адаптивное управление)",
+   "type": "city",
+   "cost": 22,
+   "lag": 2,
+   "effects": {
+    "T1": 4,
+    "B2": 3
+   }
+  },
+  {
+   "id": "M3",
+   "direction": "transport",
+   "name": "Линия ЛРТ / расширение",
+   "type": "district",
+   "cost": 30,
+   "lag": 4,
+   "effects": {
+    "T1": 16,
+    "T2": 20,
+    "E2": 4
+   }
+  },
+  {
+   "id": "M4",
+   "direction": "ecology",
+   "name": "Парк / сквер",
+   "type": "district",
+   "cost": 15,
+   "lag": 2,
+   "effects": {
+    "E1": 12,
+    "E2": 3,
+    "B1": 2
+   }
+  },
+  {
+   "id": "M5",
+   "direction": "ecology",
+   "name": "Перевод частного сектора на чистое топливо",
+   "type": "district",
+   "cost": 25,
+   "lag": 3,
+   "effects": {
+    "E2": 14,
+    "C1": 4
+   }
+  },
+  {
+   "id": "M6",
+   "direction": "ecology",
+   "name": "Городская программа озеленения и ветрозащитных полос",
+   "type": "city",
+   "cost": 20,
+   "lag": 4,
+   "effects": {
+    "E1": 5,
+    "E2": 3
+   }
+  },
+  {
+   "id": "M7",
+   "direction": "social",
+   "name": "Школа + детсад (модульное строительство)",
+   "type": "district",
+   "cost": 24,
+   "lag": 3,
+   "effects": {
+    "S1": 16
+   }
+  },
+  {
+   "id": "M8",
+   "direction": "social",
+   "name": "Центр семейного здоровья / поликлиника",
+   "type": "district",
+   "cost": 20,
+   "lag": 3,
+   "effects": {
+    "S2": 14
+   }
+  },
+  {
+   "id": "M9",
+   "direction": "social",
+   "name": "Дворовые спорт-хабы",
+   "type": "district",
+   "cost": 10,
+   "lag": 1,
+   "effects": {
+    "S1": 3,
+    "S2": 3,
+    "B1": 3
+   }
+  },
+  {
+   "id": "M10",
+   "direction": "safety",
+   "name": "Освещение и камеры (расширение Safe City)",
+   "type": "district",
+   "cost": 12,
+   "lag": 1,
+   "effects": {
+    "B1": 12,
+    "B2": 2
+   }
+  },
+  {
+   "id": "M11",
+   "direction": "safety",
+   "name": "Безопасные переходы и школьные зоны",
+   "type": "district",
+   "cost": 10,
+   "lag": 1,
+   "effects": {
+    "B2": 12,
+    "T1": -2
+   }
+  },
+  {
+   "id": "M12",
+   "direction": "services",
+   "name": "Единая цифровая платформа обращений",
+   "type": "city",
+   "cost": 14,
+   "lag": 1,
+   "effects": {
+    "C2": 5
+   }
+  },
+  {
+   "id": "M13",
+   "direction": "services",
+   "name": "Модернизация тепло- и водосетей",
+   "type": "district",
+   "cost": 28,
+   "lag": 4,
+   "effects": {
+    "C1": 18,
+    "E2": 2
+   }
+  },
+  {
+   "id": "M14",
+   "direction": "services",
+   "name": "Аварийные бригады ЖКХ + раннее оповещение",
+   "type": "city",
+   "cost": 16,
+   "lag": 1,
+   "effects": {
+    "C1": 5,
+    "C2": 2
+   }
+  }
+ ],
+ "synergies": [
+  {
+   "pair": [
+    "M1",
+    "M2"
+   ],
+   "bonus": {
+    "T1": 2
+   },
+   "district_of": "M1",
+   "note": "T1 +2 в районе M1"
+  },
+  {
+   "pair": [
+    "M10",
+    "M12"
+   ],
+   "bonus": {
+    "B1": 2
+   },
+   "district_of": "M10",
+   "note": "B1 +2 в районе M10"
+  },
+  {
+   "pair": [
+    "M5",
+    "M6"
+   ],
+   "bonus": {
+    "E2": 2
+   },
+   "district_of": "M5",
+   "note": "E2 +2 в районе M5"
+  }
+ ],
+ "incompatibilities": [
+  {
+   "pair": [
+    "M1",
+    "M3"
+   ],
+   "scope": "anywhere",
+   "reason": "M1 и M3: либо BRT, либо ЛРТ, в любом районе."
+  },
+  {
+   "pair": [
+    "M4",
+    "M7"
+   ],
+   "scope": "same_district",
+   "reason": "M4 и M7: нельзя в одном районе, конфликт за участок."
+  },
+  {
+   "pair": [
+    "M5",
+    "M13"
+   ],
+   "scope": "same_district",
+   "reason": "M5 и M13: нельзя в одном районе, дублирование программы."
+  }
+ ],
+ "rules": [
+  "Бюджет: 100 условных единиц. Остаток не сгорает и не даёт бонуса.",
+  "Решений ровно 5, не «до 5».",
+  "Повторы запрещены. Каждое мероприятие максимум один раз.",
+  "Район: для мер типа «Район» он указывается обязательно, для мер типа «Город» не указывается.",
+  "Не более 2 мер из одного направления.",
+  "Несовместимости запрещены.",
+  "Невалидный набор получает Score = не считается, валидатор возвращает причину.",
+  "Порядок решений значения не имеет."
+ ],
+ "reference": {
+  "baseline_score": 52.56,
+  "doc_example": {
+   "decisions": [
+    {
+     "measure": "M7",
+     "district": "Нура"
+    },
+    {
+     "measure": "M8",
+     "district": "Нура"
+    },
+    {
+     "measure": "M10",
+     "district": "Нура"
+    },
+    {
+     "measure": "M12",
+     "district": null
+    },
+    {
+     "measure": "M5",
+     "district": "Сарыарка"
+    }
+   ],
+   "cost": 95,
+   "score": 56.54
+  }
+ }
 }

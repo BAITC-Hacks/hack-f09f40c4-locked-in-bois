@@ -1,0 +1,45 @@
+{
+ "event": {
+  "id": "smog_saryarka",
+  "title": "Смоговая зима в Сарыарке",
+  "district": "Сарыарка",
+  "quarter": 3,
+  "effects": {
+   "E2": -10
+  },
+  "description": "Безветренная неделя при −35°C: частный сектор топит углём, AQI держится выше 300.",
+  "hint": "Качество воздуха в Сарыарке уходит к критической отметке 40. Поможет M5 (чистое топливо) в Сарыарке."
+ },
+ "score_before": 56.54,
+ "new_baseline_score": 55.39,
+ "must": "swap_one",
+ "best_swaps": [
+  {
+   "out": "M12",
+   "in": {
+    "measure": "M4",
+    "district": "Сарыарка"
+   },
+   "score": 56.04,
+   "gain": 0.65
+  },
+  {
+   "out": "M10",
+   "in": {
+    "measure": "M4",
+    "district": "Сарыарка"
+   },
+   "score": 56.03,
+   "gain": 0.64
+  },
+  {
+   "out": "M5",
+   "in": {
+    "measure": "M14",
+    "district": null
+   },
+   "score": 55.83,
+   "gain": 0.44
+  }
+ ]
+}

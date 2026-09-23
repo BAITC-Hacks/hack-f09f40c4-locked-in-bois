@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Аким 2028 — AQLS</title>
+<title>Кабинет акима</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,700;0,900;1,400;1,700&family=PT+Serif:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
@@ -72,8 +72,8 @@
     <div class="flex items-center gap-2.5 shrink-0">
       <div class="grid h-8 w-8 place-items-center rounded-lg bg-accent text-base-950 font-extrabold text-sm">А</div>
       <div class="leading-tight">
-        <div class="text-sm font-bold tracking-tight">Аким · 2028</div>
-        <div class="text-[11px] text-slate-400">Астана, симулятор решений</div>
+        <div class="text-sm font-bold tracking-tight">Кабинет акима</div>
+        <div class="text-[11px] text-slate-400">Астана · 694 395 планов</div>
       </div>
     </div>
     <nav id="tabs" class="no-scrollbar ml-2 flex flex-1 gap-1 overflow-x-auto" role="tablist"></nav>
@@ -101,154 +101,180 @@
 'use strict';
 /* =====================================================================
    CONFIG — the ONE place to point the page at a backend.
-   ?mock=1        → use web/mock/ (dataset.json + engine.js) instead of the API
-   ?api=https://… → API base URL (default: same origin as the page)
-   ?session=room1 → leaderboard room (QR audience)
+   ?mock=1        → replay web/mock/*.json fixtures (real API responses for the doc example)
+   ?api=https://… → API base URL (default: same origin; FastAPI serves this page at /)
+   ?session=room1 → leaderboard room for the QR audience
+   ?seed=1        → fixed crisis event (events[seed % 3]); random otherwise
    ===================================================================== */
 const QS = new URLSearchParams(location.search);
 const CONFIG = {
   API_BASE: (QS.get('api') || '').replace(/\/$/, ''),
   MOCK: QS.get('mock') === '1',
-  SESSION: (QS.get('session') || '').slice(0, 40),
-  TIMEOUT_MS: 12000,
+  SESSION: (QS.get('session') || '').trim().replace(/[\[\]]/g, '').slice(0, 12),
+  SEED: QS.has('seed') && !isNaN(parseInt(QS.get('seed'), 10)) ? parseInt(QS.get('seed'), 10) : null,
+  TIMEOUT_MS: 15000,
+  LLM_TIMEOUT_MS: 120000,
 };
 
-/* ---------------- tiny helpers ---------------- */
+/* ---------------- helpers ---------------- */
 const $ = (s, r = document) => r.querySelector(s);
 const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const num = (x, d = 2) => (x == null || isNaN(x) ? '—' : Number(x).toFixed(d).replace('.', ','));
 const int = (x) => (x == null || isNaN(x) ? '—' : Math.round(Number(x)).toLocaleString('ru-RU'));
 const sign = (x, d = 2) => (x == null || isNaN(x) ? '—' : (x > 0 ? '+' : x < 0 ? '−' : '±') + num(Math.abs(x), d));
+const pct = (x, d = 0) => (x == null || isNaN(x) ? '—' : num(x, d) + '%');
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const plural = (n, one, few, many) => { const a = n % 10, b = n % 100; return a === 1 && b !== 11 ? one : a >= 2 && a <= 4 && (b < 10 || b >= 20) ? few : many; };
+const skel = (h = 'h-24', extra = '') => `<div class="skel ${h} ${extra}"></div>`;
+const spinner = (t = 'Загрузка…') => `<span class="inline-flex items-center gap-2 text-slate-400"><span class="spin"></span>${esc(t)}</span>`;
 function toast(msg) {
   const t = $('#toast');
   t.innerHTML = `<div class="fade-in rounded-xl border border-base-600 bg-base-800 px-4 py-2.5 text-sm shadow-2xl">${esc(msg)}</div>`;
   clearTimeout(toast._t); toast._t = setTimeout(() => (t.innerHTML = ''), 2600);
 }
-function loadScript(src) {
-  return new Promise((res, rej) => { const s = document.createElement('script'); s.src = src; s.onload = res; s.onerror = rej; document.head.appendChild(s); });
-}
-const skel = (h = 'h-24', extra = '') => `<div class="skel ${h} ${extra}"></div>`;
-const spinner = (t = 'Загрузка…') => `<span class="inline-flex items-center gap-2 text-slate-400"><span class="spin"></span>${esc(t)}</span>`;
 
 /* ---------------- API layer ---------------- */
-let MOCK = null;           // mock engine instance
-let SOURCE = null;         // 'api' | 'mock'
-async function getMock() {
-  if (MOCK) return MOCK;
-  if (!window.MockEngine) await loadScript('mock/engine.js');
-  const ds = await fetch('mock/dataset.json').then((r) => r.json());
-  await sleep(0);
-  MOCK = window.MockEngine.create(ds);
-  return MOCK;
-}
-const LB_KEY = 'akim2028.leaderboard';
-function lbLoad() {
-  try { const x = JSON.parse(localStorage.getItem(LB_KEY)); if (Array.isArray(x)) return x; } catch (e) {}
-  const now = Date.now();
-  return [
-    { team: 'Оптимум (перебор всех планов)', aqls: 57.24, approval: 49.19, budget_used: 100, session: '', ts: now - 9e5, reelected: false },
-    { team: 'Байтерек', aqls: 56.41, approval: 63.2, budget_used: 97, session: '', ts: now - 8e5, reelected: true },
-    { team: 'Нурлы жол', aqls: 55.87, approval: 58.1, budget_used: 92, session: '', ts: now - 7e5, reelected: true },
-    { team: 'Хан Шатыр', aqls: 54.62, approval: 51.4, budget_used: 81, session: '', ts: now - 6e5, reelected: true },
-    { team: 'Акорда', aqls: 53.95, approval: 46.8, budget_used: 100, session: '', ts: now - 5e5, reelected: false },
-  ];
-}
-function lbSave(x) { try { localStorage.setItem(LB_KEY, JSON.stringify(x)); } catch (e) {} }
+let SOURCE = null; // 'api' | 'mock'
+class HttpError extends Error { constructor(status, msg) { super(msg); this.status = status; } }
 
-async function mockCall(method, path, body) {
-  const e = await getMock();
-  await sleep(180 + Math.random() * 220); // feel like a network
-  const decs = body && body.decisions;
-  if (path === '/api/dataset') return e.dataset;
-  if (path === '/api/validate') return e.validate(decs, { budget: body.budget_limit });
-  if (path === '/api/evaluate') return e.verdict(decs);
-  if (path === '/api/narrative') return e.narrative(decs, body.verdict);
-  if (path === '/api/shock') return e.shock(decs);
-  if (path === '/api/shock/resolve') return e.resolve(body);
-  if (path.startsWith('/api/leaderboard')) {
-    const all = lbLoad();
-    if (method === 'POST') {
-      const v = e.verdict(decs);
-      const row = { team: body.team, session: body.session || '', aqls: v.aqls, approval: v.approval, budget_used: v.budget_used, reelected: v.reelected, ts: Date.now() };
-      all.push(row); lbSave(all); return row;
-    }
-    const s = new URL(path, location.href).searchParams.get('session') || '';
-    return { session: s, entries: all.filter((r) => (r.session || '') === s).sort((a, b) => b.aqls - a.aqls) };
-  }
-  throw new Error('mock: unknown path ' + path);
-}
-
-async function api(method, path, body) {
+async function api(method, path, body, { timeout = CONFIG.TIMEOUT_MS } = {}) {
   if (SOURCE === 'mock') return mockCall(method, path, body);
   const ctl = new AbortController();
-  const timer = setTimeout(() => ctl.abort(), CONFIG.TIMEOUT_MS);
+  const timer = setTimeout(() => ctl.abort(), timeout);
   try {
     const r = await fetch(CONFIG.API_BASE + path, {
       method, signal: ctl.signal,
       headers: body ? { 'Content-Type': 'application/json' } : {},
       body: body ? JSON.stringify(body) : undefined,
     });
-    if (!r.ok) { let detail = ''; try { detail = (await r.json()).detail; } catch (e) {} throw new Error(`HTTP ${r.status}${detail ? ': ' + (typeof detail === 'string' ? detail : JSON.stringify(detail)) : ''}`); }
+    if (!r.ok) {
+      let detail = '';
+      try { const j = await r.json(); detail = typeof j.detail === 'string' ? j.detail : JSON.stringify(j.detail); } catch (e) {}
+      throw new HttpError(r.status, detail || `Ошибка сервера ${r.status}`);
+    }
     return await r.json();
+  } catch (e) {
+    if (e.name === 'AbortError') throw new Error('Сервер не ответил вовремя');
+    if (e instanceof HttpError) throw e;
+    throw new Error('Нет связи с сервером');
   } finally { clearTimeout(timer); }
 }
 
-/* ---------------- dataset normalisation (tolerant to backend naming) ---------------- */
-function normalizeDataset(raw) {
-  const ds = { ...raw };
-  ds.budget = raw.budget ?? raw.budget_total ?? 100;
-  ds.slots = raw.slots ?? raw.max_decisions ?? 5;
-  ds.max_per_direction = raw.max_per_direction ?? raw.direction_limit ?? 2;
-  ds.quarters = raw.quarters ?? 8;
-  ds.baseline_aqls = raw.baseline_aqls ?? raw.baseline ?? 52.56;
-  ds.max_aqls = raw.max_aqls ?? 57.24;
-  ds.total_plans = raw.total_plans ?? 694395;
-  ds.reelection_threshold = raw.reelection_threshold ?? 50;
-  ds.directions = (raw.directions || []).map((d) => (typeof d === 'string' ? { id: d, name: d } : { id: d.id, name: d.name ?? d.title ?? d.id }));
-  ds.districts = (raw.districts || []).map((d) => (typeof d === 'string' ? { id: d, name: d } : { ...d, name: d.name ?? d.title ?? d.id }));
-  ds.measures = (raw.measures || []).map((m) => ({
-    ...m,
-    direction: m.direction ?? m.direction_id,
-    cost: m.cost ?? m.price,
-    lag: m.lag ?? m.lag_quarters ?? 0,
-    scope: m.scope ?? (m.district_level || m.is_district ? 'district' : 'city'),
-    effects: Array.isArray(m.effects) ? Object.fromEntries(m.effects.map((e) => [e.metric ?? e.direction ?? e.name, e.value ?? e.delta])) : (m.effects || {}),
-  }));
-  if (!ds.directions.length) ds.directions = [...new Set(ds.measures.map((m) => m.direction))].map((id) => ({ id, name: id }));
-  return ds;
+/* mock: replays real API fixtures captured by web/tools/capture_fixtures.py (doc example plan) */
+const FIX = {};
+const fx = (name) => (FIX[name] ||= fetch('mock/' + name + '.json').then((r) => { if (!r.ok) throw new Error('mock ' + name); return r.json(); }));
+const LB_KEY = 'akim.leaderboard.v2';
+const lbLoad = () => { try { const x = JSON.parse(localStorage.getItem(LB_KEY)); if (Array.isArray(x)) return x; } catch (e) {} return []; };
+const lbSave = (x) => { try { localStorage.setItem(LB_KEY, JSON.stringify(x)); } catch (e) {} };
+async function mockCall(method, path, body) {
+  await sleep(150 + Math.random() * 250);
+  const plan = body && (body.plan || body);
+  const p = path.split('?')[0];
+  if (p === '/api/dataset') return fx('dataset');
+  if (p === '/api/health') return { ok: true, provider: 'mock' };
+  if (p === '/api/validate') return localValidate(plan);
+  const need = (pl) => { const v = localValidate(pl); if (!v.valid) throw new HttpError(422, v.reason); };
+  if (p === '/api/score') { need(plan); return fx('score'); }
+  if (p === '/api/optimize') return fx('optimize');
+  if (p === '/api/analyze') return fx('analyze');
+  if (p === '/api/narrative') return fx(body.event_id ? 'narrative_crisis' : 'narrative');
+  if (p === '/api/shock') return fx('shock');
+  if (p === '/api/shock/resolve') { need(applySwap(plan, body.swap)); return fx('resolve'); }
+  if (p === '/api/submit') {
+    const s = await fx('score'); const all = lbLoad();
+    all.push({ team: body.team, score: s.score, cost: s.cost, approval: s.approval.city, plan, created_at: new Date().toISOString() });
+    lbSave(all); return { ok: true, id: all.length, rank: all.filter((r) => r.score > s.score).length + 1 };
+  }
+  if (p === '/api/leaderboard') return lbLoad().sort((a, b) => b.score - a.score);
+  throw new Error('mock: нет ответа для ' + p);
 }
 
-/* ---------------- state ---------------- */
+/* ---------------- dataset helpers ---------------- */
 const S = {
-  ds: null, slots: [], validation: null, validating: false, valSeq: 0,
-  verdict: null, verdictLoading: false, verdictError: null,
-  narrative: null, narrativeLoading: false, narrativeError: null,
-  crisis: null, crisisResolved: null,
-  tab: 'cabinet',
+  ds: null, mi: {}, dir: {}, ind: {}, dist: {},
+  slots: [], val: null, validating: false, valSeq: 0,
+  plan: null, run: 0,
+  r: { score: null, opt: null, ai: null, nar: null },   // each: {loading}|{data}|{error}
+  crisis: null,                                         // {event, swap, result, before}
+  tab: 'cabinet', provider: null,
 };
-const M = () => Object.fromEntries(S.ds.measures.map((m) => [m.id, m]));
-const DIR = () => Object.fromEntries(S.ds.directions.map((d) => [d.id, d]));
-const DIST = () => Object.fromEntries(S.ds.districts.map((d) => [d.id, d]));
-const decisions = () => S.slots.filter(Boolean).map((s) => ({ measure_id: s.measure_id, district_id: s.district_id || null }));
-const decLabel = (d) => { const m = M()[d.measure_id]; if (!m) return d.measure_id; const k = d.district_id && DIST()[d.district_id]; return k ? `${m.name} · ${k.name}` : m.name; };
-const SHORT = { eco: 'экология', transport: 'транспорт', health: 'здоровье', edu: 'образование', housing: 'ЖКХ' };
-const shortDir = (id) => SHORT[id] || (DIR()[id] ? DIR()[id].name.toLowerCase() : id);
+const IND_SHORT = { T1: 'дороги', T2: 'общ. транспорт', E1: 'зелень', E2: 'воздух', S1: 'школы', S2: 'поликлиники', B1: 'улицы', B2: 'ДТП', C1: 'ЖКХ', C2: 'обращения' };
+const indShort = (c) => IND_SHORT[c] || S.ind[c]?.name || c;
+const dirName = (id) => S.dir[id]?.name || id;
+const gen = (name) => S.dist[name]?.cases?.gen || name;
+const loc = (name) => S.dist[name]?.cases?.loc || name;
+const realized = (m) => Math.max(0, S.ds.horizon_quarters - m.lag) / S.ds.horizon_quarters;
+const districtD = (d) => S.ds.indicators.reduce((s, i) => s + i.weight * d.values[i.code], 0);
+const planOf = () => ({ decisions: S.slots.filter(Boolean).map((s) => ({ measure: s.measure, district: s.district ?? null })) });
+const decShort = (d) => `${d.measure}${d.district ? ' · ' + d.district : ''}`;
+const decLong = (d) => { const m = S.mi[d.measure]; return m ? `${m.id} «${m.name}»${d.district ? ' · ' + d.district : ''}` : d.measure; };
+const planDecs = (p) => (Array.isArray(p) ? p : p?.decisions) || [];
+function applySwap(plan, swap) {
+  const decs = planDecs(plan).map((d) => ({ ...d }));
+  const i = decs.findIndex((d) => d.measure === swap?.out);
+  if (i >= 0 && swap?.in) decs[i] = { measure: swap.in.measure, district: swap.in.district ?? null };
+  return { decisions: decs };
+}
+function indexDataset(raw) {
+  const ds = raw;
+  ds.budget ??= 100; ds.horizon_quarters ??= 8; ds.decisions_required ??= 5; ds.max_per_direction ??= 2; ds.crit_threshold ??= 40;
+  S.ds = ds;
+  S.mi = Object.fromEntries(ds.measures.map((m) => [m.id, m]));
+  S.dir = Object.fromEntries(ds.directions.map((d) => [d.id, d]));
+  S.ind = Object.fromEntries(ds.indicators.map((i) => [i.code, i]));
+  S.dist = Object.fromEntries(ds.districts.map((d) => [d.name, d]));
+}
+const BASELINE = () => S.ds?.reference?.baseline_score ?? 52.56;
+
+/* local validator: same rules and order as engine/validate.py. Used for instant UI hints + mock mode.
+   With {partial:true} the "exactly 5" rule is skipped so conflicts show up while the plan is being built. */
+function localValidate(plan, { partial = false } = {}) {
+  const ds = S.ds, decs = planDecs(plan), ms = S.mi;
+  let cost = 0; const counts = Object.fromEntries(ds.directions.map((d) => [d.id, 0]));
+  for (const d of decs) { const m = ms[d.measure]; if (m) { cost += m.cost; counts[m.direction] = (counts[m.direction] || 0) + 1; } }
+  const res = (reason) => ({ valid: !reason, reason: reason || null, cost, remaining: ds.budget - cost, direction_counts: counts });
+  if (!partial && decs.length !== ds.decisions_required) return res(`Нужно ровно ${ds.decisions_required} решений, выбрано ${decs.length}`);
+  const ids = decs.map((d) => d.measure);
+  if (new Set(ids).size !== ids.length) return res('Повторы запрещены: каждая мера — не больше одного раза');
+  for (const d of decs) if (!ms[d.measure]) return res(`Неизвестная мера ${d.measure}`);
+  if (cost > ds.budget) return res(`Бюджет превышен: ${cost} из ${ds.budget}`);
+  for (const d of decs) {
+    const m = ms[d.measure];
+    if (m.type === 'district' && !d.district) return res(`${m.id}: для районной меры нужен район`);
+    if (m.type === 'city' && d.district) return res(`${m.id}: городская мера, район не указывается`);
+  }
+  for (const [k, n] of Object.entries(counts)) if (n > ds.max_per_direction) return res(`Не более ${ds.max_per_direction} мер из направления «${dirName(k)}»`);
+  for (const inc of ds.incompatibilities || []) {
+    const [a, b] = inc.pair; const A = decs.filter((d) => d.measure === a), B = decs.filter((d) => d.measure === b);
+    if (A.length && B.length && (inc.scope === 'anywhere' || A.some((x) => B.some((y) => x.district === y.district)))) return res(inc.reason);
+  }
+  return res(null);
+}
+/* why can't measure m (optionally in district) be added to the current slots? */
+function blockReason(m, district, decs) {
+  if (decs.some((d) => d.measure === m.id)) return 'Уже в плане';
+  if (decs.length >= S.ds.decisions_required) return 'Все 5 слотов заняты';
+  const n = decs.filter((d) => S.mi[d.measure]?.direction === m.direction).length;
+  if (n >= S.ds.max_per_direction) return `В направлении уже ${S.ds.max_per_direction} меры`;
+  for (const inc of S.ds.incompatibilities || []) {
+    if (!inc.pair.includes(m.id)) continue;
+    const other = inc.pair[0] === m.id ? inc.pair[1] : inc.pair[0];
+    const hits = decs.filter((d) => d.measure === other);
+    if (!hits.length) continue;
+    if (inc.scope === 'anywhere') return inc.reason;
+    if (district && hits.some((h) => h.district === district)) return inc.reason;
+  }
+  return null;
+}
 
 /* ---------------- tabs ---------------- */
-const TABS = [
-  { id: 'cabinet', name: 'Кабинет акима' },
-  { id: 'verdict', name: 'Вердикт' },
-  { id: 'paper', name: 'Астана Times' },
-  { id: 'board', name: 'Лидерборд' },
-];
+const TABS = [{ id: 'cabinet', name: 'Кабинет акима' }, { id: 'verdict', name: 'Вердикт' }, { id: 'paper', name: 'Астана Times' }, { id: 'board', name: 'Лидерборд' }];
 function renderTabs() {
   $('#tabs').innerHTML = TABS.map((t) => `<button role="tab" data-go="${t.id}" aria-selected="${S.tab === t.id}"
     class="tab-btn whitespace-nowrap rounded-lg px-3 py-2 text-sm font-medium text-slate-400 hover:text-white">${t.name}</button>`).join('');
 }
-function go(tab, push = true) {
+function go(tab) {
   S.tab = tab;
   $$('main > section').forEach((s) => (s.hidden = s.dataset.tab !== tab));
   $('#mobileBar').hidden = tab !== 'cabinet';
@@ -256,7 +282,7 @@ function go(tab, push = true) {
   if (tab === 'verdict') renderVerdict();
   if (tab === 'paper') renderPaper();
   if (tab === 'board') startBoard(); else stopBoard();
-  if (push) history.replaceState(null, '', location.pathname + location.search + '#' + tab);
+  history.replaceState(null, '', location.pathname + location.search + '#' + tab);
   window.scrollTo(0, 0);
 }
 document.addEventListener('click', (e) => { const b = e.target.closest('[data-go]'); if (b) go(b.dataset.go); });
@@ -268,9 +294,9 @@ function renderCabinetShell() {
   $('#tab-cabinet').innerHTML = `
     <div class="mb-6 flex flex-wrap items-end justify-between gap-4">
       <div>
-        <div class="card-h mb-1">Кабинет акима · I кв. 2027</div>
-        <h1 class="text-2xl font-bold tracking-tight sm:text-3xl">Пять решений. Сто единиц. Два года до выборов.</h1>
-        <p class="mt-1.5 max-w-2xl text-sm text-slate-400">Выберите пять мер: не больше двух в одном направлении, бюджет не больше 100. Районные меры привязываются к одному району.</p>
+        <div class="card-h mb-1">Кабинет акима · Астана, 8 кварталов до IV кв. 2028</div>
+        <h1 class="text-2xl font-bold tracking-tight sm:text-3xl">Пять решений. Сто единиц. Пять районов ждут.</h1>
+        <p class="mt-1.5 max-w-2xl text-sm text-slate-400">Ровно 5 мер, не больше 2 из одного направления, бюджет 100. Районную меру привязываем к району. Эффект растёт после лага: к концу срока реализуется только его часть.</p>
       </div>
       <div class="flex gap-2">
         <button id="btnExample" class="rounded-lg border border-base-600 px-3 py-2 text-sm text-slate-200 hover:border-accent hover:text-white">Пример из ТЗ</button>
@@ -281,71 +307,70 @@ function renderCabinetShell() {
       <div id="measures" class="space-y-7">${skel('h-40')}${skel('h-40')}${skel('h-40')}</div>
       <aside id="rail" class="lg:sticky lg:top-20 lg:self-start">${skel('h-96')}</aside>
     </div>`;
-  $('#btnExample').onclick = () => { if (!S.ds) return; loadPlan(S.ds.example_plan || []); toast('Загружен пример из ТЗ'); };
-  $('#btnClear').onclick = () => { if (!S.ds) return; S.slots = Array(S.ds.slots).fill(null); onPlanChange(); };
-}
-
-function planState() {
-  const ms = M();
-  const used = S.slots.filter(Boolean).reduce((s, x) => s + (ms[x.measure_id]?.cost || 0), 0);
-  const counts = Object.fromEntries(S.ds.directions.map((d) => [d.id, 0]));
-  S.slots.filter(Boolean).forEach((x) => { const m = ms[x.measure_id]; if (m) counts[m.direction] = (counts[m.direction] || 0) + 1; });
-  const filled = S.slots.filter(Boolean).length;
-  return { used, left: S.ds.budget - used, over: used > S.ds.budget, counts, filled, full: filled >= S.ds.slots };
+  $('#btnExample').onclick = () => { if (!S.ds) return; loadPlan(S.ds.reference?.doc_example?.decisions || []); toast('Загружен пример из ТЗ: Score 56,54'); };
+  $('#btnClear').onclick = () => { if (!S.ds) return; S.slots = Array(S.ds.decisions_required).fill(null); onPlanChange(); };
 }
 
 function renderMeasures() {
-  const ps = planState();
-  const inPlan = Object.fromEntries(S.slots.map((s, i) => s && [s.measure_id, { ...s, slot: i }]).filter(Boolean));
-  const html = S.ds.directions.map((d) => {
+  const decs = planOf().decisions;
+  const slotOf = Object.fromEntries(S.slots.map((s, i) => s && [s.measure, { ...s, slot: i }]).filter(Boolean));
+  $('#measures').innerHTML = S.ds.directions.map((d) => {
     const list = S.ds.measures.filter((m) => m.direction === d.id);
-    const cnt = ps.counts[d.id] || 0;
-    const dirFull = cnt >= S.ds.max_per_direction;
+    const cnt = decs.filter((x) => S.mi[x.measure]?.direction === d.id).length;
     return `<div>
       <div class="mb-3 flex items-center gap-3">
         <h2 class="text-base font-semibold">${esc(d.name)}</h2>
-        <span class="rounded-full px-2 py-0.5 text-[11px] font-semibold ${dirFull ? 'bg-accent/15 text-accent' : 'bg-base-800 text-slate-400'}">${cnt}/${S.ds.max_per_direction}</span>
+        <span class="text-[11px] text-slate-500">${(d.indicators || []).map((c) => `${c} ${indShort(c)}`).join(' · ')}</span>
+        <span class="rounded-full px-2 py-0.5 text-[11px] font-semibold ${cnt >= S.ds.max_per_direction ? 'bg-accent/15 text-accent' : 'bg-base-800 text-slate-400'}">${cnt}/${S.ds.max_per_direction}</span>
         <div class="h-px flex-1 bg-base-700"></div>
       </div>
       <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
       ${list.map((m) => {
-        const sel = inPlan[m.id];
-        let reason = '';
-        if (!sel) { if (ps.full) reason = 'Все 5 слотов заняты'; else if (dirFull) reason = `В направлении уже ${S.ds.max_per_direction} решения`; }
-        const eff = Object.entries(m.effects || {}).map(([k, v]) => `<span class="rounded-md bg-base-800 px-1.5 py-0.5 text-[11px] text-slate-300">${v > 0 ? '+' : ''}${esc(String(v).replace('.', ','))} ${esc(shortDir(k))}</span>`).join('');
-        const distName = sel && sel.district_id && DIST()[sel.district_id] ? DIST()[sel.district_id].name : '';
+        const sel = slotOf[m.id];
+        const reason = sel ? null : blockReason(m, null, decs);
+        const eff = Object.entries(m.effects || {}).map(([k, v]) => `<span title="${esc(S.ind[k]?.name || k)}" class="rounded-md ${v < 0 ? 'bg-red-500/10 text-red-300' : 'bg-base-800 text-slate-300'} px-1.5 py-0.5 text-[11px]">${v > 0 ? '+' : '−'}${Math.abs(v)} ${esc(indShort(k))}</span>`).join('');
+        const incs = (S.ds.incompatibilities || []).filter((i) => i.pair.includes(m.id)).map((i) => (i.pair[0] === m.id ? i.pair[1] : i.pair[0]) + (i.scope === 'same_district' ? ' в том же районе' : ''));
+        const share = Math.round(realized(m) * 100);
         return `<button class="measure card relative flex flex-col gap-2 p-4 text-left" data-mid="${esc(m.id)}" data-selected="${!!sel}" ${reason ? `disabled title="${esc(reason)}"` : ''}>
           <div class="flex items-start justify-between gap-2">
-            <span class="rounded-md px-1.5 py-0.5 text-[10.5px] font-semibold uppercase tracking-wider ${m.scope === 'district' ? 'bg-amber-400/10 text-amber-300' : 'bg-accent/10 text-accent'}">${m.scope === 'district' ? 'Район' : 'Город'}</span>
+            <span class="flex items-center gap-1.5"><span class="rounded-md bg-base-800 px-1.5 py-0.5 text-[10.5px] font-bold text-slate-300">${esc(m.id)}</span>
+            <span class="rounded-md px-1.5 py-0.5 text-[10.5px] font-semibold uppercase tracking-wider ${m.type === 'district' ? 'bg-amber-400/10 text-amber-300' : 'bg-accent/10 text-accent'}">${m.type === 'district' ? 'Район' : 'Город'}</span></span>
             <span class="text-right"><span class="text-xl font-bold tabular-nums">${esc(m.cost)}</span><span class="ml-0.5 text-xs text-slate-400">ед.</span></span>
           </div>
           <div class="font-semibold leading-snug">${esc(m.name)}</div>
-          ${m.description ? `<div class="text-[13px] leading-snug text-slate-400">${esc(m.description)}</div>` : ''}
-          <div class="mt-auto flex flex-wrap items-center gap-1.5 pt-1">
-            <span class="rounded-md border border-base-600 px-1.5 py-0.5 text-[11px] text-slate-300">эффект через ${esc(m.lag)} кв.</span>${eff}
+          <div class="flex flex-wrap gap-1.5">${eff}</div>
+          <div class="mt-auto flex flex-wrap items-center gap-x-2 gap-y-1 pt-1 text-[11px] text-slate-400">
+            <span>лаг ${esc(m.lag)} кв.</span><span class="text-slate-600">·</span>
+            <span class="${share <= 50 ? 'text-amber-300' : ''}">к IV кв. 2028 — ${share}% эффекта</span>
+            ${incs.length ? `<span class="w-full text-slate-500">несовместима: ${esc(incs.join(', '))}</span>` : ''}
+            ${reason && !sel ? `<span class="w-full text-slate-500">${esc(reason)}</span>` : ''}
           </div>
-          ${sel ? `<div class="absolute -right-2 -top-2 rounded-full bg-accent px-2 py-0.5 text-[11px] font-bold text-base-950 shadow-lg">Слот ${sel.slot + 1}${distName ? ' · ' + esc(distName) : ''}</div>` : ''}
+          ${sel ? `<div class="absolute -right-2 -top-2 rounded-full bg-accent px-2 py-0.5 text-[11px] font-bold text-base-950 shadow-lg">Слот ${sel.slot + 1}${sel.district ? ' · ' + esc(sel.district) : ''}</div>` : ''}
         </button>`;
       }).join('')}
       </div></div>`;
   }).join('');
-  $('#measures').innerHTML = html;
   $$('#measures [data-mid]').forEach((b) => (b.onclick = () => pickMeasure(b.dataset.mid)));
 }
 
 function renderRail() {
-  const ps = planState();
-  const v = S.validation;
-  const ms = M();
-  const pct = Math.min(100, (ps.used / S.ds.budget) * 100);
-  const canSubmit = v && v.valid && !ps.over && !S.validating && ps.full;
-  let msg;
-  if (S.validating && !v) msg = `<div class="text-sm">${spinner('Проверяем план…')}</div>`;
-  else if (ps.over) msg = `<div class="flex gap-2 text-sm text-red-300"><b>!</b><span>Перерасход: ${ps.used} из ${S.ds.budget}. Уберите одну из дорогих мер.</span></div>`;
-  else if (v) msg = `<div class="flex items-start gap-2 text-sm ${v.valid ? 'text-emerald-300' : 'text-amber-200'}">
-      <span class="mt-0.5 grid h-4 w-4 shrink-0 place-items-center rounded-full ${v.valid ? 'bg-emerald-400/20' : 'bg-amber-400/20'} text-[10px] font-bold">${v.valid ? '✓' : '!'}</span>
-      <span>${esc(v.message || (v.errors || [])[0] || (v.valid ? 'План корректен' : 'План пока неполный'))}${S.validating ? ' <span class="spin ml-1"></span>' : ''}</span></div>`;
-  else msg = `<div class="text-sm text-slate-400">Выберите пять решений.</div>`;
+  const plan = planOf(), decs = plan.decisions;
+  const local = localValidate(plan, { partial: true });
+  const used = local.cost, over = used > S.ds.budget, full = decs.length === S.ds.decisions_required;
+  const v = S.val;
+  const pctW = Math.min(100, (used / S.ds.budget) * 100);
+  const okServer = v && v.valid && !S.validating;
+  const canSubmit = okServer && full && !over;
+  let msg, tone;
+  if (over) { msg = `Перерасход: ${used} из ${S.ds.budget}. Уберите одну из дорогих мер.`; tone = 'err'; }
+  else if (local.reason) { msg = local.reason; tone = 'err'; }
+  else if (!full) { const k = S.ds.decisions_required - decs.length; msg = `Выберите ещё ${k} ${plural(k, 'решение', 'решения', 'решений')}.`; tone = 'wait'; }
+  else if (S.validating || !v) { msg = null; tone = 'load'; }
+  else if (v.valid) { msg = `План принят к рассмотрению. Остаток ${v.remaining} ед. не сгорает и не даёт бонуса.`; tone = 'ok'; }
+  else { msg = v.reason || 'План не проходит проверку'; tone = 'err'; }
+  const toneCls = { ok: 'text-emerald-300', err: 'text-red-300', wait: 'text-slate-300', load: 'text-slate-400' }[tone];
+  const icon = { ok: ['✓', 'bg-emerald-400/20'], err: ['!', 'bg-red-500/20'], wait: ['…', 'bg-base-700'], load: ['', ''] }[tone];
+  const msgHtml = tone === 'load' ? spinner('Проверяем на сервере…') : `<div class="flex items-start gap-2 text-sm ${toneCls}"><span class="mt-0.5 grid h-4 w-4 shrink-0 place-items-center rounded-full ${icon[1]} text-[10px] font-bold">${icon[0]}</span><span>${esc(msg)}</span></div>`;
 
   $('#rail').innerHTML = `
     <div class="card p-4">
@@ -353,44 +378,38 @@ function renderRail() {
       <ol class="space-y-2">
         ${S.slots.map((s, i) => {
           if (!s) return `<li class="flex items-center gap-3 rounded-xl border border-dashed border-base-600 px-3 py-2.5 text-sm text-slate-500"><span class="grid h-6 w-6 place-items-center rounded-full bg-base-800 text-xs">${i + 1}</span>Пустой слот</li>`;
-          const m = ms[s.measure_id];
-          const k = s.district_id && DIST()[s.district_id];
+          const m = S.mi[s.measure];
           return `<li class="fade-in flex items-center gap-3 rounded-xl border border-base-700 bg-base-850 px-3 py-2">
             <span class="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-accent text-xs font-bold text-base-950">${i + 1}</span>
-            <div class="min-w-0 flex-1"><div class="truncate text-sm font-medium">${esc(m ? m.name : s.measure_id)}</div>
-              <div class="text-[11px] text-slate-400">${m ? esc(m.cost) + ' ед. · ' + esc(DIR()[m.direction]?.name || '') : ''}${k ? ' · <span class="text-amber-300">' + esc(k.name) + '</span>' : ''}</div></div>
+            <div class="min-w-0 flex-1"><div class="truncate text-sm font-medium"><span class="text-slate-400">${esc(s.measure)}</span> ${esc(m ? m.name : '')}</div>
+              <div class="text-[11px] text-slate-400">${m ? esc(m.cost) + ' ед. · ' + esc(dirName(m.direction)) : ''}${s.district ? ' · <span class="text-amber-300">' + esc(s.district) + '</span>' : ''}</div></div>
             <button class="rounded-md px-1.5 text-lg leading-none text-slate-500 hover:text-white" data-remove="${i}" aria-label="Убрать">×</button>
           </li>`;
         }).join('')}
       </ol>
-
       <div class="mt-5">
         <div class="flex items-baseline justify-between text-sm"><span class="text-slate-400">Бюджет</span>
-          <span class="font-bold tabular-nums ${ps.over ? 'text-red-400' : ''}">${ps.used} <span class="font-normal text-slate-500">/ ${S.ds.budget}</span></span></div>
-        <div class="mt-2 h-2.5 overflow-hidden rounded-full bg-base-800"><div class="h-full rounded-full transition-all duration-300 ${ps.over ? 'bg-red-500' : 'bg-accent'}" style="width:${pct}%"></div></div>
-        <div class="mt-1.5 text-[12px] ${ps.over ? 'text-red-400' : 'text-slate-400'}">${ps.over ? `Перерасход на ${ps.used - S.ds.budget} ед.` : `Остаток ${ps.left} ед. — <span class="text-slate-300">не сгорает и не даёт бонуса</span>`}</div>
+          <span class="font-bold tabular-nums ${over ? 'text-red-400' : ''}">${used} <span class="font-normal text-slate-500">/ ${S.ds.budget}</span></span></div>
+        <div class="mt-2 h-2.5 overflow-hidden rounded-full bg-base-800"><div class="h-full rounded-full transition-all duration-300 ${over ? 'bg-red-500' : 'bg-accent'}" style="width:${pctW}%"></div></div>
+        <div class="mt-1.5 text-[12px] ${over ? 'text-red-400' : 'text-slate-400'}">${over ? `Перерасход на ${used - S.ds.budget} ед.` : `Остаток ${S.ds.budget - used} ед. — <span class="text-slate-300">не сгорает и не даёт бонуса</span>`}</div>
       </div>
-
       <div class="mt-5 grid grid-cols-5 gap-1.5">
-        ${S.ds.directions.map((d) => { const c = ps.counts[d.id] || 0; const over = c > S.ds.max_per_direction; return `
-          <div class="rounded-lg border ${over ? 'border-red-500/60' : c ? 'border-accent/40' : 'border-base-700'} px-1 py-1.5 text-center" title="${esc(d.name)}">
-            <div class="text-sm font-bold tabular-nums ${over ? 'text-red-400' : c ? 'text-accent' : 'text-slate-500'}">${c}/${S.ds.max_per_direction}</div>
-            <div class="truncate text-[10px] text-slate-400">${esc(shortDir(d.id))}</div></div>`; }).join('')}
+        ${S.ds.directions.map((d) => { const c = local.direction_counts[d.id] || 0; const bad = c > S.ds.max_per_direction; return `
+          <div class="rounded-lg border ${bad ? 'border-red-500/60' : c ? 'border-accent/40' : 'border-base-700'} px-1 py-1.5 text-center" title="${esc(d.name)}">
+            <div class="text-sm font-bold tabular-nums ${bad ? 'text-red-400' : c ? 'text-accent' : 'text-slate-500'}">${c}/${S.ds.max_per_direction}</div>
+            <div class="truncate text-[10px] text-slate-400">${esc(d.name)}</div></div>`; }).join('')}
       </div>
-
-      <div class="mt-5 min-h-[44px] rounded-xl bg-base-850 px-3 py-2.5" aria-live="polite">${msg}</div>
-
+      <div class="mt-5 min-h-[44px] rounded-xl bg-base-850 px-3 py-2.5" aria-live="polite">${msgHtml}</div>
       <button id="btnSubmit" class="mt-4 w-full rounded-xl px-4 py-3 text-sm font-bold transition ${canSubmit ? 'bg-accent text-base-950 hover:brightness-110' : 'cursor-not-allowed bg-base-800 text-slate-500'}" ${canSubmit ? '' : 'disabled'}>Принять решения</button>
     </div>`;
   $$('#rail [data-remove]').forEach((b) => (b.onclick = () => { S.slots[+b.dataset.remove] = null; onPlanChange(); }));
   $('#btnSubmit').onclick = submitPlan;
-
   $('#mobileBar').innerHTML = `
     <div class="flex items-center gap-3">
       <div class="min-w-0 flex-1">
-        <div class="flex items-baseline gap-2 text-sm"><b class="tabular-nums ${ps.over ? 'text-red-400' : ''}">${ps.used}/${S.ds.budget}</b><span class="text-slate-400">· ${ps.filled}/${S.ds.slots} решений</span></div>
-        <div class="mt-1 h-1.5 overflow-hidden rounded-full bg-base-800"><div class="h-full ${ps.over ? 'bg-red-500' : 'bg-accent'}" style="width:${pct}%"></div></div>
-        <div class="mt-1 truncate text-[11px] ${v && v.valid && !ps.over ? 'text-emerald-300' : 'text-slate-400'}">${ps.over ? 'Перерасход бюджета' : esc(v ? (v.message || '') : 'Выберите пять решений')}</div>
+        <div class="flex items-baseline gap-2 text-sm"><b class="tabular-nums ${over ? 'text-red-400' : ''}">${used}/${S.ds.budget}</b><span class="text-slate-400">· ${decs.length}/${S.ds.decisions_required} решений</span></div>
+        <div class="mt-1 h-1.5 overflow-hidden rounded-full bg-base-800"><div class="h-full ${over ? 'bg-red-500' : 'bg-accent'}" style="width:${pctW}%"></div></div>
+        <div class="mt-1 truncate text-[11px] ${toneCls}">${esc(msg || 'Проверяем…')}</div>
       </div>
       <button id="btnSubmitM" class="shrink-0 rounded-xl px-4 py-3 text-sm font-bold ${canSubmit ? 'bg-accent text-base-950' : 'bg-base-800 text-slate-500'}" ${canSubmit ? '' : 'disabled'}>Принять</button>
     </div>`;
@@ -398,35 +417,39 @@ function renderRail() {
 }
 
 function pickMeasure(mid) {
-  const m = M()[mid];
-  const idx = S.slots.findIndex((s) => s && s.measure_id === mid);
+  const m = S.mi[mid];
+  const idx = S.slots.findIndex((s) => s && s.measure === mid);
   if (idx >= 0) { S.slots[idx] = null; onPlanChange(); return; }
   const free = S.slots.findIndex((s) => !s);
   if (free < 0) { toast('Все пять слотов заняты — уберите одно решение'); return; }
-  if (m.scope === 'district') {
-    openDistrictPicker(m, (districtId) => { S.slots[free] = { measure_id: mid, district_id: districtId }; onPlanChange(); });
-  } else { S.slots[free] = { measure_id: mid, district_id: null }; onPlanChange(); }
+  if (m.type === 'district') openDistrictPicker(m, (name) => { S.slots[free] = { measure: mid, district: name }; onPlanChange(); });
+  else { S.slots[free] = { measure: mid, district: null }; onPlanChange(); }
 }
 
+function districtOptionsHtml(m, decs, attr = 'data-pick') {
+  const share = realized(m);
+  return S.ds.districts.map((k) => {
+    const block = blockReason(m, k.name, decs);
+    const cells = Object.entries(m.effects).map(([c, e]) => {
+      const now = k.values[c], after = Math.max(0, Math.min(100, now + e * share));
+      return `<span class="whitespace-nowrap"><span class="text-slate-500">${esc(indShort(c))}</span> <span class="${now < S.ds.crit_threshold ? 'font-bold text-red-400' : ''}">${num(now, 0)}</span>→<b class="${after < S.ds.crit_threshold ? 'text-red-400' : 'text-white'}">${num(after, 1)}</b></span>`;
+    }).join(' ');
+    return `<button ${attr}="${esc(k.name)}" ${block ? 'disabled' : ''} class="flex w-full items-start gap-3 rounded-xl border border-base-700 bg-base-850 px-3 py-3 text-left hover:border-accent disabled:cursor-not-allowed disabled:opacity-40">
+      <span class="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-base-800 text-xs font-bold">${esc(k.name.slice(0, 2).toUpperCase())}</span>
+      <span class="min-w-0 flex-1"><span class="flex items-baseline justify-between gap-2"><span class="font-semibold">${esc(k.name)}</span><span class="text-[11px] text-slate-400">${Math.round(k.pop * 100)}% жителей · D ${num(districtD(k))}</span></span>
+        <span class="block text-[12px] text-slate-400">${esc(k.profile || '')}</span>
+        <span class="mt-1 block text-[12px]">${block ? `<span class="text-red-300">${esc(block)}</span>` : cells}</span></span>
+    </button>`;
+  }).join('');
+}
 function openDistrictPicker(m, onPick) {
-  const dirId = m.direction;
+  const decs = planOf().decisions;
   openModal(`
-    <div class="card fade-in w-full max-w-lg rounded-b-none p-5 sm:rounded-2xl">
-      <div class="card-h">Районная мера · ${esc(m.cost)} ед.</div>
+    <div class="card fade-in max-h-[92vh] w-full max-w-lg overflow-y-auto rounded-b-none p-5 sm:rounded-2xl">
+      <div class="card-h">${esc(m.id)} · районная мера · ${esc(m.cost)} ед. · лаг ${esc(m.lag)} кв.</div>
       <h3 class="mt-1 text-lg font-bold">${esc(m.name)}</h3>
-      <p class="mt-1 text-sm text-slate-400">В каком районе запускаем? Меньше индекс — сильнее эффект на месте. Больше жителей — больше вклад в AQLS.</p>
-      <div class="mt-4 space-y-2">
-        ${S.ds.districts.map((k) => {
-          const idx = k.indices && k.indices[dirId];
-          const low = idx != null && idx < 40;
-          return `<button data-pick="${esc(k.id)}" class="flex w-full items-center gap-3 rounded-xl border border-base-700 bg-base-850 px-3 py-3 text-left hover:border-accent">
-            <span class="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-base-800 text-xs font-bold">${esc((k.name || '').slice(0, 2))}</span>
-            <span class="min-w-0 flex-1"><span class="block font-semibold">${esc(k.name)}</span>
-              <span class="block text-[12px] text-slate-400">${k.population ? int(k.population) + ' жителей · ' : ''}AQLS ${num(k.aqls)}</span></span>
-            ${idx != null ? `<span class="text-right"><span class="block text-[10px] uppercase tracking-wider text-slate-500">${esc(shortDir(dirId))}</span><span class="font-bold tabular-nums ${low ? 'text-red-400' : ''}">${esc(idx)}</span></span>` : ''}
-          </button>`;
-        }).join('')}
-      </div>
+      <p class="mt-1 text-sm text-slate-400">Где запускаем? Показано, как изменятся показатели района к IV кв. 2028 (реализуется ${Math.round(realized(m) * 100)}% эффекта). Красное — ниже ${S.ds.crit_threshold}, это штраф в Score.</p>
+      <div class="mt-4 space-y-2">${districtOptionsHtml(m, decs)}</div>
       <button data-close class="mt-4 w-full rounded-xl border border-base-700 py-2.5 text-sm text-slate-400 hover:text-white">Отмена</button>
     </div>`);
   $$('#modal [data-pick]').forEach((b) => (b.onclick = () => { closeModal(); onPick(b.dataset.pick); }));
@@ -442,438 +465,506 @@ function closeModal() { const md = $('#modal'); md.classList.add('hidden'); md.c
 document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !$('#modal').classList.contains('hidden') && !$('#modal [data-lock]')) closeModal(); });
 
 function loadPlan(decs) {
-  S.slots = Array(S.ds.slots).fill(null);
-  (decs || []).slice(0, S.ds.slots).forEach((d, i) => (S.slots[i] = { measure_id: d.measure_id, district_id: d.district_id || null }));
+  S.slots = Array(S.ds.decisions_required).fill(null);
+  planDecs(decs).slice(0, S.ds.decisions_required).forEach((d, i) => (S.slots[i] = { measure: d.measure, district: d.district ?? null }));
   onPlanChange();
 }
-
 let valTimer = null;
 function onPlanChange() {
   renderMeasures();
-  S.validating = true;
+  S.validating = true; S.val = null;
   renderRail();
   clearTimeout(valTimer);
   valTimer = setTimeout(runValidate, 120);
 }
 async function runValidate() {
   const seq = ++S.valSeq;
-  try {
-    const res = await api('POST', '/api/validate', { decisions: decisions() });
-    if (seq !== S.valSeq) return;
-    S.validation = res;
-  } catch (e) {
-    if (seq !== S.valSeq) return;
-    S.validation = { valid: false, message: 'Сервер проверки недоступен: ' + e.message, errors: [] };
-  }
-  S.validating = false;
-  renderRail();
+  let res;
+  try { res = await api('POST', '/api/validate', { plan: planOf() }); }
+  catch (e) { res = { valid: false, reason: 'Проверка недоступна: ' + e.message }; }
+  if (seq !== S.valSeq) return;
+  S.val = res; S.validating = false; renderRail();
 }
 
 /* =====================================================================
    ВЕРДИКТ
    ===================================================================== */
-async function submitPlan() {
-  const decs = decisions();
-  S.verdict = null; S.verdictError = null; S.verdictLoading = true;
-  S.narrative = null; S.narrativeError = null; S.narrativeLoading = true;
-  S.crisis = null; S.crisisResolved = null;
-  S.submitted = decs;
-  go('verdict');
-  loadNarrative(decs);
-  try {
-    S.verdict = await api('POST', '/api/evaluate', { decisions: decs });
-  } catch (e) { S.verdictError = e.message; }
-  S.verdictLoading = false;
-  if (S.tab === 'verdict') renderVerdict();
+function fetchInto(key, fn, run) {
+  S.r[key] = { loading: true };
+  return fn().then((d) => { if (run === S.run) S.r[key] = { data: d }; })
+    .catch((e) => { if (run === S.run) S.r[key] = { error: e.message }; })
+    .finally(() => { if (run === S.run) refresh(key); });
 }
-async function loadNarrative(decs, verdict) {
-  S.narrativeLoading = true; S.narrativeError = null;
-  try { S.narrative = await api('POST', '/api/narrative', { decisions: decs, verdict }); }
-  catch (e) { S.narrativeError = e.message; }
-  S.narrativeLoading = false;
-  if (S.tab === 'verdict') renderCouncil();
-  if (S.tab === 'paper') renderPaper();
+function refresh(key) {
+  if (S.tab === 'verdict') { if (key === 'score' || !$('#vScore')) renderVerdict(); else fillVerdict(key); }
+  if (S.tab === 'paper' && (key === 'nar' || key === 'score' || key === 'opt')) renderPaper();
+}
+function submitPlan() {
+  S.plan = planOf();
+  S.run++; S.crisis = null;
+  const run = S.run, body = { plan: S.plan, lang: 'ru' };
+  go('verdict');
+  fetchInto('score', () => api('POST', '/api/score', body), run);
+  fetchInto('opt', () => api('POST', '/api/optimize', body), run);
+  fetchInto('ai', () => api('POST', '/api/analyze', body, { timeout: CONFIG.LLM_TIMEOUT_MS }), run);
+  S.narBody = body;
+  loadNarrative();
+  renderVerdict();
+}
+function loadNarrative() {
+  const body = S.narBody;
+  return fetchInto('nar', () => api('POST', '/api/narrative', body, { timeout: CONFIG.LLM_TIMEOUT_MS }), S.run);
 }
 
 const charts = {};
-function chart(id, cfg) { if (charts[id]) charts[id].destroy(); const c = document.getElementById(id); if (!c) return; charts[id] = new Chart(c, cfg); }
-
+function chart(id, cfg) { if (charts[id]) { charts[id].destroy(); delete charts[id]; } const c = document.getElementById(id); if (!c) return; charts[id] = new Chart(c, cfg); }
 function emptyState(title, text, btn = 'В кабинет', to = 'cabinet') {
   return `<div class="card mx-auto max-w-xl p-8 text-center"><div class="text-lg font-semibold">${esc(title)}</div>
     <p class="mt-2 text-sm text-slate-400">${esc(text)}</p>
     <button data-go="${to}" class="mt-5 rounded-xl bg-accent px-4 py-2.5 text-sm font-bold text-base-950">${esc(btn)}</button></div>`;
 }
+const errBox = (title, e) => `<div class="text-sm"><div class="font-semibold text-red-300">${esc(title)}</div><div class="mt-1 text-slate-400">${esc(e)}</div></div>`;
 
 function gaugeSVG(value, thr) {
   const v = Math.max(0, Math.min(100, Number(value) || 0));
   const R = 80, cx = 100, cy = 95;
   const pt = (p) => { const a = Math.PI * (1 - p / 100); return [cx + R * Math.cos(a), cy - R * Math.sin(a)]; };
-  const [x1, y1] = pt(v);
-  const [tx1, ty1] = pt(thr); const a = Math.PI * (1 - thr / 100);
+  const [x1, y1] = pt(v); const a = Math.PI * (1 - thr / 100);
   const tIn = [cx + (R - 16) * Math.cos(a), cy - (R - 16) * Math.sin(a)], tOut = [cx + (R + 12) * Math.cos(a), cy - (R + 12) * Math.sin(a)];
   const ok = v >= thr;
-  return `<svg viewBox="0 -16 200 128" class="w-full max-w-[260px]">
+  return `<svg viewBox="0 -16 200 128" class="w-full max-w-[260px]" role="img" aria-label="Рейтинг ${Math.round(v)}%">
     <path d="M ${cx - R} ${cy} A ${R} ${R} 0 0 1 ${cx + R} ${cy}" fill="none" stroke="#1e293b" stroke-width="14" stroke-linecap="round"/>
-    <path d="M ${cx - R} ${cy} A ${R} ${R} 0 0 1 ${x1.toFixed(2)} ${y1.toFixed(2)}" fill="none" stroke="${ok ? '#19b8d8' : '#ef4444'}" stroke-width="14" stroke-linecap="round"/>
+    ${v > 0.5 ? `<path d="M ${cx - R} ${cy} A ${R} ${R} 0 0 1 ${x1.toFixed(2)} ${y1.toFixed(2)}" fill="none" stroke="${ok ? '#19b8d8' : '#ef4444'}" stroke-width="14" stroke-linecap="round"/>` : ''}
     <line x1="${tIn[0]}" y1="${tIn[1]}" x2="${tOut[0]}" y2="${tOut[1]}" stroke="#e2e8f0" stroke-width="2"/>
     <text x="${tOut[0]}" y="${tOut[1] - 4}" text-anchor="middle" fill="#94a3b8" font-size="8.5">${thr}% · переизбрание</text>
-    <text x="100" y="86" text-anchor="middle" fill="#fff" font-size="30" font-weight="800">${Math.round(v)}%</text>
-    <text x="${cx - R}" y="110" text-anchor="middle" fill="#64748b" font-size="8">0</text>
-    <text x="${cx + R}" y="110" text-anchor="middle" fill="#64748b" font-size="8">100</text>
+    <text x="100" y="86" text-anchor="middle" fill="#fff" font-size="28" font-weight="800">${num(v, 1)}%</text>
   </svg>`;
 }
 
 function renderVerdict() {
   const root = $('#tab-verdict');
-  if (!S.submitted && !S.verdict) { root.innerHTML = emptyState('Вердикта пока нет', 'Сначала примите пять решений в кабинете акима.'); return; }
-  if (S.verdictError) {
-    root.innerHTML = `<div class="card mx-auto max-w-xl p-8 text-center"><div class="text-lg font-semibold">Не удалось посчитать вердикт</div>
-      <p class="mt-2 text-sm text-slate-400">${esc(S.verdictError)}</p>
-      <button id="retryVerdict" class="mt-5 rounded-xl bg-accent px-4 py-2.5 text-sm font-bold text-base-950">Повторить</button></div>`;
-    $('#retryVerdict').onclick = submitPlan; return;
-  }
-  if (S.verdictLoading || !S.verdict) {
-    root.innerHTML = `<div class="mb-5 text-sm">${spinner('Считаем два года правления…')}</div>
+  if (!S.plan) { root.innerHTML = emptyState('Вердикта пока нет', 'Сначала примите пять решений в кабинете акима.'); return; }
+  const sc = S.r.score;
+  if (!sc || sc.loading) {
+    root.innerHTML = `<div class="mb-5 text-sm">${spinner('Движок считает два года правления…')}</div>
       <div class="grid gap-4 lg:grid-cols-3">${skel('h-56')}${skel('h-56')}${skel('h-56')}</div>
       <div class="mt-4 grid gap-4 lg:grid-cols-3">${skel('h-72', 'lg:col-span-2')}${skel('h-72')}</div>`;
     return;
   }
-  const v = S.verdict;
-  const thr = v.reelection_threshold ?? S.ds.reelection_threshold;
-  const base = v.baseline ?? S.ds.baseline_aqls, max = v.max_aqls ?? S.ds.max_aqls;
-  const reelected = v.reelected ?? (v.approval >= thr);
-  const regretPct = Math.max(0, Math.min(100, ((v.aqls - base) / (max - base)) * 100));
-  const total = v.total_plans ?? S.ds.total_plans;
-  const cr = S.crisisResolved;
-
+  if (sc.error) {
+    root.innerHTML = `<div class="card mx-auto max-w-xl p-8 text-center"><div class="text-lg font-semibold">Не удалось посчитать Score</div>
+      <p class="mt-2 text-sm text-slate-400">${esc(sc.error)}</p>
+      <div class="mt-5 flex justify-center gap-2"><button id="retryVerdict" class="rounded-xl bg-accent px-4 py-2.5 text-sm font-bold text-base-950">Повторить</button>
+      <button data-go="cabinet" class="rounded-xl border border-base-600 px-4 py-2.5 text-sm">В кабинет</button></div></div>`;
+    $('#retryVerdict').onclick = () => { loadPlan(S.plan); submitPlan(); }; return;
+  }
+  const cr = S.crisis?.result;
   root.innerHTML = `
-    ${cr ? `<div class="fade-in mb-5 flex flex-wrap items-center gap-3 rounded-2xl border border-accent/30 bg-accent/5 px-4 py-3 text-sm">
-        <span class="rounded-full bg-accent/15 px-2 py-0.5 text-[11px] font-bold uppercase tracking-wider text-accent">После кризиса</span>
-        <span class="flex-1 text-slate-300">${esc(cr.comment || '')}</span></div>`
+    ${cr ? `<div class="fade-in mb-5 rounded-2xl border border-red-500/30 bg-red-500/5 px-4 py-3">
+        <div class="flex flex-wrap items-center gap-2"><span class="rounded-full bg-red-500 px-2 py-0.5 text-[11px] font-black uppercase tracking-wider text-white">После кризиса</span>
+          <b class="text-sm">${esc(S.crisis.event.title)}</b></div>
+        <div class="mt-1.5 text-sm text-slate-300">${esc(crisisComment())}</div></div>`
       : `<button id="crisisCta" class="fade-in mb-5 flex w-full items-center gap-4 rounded-2xl border border-red-500/40 bg-red-500/10 px-4 py-3 text-left hover:bg-red-500/15">
         <span class="pulse-ring grid h-9 w-9 shrink-0 place-items-center rounded-full bg-red-500 font-black text-white">!</span>
-        <span class="flex-1"><span class="block text-[11px] font-bold uppercase tracking-widest text-red-300">II кв. 2028 · 5-й час</span>
-        <span class="block text-sm font-semibold text-white">В городе кризис. Акиму придётся заменить одно решение.</span></span>
+        <span class="flex-1"><span class="block text-[11px] font-bold uppercase tracking-widest text-red-300">III квартал · 5-й час</span>
+        <span class="block text-sm font-semibold text-white">План утверждён — и тут в городе случается кризис. Придётся заменить одну меру.</span></span>
         <span class="shrink-0 rounded-lg bg-red-500 px-3 py-2 text-sm font-bold text-white">Открыть кризис</span></button>`}
-
     <div class="grid gap-4 lg:grid-cols-3">
-      <div class="card fade-in flex flex-col p-5">
-        <div class="card-h">AQLS · индекс качества жизни</div>
-        <div class="mt-3 flex items-end gap-3">
-          <div class="text-7xl font-extrabold leading-none tracking-tight tabular-nums">${num(v.aqls)}</div>
-        </div>
-        <div class="mt-3 flex flex-wrap items-center gap-2 text-sm">
-          <span class="rounded-full px-2.5 py-1 font-bold tabular-nums ${v.aqls >= base ? 'bg-emerald-400/15 text-emerald-300' : 'bg-red-500/15 text-red-300'}">${sign(v.aqls - base)}</span>
-          <span class="text-slate-400">к ${num(base)} в начале срока</span>
-        </div>
-        <div class="mt-auto pt-5 text-[12px] text-slate-500">IV кв. 2028 · потрачено ${esc(v.budget_used ?? '—')} из ${S.ds.budget}</div>
-      </div>
-
-      <div class="card fade-in flex flex-col items-center p-5">
-        <div class="card-h self-start">Рейтинг акима</div>
-        <div class="mt-2 flex w-full justify-center">${gaugeSVG(v.approval, thr)}</div>
-        <div class="mt-1 rounded-full px-3 py-1 text-sm font-bold ${reelected ? 'bg-accent/15 text-accent' : 'bg-red-500/15 text-red-300'}">${reelected ? 'Переизбран на второй срок' : 'Уволен: рейтинг ниже порога'}</div>
-      </div>
-
-      <div class="card fade-in flex flex-col p-5">
-        <div class="card-h">Счётчик сожаления</div>
-        <div class="mt-4 text-sm leading-relaxed text-slate-300">максимум <b class="text-white">${num(max)}</b>, ваше место <b class="text-white">${int(v.rank)}</b> из ${int(total)}, топ <b class="text-accent">${num(v.top_percent, v.top_percent < 1 ? 2 : 1)}%</b></div>
-        <div class="relative mt-6 h-3 rounded-full bg-base-800">
-          <div class="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-accent/30 to-accent" style="width:${regretPct}%"></div>
-          <div class="absolute -top-1.5 h-6 w-1.5 -translate-x-1/2 rounded bg-white shadow" style="left:${regretPct}%"></div>
-        </div>
-        <div class="mt-2 flex justify-between text-[11px] text-slate-500"><span>${num(base)} · старт</span><span>${num(max)} · оптимум</span></div>
-        <div class="mt-auto pt-4 text-sm text-slate-400">До оптимума не хватило <b class="tabular-nums text-white">${num(Math.max(0, max - v.aqls))}</b>. ${reelected ? '' : 'Но и оптимум не гарантирует переизбрания.'}</div>
-      </div>
+      <div id="vScore" class="card fade-in flex flex-col p-5"></div>
+      <div id="vApproval" class="card fade-in flex flex-col items-center p-5"></div>
+      <div id="vRegret" class="card fade-in flex flex-col p-5"></div>
     </div>
-
     <div class="mt-4 grid gap-4 lg:grid-cols-3">
       <div class="card p-5 lg:col-span-2">
-        <div class="flex items-baseline justify-between"><div class="card-h">Граница Парето · бюджет → лучший AQLS</div><div class="text-[11px] text-slate-500">точка — ваш план</div></div>
-        <div class="mt-3 h-64"><canvas id="chPareto"></canvas></div>
+        <div class="flex flex-wrap items-baseline justify-between gap-2"><div class="card-h">Граница Парето · бюджет → лучший Score</div><div class="text-[11px] text-slate-500">каждая точка — лучший из 694 395 планов не дороже этой суммы</div></div>
+        <div id="vPareto" class="mt-3 h-72"><canvas id="chPareto"></canvas></div>
       </div>
       <div class="card p-5">
-        <div class="card-h">AQLS по кварталам</div>
+        <div class="card-h">Score по кварталам</div>
+        <div class="mt-1 text-[11px] text-slate-500">эффект набирается линейно после лага</div>
         <div class="mt-3 h-64"><canvas id="chTimeline"></canvas></div>
       </div>
     </div>
-
+    <div class="mt-4 card p-5">
+      <div class="flex flex-wrap items-baseline justify-between gap-2"><div class="card-h">Районы · показатели к IV кв. 2028</div><div class="text-[11px] text-slate-500">красным — ниже ${S.ds.crit_threshold}: каждая такая ячейка −1 к Score</div></div>
+      <div id="vDistricts" class="mt-3 overflow-x-auto"></div>
+    </div>
     <div class="mt-4 grid gap-4 lg:grid-cols-3">
-      <div class="card p-5 lg:col-span-2">
-        <div class="card-h">Районы · до → после</div>
-        <div class="mt-3 overflow-x-auto">${districtTable(v)}</div>
-      </div>
+      <div id="vAI" class="card p-5 lg:col-span-2"></div>
       <div class="card p-5">
         <div class="card-h">Вклад каждой меры</div>
-        <div class="mt-1 text-[11px] text-slate-500">насколько упадёт AQLS, если убрать меру</div>
-        <div class="mt-3 h-64"><canvas id="chContrib"></canvas></div>
+        <div class="mt-1 text-[11px] text-slate-500">насколько упадёт Score, если убрать меру</div>
+        <div class="mt-3 h-72"><canvas id="chContrib"></canvas></div>
       </div>
     </div>
-
-    <div class="mt-4">${aiPanel(v)}</div>
-
     <div class="mt-4 card p-5">
-      <div class="flex items-baseline justify-between"><div class="card-h">Совет районов</div><div class="text-[11px] text-slate-500">депутаты маслихата о вашем плане</div></div>
-      <div id="council" class="mt-4"></div>
+      <div class="flex flex-wrap items-baseline justify-between gap-2"><div class="card-h">Совет районов</div><div class="text-[11px] text-slate-500">депутаты маслихата реагируют на ваш план</div></div>
+      <div id="vCouncil" class="mt-4"></div>
     </div>
-
     <div class="mt-6 flex flex-wrap gap-2">
       <button data-go="paper" class="rounded-xl bg-accent px-4 py-2.5 text-sm font-bold text-base-950">Открыть «Астана Times»</button>
-      <button data-go="cabinet" class="rounded-xl border border-base-600 px-4 py-2.5 text-sm">Изменить план</button>
-      <button data-go="board" class="rounded-xl border border-base-600 px-4 py-2.5 text-sm">В лидерборд</button>
+      <button data-go="board" class="rounded-xl border border-base-600 px-4 py-2.5 text-sm">Сохранить в лидерборд</button>
+      <button id="editPlan" class="rounded-xl border border-base-600 px-4 py-2.5 text-sm">Изменить план</button>
     </div>`;
-
   const cta = $('#crisisCta'); if (cta) cta.onclick = openCrisis;
-  const ab = $('#applyRec'); if (ab) ab.onclick = applyRecommendation;
-  renderCouncil();
-  drawVerdictCharts(v, base);
+  $('#editPlan').onclick = () => { loadPlan(S.plan); go('cabinet'); };
+  ['score', 'opt', 'ai', 'nar'].forEach(fillVerdict);
 }
 
-function districtTable(v) {
-  const dirs = S.ds.directions;
-  const cell = (x, b) => {
-    const red = x != null && x < 40;
-    const d = b != null && x != null ? x - b : null;
-    return `<td class="px-2 py-2 text-center tabular-nums ${red ? 'bg-red-500/15 text-red-300 font-semibold' : ''}">${num(x, 1)}${d != null && Math.abs(d) >= 0.05 ? `<div class="text-[10px] ${d > 0 ? 'text-emerald-400' : 'text-red-400'}">${sign(d, 1)}</div>` : ''}</td>`;
+function fillVerdict(key) {
+  if (key === 'score') { fillScore(); fillDistricts(); drawScoreCharts(); drawPareto(); }
+  if (key === 'opt') { fillRegret(); drawPareto(); }
+  if (key === 'ai') fillAI();
+  if (key === 'nar') fillCouncil();
+}
+
+function fillScore() {
+  const v = S.r.score.data, el = $('#vScore'), ap = $('#vApproval'); if (!el) return;
+  const base = v.baseline ?? BASELINE();
+  const crisis = !!S.crisis?.result;
+  el.innerHTML = `
+    <div class="card-h">Score · индекс качества жизни</div>
+    <div class="mt-3 text-7xl font-extrabold leading-none tracking-tight tabular-nums">${num(v.score)}</div>
+    <div class="mt-3 flex flex-wrap items-center gap-2 text-sm">
+      <span class="rounded-full px-2.5 py-1 font-bold tabular-nums ${v.delta >= 0 ? 'bg-emerald-400/15 text-emerald-300' : 'bg-red-500/15 text-red-300'}">${sign(v.delta)}</span>
+      <span class="text-slate-400">к ${num(base)}${crisis ? ' — база с учётом кризиса' : ' без решений'}</span>
+    </div>
+    <div class="mt-auto grid grid-cols-3 gap-2 pt-5 text-center">
+      <div class="rounded-lg bg-base-850 py-2"><div class="text-sm font-bold tabular-nums">${esc(v.cost)}</div><div class="text-[10px] text-slate-500">потрачено</div></div>
+      <div class="rounded-lg bg-base-850 py-2"><div class="text-sm font-bold tabular-nums ${v.n_crit ? 'text-red-400' : ''}">${v.n_crit_before ?? '—'}→${v.n_crit}</div><div class="text-[10px] text-slate-500">ячеек &lt;${S.ds.crit_threshold}</div></div>
+      <div class="rounded-lg bg-base-850 py-2"><div class="text-sm font-bold tabular-nums">${num(v.d_min)}</div><div class="text-[10px] text-slate-500">слабейший: ${esc(v.d_min_district || '—')}</div></div>
+    </div>`;
+  const a = v.approval;
+  if (!a) { ap.innerHTML = `<div class="card-h self-start">Рейтинг акима</div><div class="mt-6 text-sm text-slate-400">Нет данных</div>`; return; }
+  const thr = a.threshold ?? 50;
+  ap.innerHTML = `
+    <div class="card-h self-start">Рейтинг акима</div>
+    <div class="mt-2 flex w-full justify-center">${gaugeSVG(a.city, thr)}</div>
+    <div class="mt-1 rounded-full px-3 py-1 text-sm font-bold ${a.reelected ? 'bg-accent/15 text-accent' : 'bg-red-500/15 text-red-300'}">${a.reelected ? 'Переизбран на второй срок' : 'Уволен: рейтинг ниже 50%'}</div>
+    <div class="mt-auto pt-3 text-center text-[11px] leading-snug text-slate-500">Слой политического риска, не входит в Score</div>`;
+}
+
+function fillRegret() {
+  const el = $('#vRegret'); if (!el) return;
+  const o = S.r.opt;
+  if (!o || o.loading) { el.innerHTML = `<div class="card-h">Счётчик сожаления</div><div class="mt-4 text-sm">${spinner('Сверяем с 694 395 планами…')}</div>${skel('h-4', 'mt-6')}`; return; }
+  if (o.error) { el.innerHTML = `<div class="card-h">Счётчик сожаления</div><div class="mt-4">${errBox('Оптимизатор недоступен', o.error)}</div>`; return; }
+  const d = o.data, max = d.best.score, base = BASELINE();
+  const mine = S.crisis?.before?.score ?? S.r.score.data?.score;
+  const pos = Math.max(0, Math.min(100, ((mine - base) / (max - base)) * 100));
+  const top = (d.rank / d.total_valid) * 100;
+  const bal = d.balanced;
+  el.innerHTML = `
+    <div class="card-h">Счётчик сожаления${S.crisis ? ' · исходный план' : ''}</div>
+    <div data-regret class="mt-3 text-[15px] leading-relaxed text-slate-300">максимум <b class="text-white">${num(max)}</b>, ваше место <b class="text-white">${int(d.rank)}</b> из ${int(d.total_valid)}, топ <b class="text-accent">${num(top, top < 1 ? 2 : 1)}%</b></div>
+    <div class="relative mt-5 h-3 rounded-full bg-base-800">
+      <div class="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-accent/30 to-accent" style="width:${pos}%"></div>
+      <div class="absolute -top-1.5 h-6 w-1.5 -translate-x-1/2 rounded bg-white shadow" style="left:${pos}%"></div>
+    </div>
+    <div class="mt-2 flex justify-between text-[11px] text-slate-500"><span>${num(base)} · без решений</span><span>${num(max)} · оптимум</span></div>
+    <div class="mt-3 text-sm text-slate-400">На столе осталось <b class="tabular-nums text-white">${num(d.gap_to_best ?? max - mine)}</b>. Лучше вас — ${int(d.rank - 1)} ${plural(d.rank - 1, 'план', 'плана', 'планов')}.</div>
+    <div class="mt-auto pt-3 text-[12px] leading-snug text-slate-400">Оптимум: рейтинг акима <b class="${(d.best.approval ?? 0) < 50 ? 'text-red-300' : 'text-accent'}">${num(d.best.approval, 1)}%</b>${(d.best.approval ?? 0) < 50 ? ' — его увольняют' : ''}.
+      ${bal ? `<button id="loadBalanced" class="mt-1 block text-left text-accent hover:underline">Лучший план с рейтингом ≥50%: ${num(bal.score)} · ${num(bal.approval, 1)}% → загрузить</button>` : ''}</div>`;
+  const lb = $('#loadBalanced'); if (lb) lb.onclick = () => { loadPlan(bal.plan); go('cabinet'); toast('Сбалансированный план загружен в кабинет'); };
+}
+
+function fillDistricts() {
+  const el = $('#vDistricts'); if (!el) return;
+  const v = S.r.score.data, inds = S.ds.indicators, thr = S.ds.crit_threshold;
+  const ap = v.approval?.districts || {};
+  const ev = S.crisis?.event;
+  const cell = (after, before, code, dname) => {
+    const red = after < thr, wasRed = before < thr;
+    const d = after - before;
+    const hit = ev && ev.district === dname && ev.effects && code in ev.effects;
+    return `<td class="px-1.5 py-2 text-center tabular-nums ${red ? 'bg-red-500/15 font-semibold text-red-300' : ''} ${hit ? 'outline outline-1 -outline-offset-2 outline-red-400/60' : ''}" title="${esc(S.ind[code]?.name || code)}: ${num(before)} → ${num(after)}">
+      ${num(after, 1)}${Math.abs(d) >= 0.05 ? `<div class="text-[10px] ${d > 0 ? 'text-emerald-400' : 'text-red-400'}">${sign(d, 1)}${wasRed && !red ? ' ✓' : ''}</div>` : ''}</td>`;
   };
-  return `<table class="w-full min-w-[620px] text-sm">
-    <thead><tr class="border-b border-base-700 text-[11px] uppercase tracking-wider text-slate-500">
+  const rows = Object.entries(v.districts || {});
+  el.innerHTML = `<table class="w-full min-w-[860px] text-sm">
+    <thead><tr class="border-b border-base-700 text-[10.5px] uppercase tracking-wider text-slate-500">
       <th class="py-2 pr-2 text-left font-semibold">Район</th>
-      ${dirs.map((d) => `<th class="px-2 py-2 font-semibold">${esc(shortDir(d.id))}</th>`).join('')}
-      <th class="px-2 py-2 font-semibold">AQLS до → после</th><th class="py-2 pl-2 text-right font-semibold">Δ</th></tr></thead>
-    <tbody>${(v.districts || []).map((r) => `<tr class="border-b border-base-800 last:border-0">
-      <td class="py-2 pr-2 font-medium">${esc(r.name)}</td>
-      ${dirs.map((d) => cell(r.indices_after?.[d.id], r.indices_before?.[d.id])).join('')}
-      <td class="px-2 py-2 text-center tabular-nums"><span class="${r.before < 40 ? 'text-red-400' : 'text-slate-400'}">${num(r.before)}</span> → <b class="${r.after < 40 ? 'text-red-400' : ''}">${num(r.after)}</b></td>
-      <td class="py-2 pl-2 text-right font-bold tabular-nums ${r.delta > 0.005 ? 'text-emerald-400' : r.delta < -0.005 ? 'text-red-400' : 'text-slate-400'}">${sign(r.delta)}</td></tr>`).join('')}
-    </tbody></table>
-    <div class="mt-2 text-[11px] text-slate-500">Красным — показатели ниже 40.</div>`;
+      ${inds.map((i) => `<th class="px-1.5 py-2 font-semibold" title="${esc(i.name)}">${i.code}<div class="font-normal normal-case tracking-normal text-slate-600">${esc(indShort(i.code))}</div></th>`).join('')}
+      <th class="px-2 py-2 font-semibold">D до → после</th><th class="px-2 py-2 text-right font-semibold">Δ</th><th class="py-2 pl-2 text-right font-semibold">Рейтинг</th></tr></thead>
+    <tbody>${rows.map(([name, r]) => {
+      const dd = r.D_after - r.D_before; const a = ap[name];
+      return `<tr class="border-b border-base-800 last:border-0">
+        <td class="py-2 pr-2"><div class="font-medium">${esc(name)}</div><div class="text-[10.5px] text-slate-500">${r.pop != null ? Math.round(r.pop * 100) + '% жителей' : ''}${a?.got_district_measure ? ' · <span class="text-amber-300">есть проект</span>' : ''}</div></td>
+        ${inds.map((i, k) => cell(r.after[k], r.before[k], i.code, name)).join('')}
+        <td class="px-2 py-2 text-center tabular-nums text-slate-400">${num(r.D_before)} → <b class="text-white">${num(r.D_after)}</b></td>
+        <td class="px-2 py-2 text-right font-bold tabular-nums ${dd > 0.005 ? 'text-emerald-400' : dd < -0.005 ? 'text-red-400' : 'text-slate-500'}">${sign(dd)}</td>
+        <td class="py-2 pl-2 text-right tabular-nums ${a && a.approval < 50 ? 'text-red-300' : 'text-slate-300'}">${a ? num(a.approval, 0) + '%' : '—'}</td></tr>`;
+    }).join('')}</tbody></table>
+    ${(v.resolved_crit_cells || []).length ? `<div class="mt-3 text-[12px] text-slate-400">Выведены из красной зоны: ${v.resolved_crit_cells.map((c) => `${esc(c.district)} ${c.indicator} ${num(c.before, 0)}→${num(c.after, 1)}`).join(' · ')}</div>` : ''}
+    ${(v.synergies_triggered || []).length ? `<div class="mt-1 text-[12px] text-slate-400">Синергии: ${v.synergies_triggered.map((s) => `${s.pair.join(' + ')} в ${esc(loc(s.district))} (${Object.entries(s.bonus).map(([k, b]) => k + ' +' + b).join(', ')})`).join(' · ')}</div>` : ''}`;
 }
 
-function aiPanel(v) {
-  const a = v.analysis || v.ai || {};
-  const block = (title, items, tone) => `<div class="rounded-xl bg-base-850 p-4">
-    <div class="mb-2 flex items-center gap-2 text-sm font-semibold"><span class="h-2 w-2 rounded-full ${tone}"></span>${title}</div>
+function aiBadges(x) {
+  const prov = x.provider || 'offline';
+  return `<span class="rounded-full border border-base-600 px-2 py-0.5 text-[10px] text-slate-400">${prov === 'offline' ? 'офлайн-шаблон' : esc(prov)}</span>
+    ${x.grounded === false ? '<span class="rounded-full border border-amber-400/40 px-2 py-0.5 text-[10px] text-amber-300">проверка чисел не пройдена — шаблон</span>'
+      : '<span class="rounded-full border border-emerald-400/40 px-2 py-0.5 text-[10px] text-emerald-300">✓ все числа сверены с движком</span>'}`;
+}
+function fillAI() {
+  const el = $('#vAI'); if (!el) return;
+  const r = S.r.ai;
+  const head = (extra = '') => `<div class="flex flex-wrap items-center gap-2"><div class="card-h">ИИ-аналитик акимата${S.crisis ? ' · исходный план' : ''}</div>${extra}</div>`;
+  if (!r || r.loading) { el.innerHTML = `${head()}<div class="mt-4 text-sm">${spinner('Аналитик вызывает инструменты движка…')}</div><div class="mt-4 grid gap-3 md:grid-cols-2">${skel('h-28')}${skel('h-28')}${skel('h-28')}${skel('h-28')}</div>`; return; }
+  if (r.error) {
+    el.innerHTML = `${head()}<div class="mt-4">${errBox('Аналитик не ответил', r.error)}</div><button id="aiRetry" class="mt-3 rounded-lg border border-base-600 px-3 py-1.5 text-sm">Повторить</button>`;
+    $('#aiRetry').onclick = () => { fetchInto('ai', () => api('POST', '/api/analyze', { plan: S.plan, lang: 'ru' }, { timeout: CONFIG.LLM_TIMEOUT_MS }), S.run); fillAI(); };
+    return;
+  }
+  const a = r.data;
+  const block = (title, items, dot) => `<div class="rounded-xl bg-base-850 p-4">
+    <div class="mb-2 flex items-center gap-2 text-sm font-semibold"><span class="h-2 w-2 rounded-full ${dot}"></span>${title}</div>
     <ul class="space-y-1.5 text-[13.5px] leading-snug text-slate-300">${(items && items.length ? items : ['—']).map((x) => `<li>${esc(x)}</li>`).join('')}</ul></div>`;
-  const rec = a.recommendation;
-  const recText = typeof rec === 'string' ? rec : rec?.text;
-  const recPlan = rec && typeof rec === 'object' ? rec.decisions || rec.plan : null;
-  const offline = (v.mode && v.mode !== 'llm' && v.mode !== 'online') || a.mode === 'offline' || a.offline;
-  return `<div class="card p-5">
-    <div class="flex flex-wrap items-center gap-2"><div class="card-h">ИИ-аналитик акимата</div>
-      ${offline ? '<span class="rounded-full border border-base-600 px-2 py-0.5 text-[10px] text-slate-400">офлайн-шаблон</span>' : ''}</div>
+  const rec = a.recommendation || {};
+  const recPlan = planDecs(rec.plan);
+  el.innerHTML = `${head(aiBadges(a))}
+    ${a.summary ? `<p class="mt-3 text-[15px] leading-relaxed text-slate-200">${esc(a.summary)}</p>` : ''}
     <div class="mt-4 grid gap-3 md:grid-cols-2">
       ${block('Сильные стороны', a.strengths, 'bg-emerald-400')}
       ${block('Риски', a.risks, 'bg-red-400')}
       ${block('Последствия', a.consequences, 'bg-slate-300')}
-      ${block('Компромиссы', a.tradeoffs || a.compromises, 'bg-amber-300')}
+      ${block('Компромиссы', a.tradeoffs, 'bg-amber-300')}
     </div>
     <div class="mt-3 flex flex-col gap-3 rounded-xl border border-accent/30 bg-accent/5 p-4 sm:flex-row sm:items-center">
-      <div class="flex-1"><div class="mb-1 text-sm font-semibold text-accent">Рекомендация</div>
-        <div class="text-[13.5px] leading-snug text-slate-200">${esc(recText || 'Рекомендация недоступна.')}</div></div>
-      ${recPlan && recPlan.length ? '<button id="applyRec" class="shrink-0 rounded-xl bg-accent px-4 py-2.5 text-sm font-bold text-base-950">Применить рекомендацию</button>' : ''}
-    </div></div>`;
-}
-function applyRecommendation() {
-  const a = S.verdict?.analysis || S.verdict?.ai || {};
-  const rec = a.recommendation; const plan = rec && (rec.decisions || rec.plan);
-  if (!plan) return;
-  loadPlan(plan); go('cabinet'); toast('Рекомендация загружена в кабинет');
+      <div class="flex-1"><div class="mb-1 flex items-baseline gap-2 text-sm font-semibold text-accent">Рекомендация${rec.expected_score != null ? `<span class="text-slate-300">→ Score ${num(rec.expected_score)}</span>` : ''}</div>
+        <div class="text-[13.5px] leading-snug text-slate-200">${esc(rec.why || 'Рекомендации нет.')}</div>
+        ${recPlan.length ? `<div class="mt-2 flex flex-wrap gap-1.5">${recPlan.map((d) => `<span class="rounded-md bg-base-800 px-1.5 py-0.5 text-[11px] text-slate-300">${esc(decShort(d))}</span>`).join('')}</div>` : ''}</div>
+      ${recPlan.length ? '<button id="applyRec" class="shrink-0 rounded-xl bg-accent px-4 py-2.5 text-sm font-bold text-base-950">Применить рекомендацию</button>' : ''}
+    </div>`;
+  const ab = $('#applyRec'); if (ab) ab.onclick = () => { loadPlan(recPlan); go('cabinet'); toast('Рекомендация загружена в кабинет'); };
 }
 
-function renderCouncil() {
-  const el = $('#council'); if (!el) return;
-  if (S.narrativeLoading && !S.narrative) { el.innerHTML = `<div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">${Array(5).fill(skel('h-40')).join('')}</div>`; return; }
-  const c = S.narrative?.council;
-  if (!c || !c.length) { el.innerHTML = `<div class="text-sm text-slate-400">${S.narrativeError ? 'Совет не собрался: ' + esc(S.narrativeError) : 'Депутаты пока молчат.'}</div>`; return; }
-  const moodCls = { support: ['bg-accent text-base-950', 'text-accent', 'За'], neutral: ['bg-slate-600 text-white', 'text-slate-300', 'Воздержался'], oppose: ['bg-red-500 text-white', 'text-red-300', 'Против'] };
+function fillCouncil() {
+  const el = $('#vCouncil'); if (!el) return;
+  const r = S.r.nar;
+  if (!r || r.loading) { el.innerHTML = `<div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">${Array(5).fill(skel('h-44')).join('')}</div>`; return; }
+  if (r.error) { el.innerHTML = errBox('Совет не собрался', r.error); return; }
+  const c = r.data.council || [];
+  const mood = { positive: ['bg-accent text-base-950', 'text-accent', 'За'], neutral: ['bg-slate-600 text-white', 'text-slate-300', 'Воздержался'], negative: ['bg-red-500 text-white', 'text-red-300', 'Против'] };
   el.innerHTML = `<div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">${c.map((d) => {
-    const mc = moodCls[d.mood] || moodCls.neutral;
-    const initials = d.initials || (d.deputy || '').split(/\s+/).map((w) => w[0]).join('').slice(0, 2);
+    const mc = mood[d.mood] || mood.neutral;
     return `<div class="fade-in flex flex-col rounded-xl border border-base-700 bg-base-850 p-4">
-      <div class="flex items-center gap-3"><div class="grid h-11 w-11 shrink-0 place-items-center rounded-full text-sm font-extrabold ${mc[0]}">${esc(initials)}</div>
-        <div class="min-w-0"><div class="truncate text-sm font-semibold">${esc(d.deputy || 'Депутат')}</div><div class="text-[11px] text-slate-400">${esc(d.district || '')}</div></div></div>
-      <div class="mt-3 flex-1 text-[13px] italic leading-snug text-slate-300">${esc(d.reaction || d.text || '')}</div>
-      <div class="mt-3 text-[11px] font-bold uppercase tracking-wider ${mc[1]}">${mc[2]}</div></div>`;
+      <div class="flex items-center gap-3"><div class="grid h-11 w-11 shrink-0 place-items-center rounded-full text-sm font-extrabold ${mc[0]}">${esc((d.district || '?').slice(0, 2).toUpperCase())}</div>
+        <div class="min-w-0"><div class="truncate text-sm font-semibold">${esc(d.district)}</div><div class="truncate text-[11px] text-slate-400">${esc(d.deputy || 'Депутат')}</div></div></div>
+      <div class="mt-3 flex-1 text-[13px] italic leading-snug text-slate-300">«${esc(String(d.quote || '').replace(/^«|»$/g, ''))}»</div>
+      <div class="mt-3 flex items-center justify-between text-[11px]"><span class="font-bold uppercase tracking-wider ${mc[1]}">${mc[2]}</span>
+        <span class="tabular-nums text-slate-500">ΔD ${sign(d.delta_D)} · ${num(d.approval, 0)}%</span></div></div>`;
   }).join('')}</div>`;
 }
 
-function drawVerdictCharts(v, base) {
+function chartDefaults() {
   Chart.defaults.color = '#94a3b8';
   Chart.defaults.font.family = 'Inter, system-ui, sans-serif';
   Chart.defaults.borderColor = 'rgba(51,65,85,.45)';
-  const accent = '#19b8d8';
-  const par = (v.pareto || []).map((p) => ({ x: p.cost, y: p.best ?? p.aqls }));
-  const me = v.user_point ? { x: v.user_point.cost, y: v.user_point.aqls } : { x: v.budget_used, y: v.aqls };
-  chart('chPareto', {
-    type: 'scatter',
-    data: { datasets: [
-      { label: 'Ваш план', data: [me], pointRadius: 9, pointHoverRadius: 11, backgroundColor: '#fff', borderColor: accent, borderWidth: 4, order: 0 },
-      { label: 'Лучший план за эти деньги', data: par, showLine: true, stepped: 'before', borderColor: accent, backgroundColor: 'rgba(25,184,216,.35)', pointRadius: 2.5, borderWidth: 2, order: 1 },
-    ] },
-    options: { maintainAspectRatio: false, animation: { duration: 500 },
-      plugins: { legend: { labels: { boxWidth: 10, usePointStyle: true } },
-        tooltip: { callbacks: { label: (c) => `${c.dataset.label}: ${c.parsed.x} ед. → ${num(c.parsed.y)}` } } },
-      scales: { x: { title: { display: true, text: 'Потрачено, ед.' }, suggestedMax: 100 }, y: { title: { display: true, text: 'AQLS' }, suggestedMin: base } } },
-  });
+}
+const ACC = '#19b8d8';
+function drawScoreCharts() {
+  const v = S.r.score.data; if (!$('#chTimeline')) return;
+  chartDefaults();
+  const base = v.baseline ?? BASELINE();
+  const QL = ['старт', 'I·27', 'II·27', 'III·27', 'IV·27', 'I·28', 'II·28', 'III·28', 'IV·28'];
   const tl = v.timeline || [];
   chart('chTimeline', {
     type: 'line',
-    data: { labels: tl.map((t) => t.label || `Q${t.quarter}`), datasets: [
-      { label: 'AQLS', data: tl.map((t) => t.aqls), borderColor: accent, backgroundColor: 'rgba(25,184,216,.12)', fill: true, tension: .3, pointRadius: 3 },
-      { label: 'Старт', data: tl.map(() => base), borderColor: '#475569', borderDash: [5, 5], pointRadius: 0, borderWidth: 1.5 },
+    data: { labels: tl.map((t) => QL[t.q] ?? 'Q' + t.q), datasets: [
+      { label: 'Score', data: tl.map((t) => t.score), borderColor: ACC, backgroundColor: 'rgba(25,184,216,.12)', fill: true, tension: .25, pointRadius: 3 },
+      { label: 'База', data: tl.map(() => base), borderColor: '#475569', borderDash: [5, 5], pointRadius: 0, borderWidth: 1.5 },
     ] },
-    options: { maintainAspectRatio: false, plugins: { legend: { display: false } },
-      scales: { x: { ticks: { maxRotation: 0, autoSkip: true, maxTicksLimit: 5 } }, y: { suggestedMin: base - 0.2 } } },
+    options: { maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { callbacks: { label: (c) => `${c.dataset.label}: ${num(c.parsed.y)}` } } },
+      scales: { x: { ticks: { maxRotation: 0, autoSkip: true, maxTicksLimit: 5 } }, y: { suggestedMin: base - 0.3 } } },
   });
-  const co = (v.contributions || []).slice().sort((a, b) => b.delta - a.delta);
+  const co = (v.contributions || []).slice().sort((a, b) => b.marginal - a.marginal);
   chart('chContrib', {
     type: 'bar',
-    data: { labels: co.map((c) => { const n = c.name || decLabel(c); return n.length > 26 ? n.slice(0, 25) + '…' : n; }),
-      datasets: [{ data: co.map((c) => c.delta), backgroundColor: co.map((c, i) => (i === 0 ? accent : 'rgba(25,184,216,.45)')), borderRadius: 6 }] },
+    data: { labels: co.map((c) => decShort(c)), datasets: [{ data: co.map((c) => c.marginal), backgroundColor: co.map((c, i) => (i === co.length - 1 ? 'rgba(239,68,68,.6)' : i === 0 ? ACC : 'rgba(25,184,216,.45)')), borderRadius: 6 }] },
     options: { indexAxis: 'y', maintainAspectRatio: false, plugins: { legend: { display: false },
-      tooltip: { callbacks: { label: (c) => `${sign(c.parsed.x)} AQLS` } } },
-      scales: { x: { title: { display: true, text: 'Δ AQLS' } }, y: { ticks: { font: { size: 11 } } } } },
+      tooltip: { callbacks: { title: (c) => decLong(co[c[0].dataIndex]), label: (c) => { const x = co[c.dataIndex]; return [`вклад ${sign(x.marginal)} Score`, `без меры: ${num(x.score_without)}`, `на единицу бюджета: ${num(x.marginal_per_cost)}`]; } } } },
+      scales: { x: { title: { display: true, text: 'Δ Score' } }, y: { ticks: { font: { size: 11 } } } } },
+  });
+}
+function drawPareto() {
+  if (!$('#chPareto') || !S.r.score?.data) return;
+  const o = S.r.opt?.data; const v = S.r.score.data;
+  chartDefaults();
+  const me = S.crisis?.before ? { x: S.crisis.before.cost, y: S.crisis.before.score } : { x: v.cost, y: v.score };
+  const ds = [{ label: 'Ваш план', data: [me], pointRadius: 9, pointHoverRadius: 11, backgroundColor: '#fff', borderColor: ACC, borderWidth: 4, order: 0 }];
+  if (o) {
+    ds.push({ label: 'Лучший план не дороже', data: (o.pareto || []).map((p) => ({ x: p.cost, y: p.score, plan: p.plan })), showLine: true, stepped: 'before', borderColor: ACC, backgroundColor: 'rgba(25,184,216,.35)', pointRadius: 3, borderWidth: 2, order: 2 });
+    ds.push({ label: `Оптимум · рейтинг ${num(o.best.approval, 1)}%`, data: [{ x: o.best.cost, y: o.best.score, plan: o.best.plan }], pointStyle: 'rectRot', pointRadius: 9, backgroundColor: '#ef4444', borderColor: '#fff', borderWidth: 1.5, order: 1 });
+    if (o.balanced) ds.push({ label: `Баланс · рейтинг ${num(o.balanced.approval, 1)}%`, data: [{ x: o.balanced.cost, y: o.balanced.score, plan: o.balanced.plan }], pointStyle: 'triangle', pointRadius: 9, backgroundColor: '#fbbf24', borderColor: '#fff', borderWidth: 1.5, order: 1 });
+  }
+  chart('chPareto', {
+    type: 'scatter', data: { datasets: ds },
+    options: { maintainAspectRatio: false, animation: { duration: 400 },
+      plugins: { legend: { labels: { boxWidth: 9, usePointStyle: true, font: { size: 11 } } },
+        tooltip: { callbacks: { label: (c) => `${c.dataset.label}: ${c.parsed.x} ед. → ${num(c.parsed.y)}`, afterLabel: (c) => { const p = c.raw.plan; return p ? planDecs(p).map(decShort).join(', ') : ''; } } } },
+      scales: { x: { title: { display: true, text: 'Потрачено, ед.' }, suggestedMin: 55, suggestedMax: 100 }, y: { title: { display: true, text: 'Score' }, suggestedMin: 55, suggestedMax: 57.4 } } },
   });
 }
 
 /* =====================================================================
    КРИЗИС (5-й час)
    ===================================================================== */
-const CR = { removeIdx: null, add: null, validation: null, validating: false, submitting: false, result: null, error: null, seq: 0 };
+const CR = { ev: null, outM: null, inn: null, val: null, validating: false, submitting: false, result: null, error: null, seq: 0 };
 async function openCrisis() {
-  Object.assign(CR, { removeIdx: null, add: null, validation: null, validating: false, submitting: false, result: null, error: null });
-  openModal(`<div data-lock class="card fade-in w-full max-w-4xl rounded-b-none p-6 sm:rounded-2xl">${spinner('Что-то случилось в городе…')}</div>`, { dismissable: false });
-  try { S.crisis = await api('POST', '/api/shock', { decisions: S.verdict?.decisions || S.submitted }); }
+  Object.assign(CR, { ev: null, outM: null, inn: null, val: null, validating: false, submitting: false, result: null, error: null });
+  openModal(`<div data-lock class="card fade-in w-full max-w-4xl rounded-b-none p-6 sm:rounded-2xl">${spinner('III квартал. Звонок из штаба…')}</div>`, { dismissable: false });
+  const seed = CONFIG.SEED ?? Math.floor(Math.random() * 1000);
+  try { CR.ev = await api('POST', '/api/shock', { plan: S.plan, seed }); }
   catch (e) { CR.error = e.message; }
   renderCrisis();
 }
-function crisisPlan() { return (S.verdict?.decisions || S.submitted || []).map((d) => ({ measure_id: d.measure_id, district_id: d.district_id || null })); }
-function crisisNext() {
-  const plan = crisisPlan();
-  if (CR.removeIdx == null || !CR.add) return null;
-  const n = plan.slice(); n[CR.removeIdx] = CR.add; return n;
-}
+function crisisNext() { return CR.outM && CR.inn && (S.mi[CR.inn.measure]?.type !== 'district' || CR.inn.district) ? applySwap(S.plan, { out: CR.outM, in: CR.inn }) : null; }
 function renderCrisis() {
   const md = $('#modal'); if (md.classList.contains('hidden')) return;
   const keep = [md.querySelector('[data-lock]')?.scrollTop || 0, md.querySelector('[data-addlist]')?.scrollTop || 0];
   const restore = () => { const a = md.querySelector('[data-lock]'), b = md.querySelector('[data-addlist]'); if (a) a.scrollTop = keep[0]; if (b) b.scrollTop = keep[1]; };
-  const sh = S.crisis;
-  if (CR.error || !sh) {
+  if (CR.error || !CR.ev) {
     md.innerHTML = `<div data-lock class="card w-full max-w-xl p-6 text-center"><div class="font-semibold">Кризис не загрузился</div>
       <p class="mt-2 text-sm text-slate-400">${esc(CR.error || 'Нет данных')}</p>
       <div class="mt-4 flex justify-center gap-2"><button id="crRetry" class="rounded-xl bg-accent px-4 py-2 text-sm font-bold text-base-950">Повторить</button>
       <button data-close class="rounded-xl border border-base-600 px-4 py-2 text-sm">Закрыть</button></div></div>`;
     $('#crRetry').onclick = openCrisis; return;
   }
-  const limit = sh.budget_limit ?? S.ds.budget;
-  const plan = crisisPlan();
-  const ms = M();
-  if (CR.result) return renderCrisisResult(sh);
+  if (CR.result) { renderCrisisResult(); return; }
+  const E = CR.ev, ev = E.event;
+  const decs = planDecs(S.plan);
+  const remaining = decs.filter((d) => d.measure !== CR.outM);
   const next = crisisNext();
-  const cost = (next || plan).reduce((s, d) => s + (ms[d.measure_id]?.cost || 0), 0);
-  const over = cost > limit;
-  const pct = Math.min(100, (cost / limit) * 100);
-  // candidate measures: not currently in plan (except removed slot), direction constraint after removal
-  const remaining = plan.filter((_, i) => i !== CR.removeIdx);
-  const cnt = {}; remaining.forEach((d) => { const m = ms[d.measure_id]; cnt[m.direction] = (cnt[m.direction] || 0) + 1; });
-  const canSubmit = next && CR.validation && CR.validation.valid && !CR.validating && !CR.submitting;
+  const cost = (next ? planDecs(next) : remaining).reduce((s, d) => s + (S.mi[d.measure]?.cost || 0), 0) + (!next && CR.inn ? S.mi[CR.inn.measure].cost : 0);
+  const over = cost > S.ds.budget;
+  const canGo = next && CR.val?.valid && !CR.validating && !CR.submitting;
+  const effs = Object.entries(ev.effects || {}).map(([k, v]) => `${k} ${indShort(k)} ${v > 0 ? '+' : '−'}${Math.abs(v)} в ${loc(ev.district)}`);
+  let status;
+  if (!CR.outM) status = 'Шаг 1: выберите меру, от которой откажетесь.';
+  else if (!CR.inn) status = 'Шаг 2: выберите, что добавить взамен.';
+  else if (!next) status = 'Укажите район для районной меры.';
+  else if (CR.validating) status = null;
+  else status = CR.val ? (CR.val.valid ? `Замена допустима. Бюджет ${CR.val.cost} из ${S.ds.budget}.` : CR.val.reason) : '';
 
-  md.innerHTML = `<div data-lock class="card fade-in max-h-[92vh] w-full max-w-5xl overflow-y-auto rounded-b-none sm:rounded-2xl">
+  md.innerHTML = `<div data-lock class="card fade-in max-h-[94vh] w-full max-w-5xl overflow-y-auto rounded-b-none sm:rounded-2xl">
     <div class="border-b border-red-500/30 bg-gradient-to-br from-red-500/15 to-transparent p-5 sm:p-6">
-      <div class="flex items-center gap-2"><span class="rounded-full bg-red-500 px-2.5 py-0.5 text-[11px] font-black uppercase tracking-widest text-white">Кризис</span>
-        <span class="text-[12px] font-semibold uppercase tracking-wider text-red-300">${esc(sh.quarter || '5-й час')}</span></div>
-      <h3 class="mt-2 text-2xl font-extrabold tracking-tight sm:text-3xl">${esc(sh.title)}</h3>
-      <p class="mt-2 max-w-3xl text-sm leading-relaxed text-slate-300">${esc(sh.description || '')}</p>
-      ${(sh.effects || []).length ? `<div class="mt-3 flex flex-wrap gap-2">${sh.effects.map((e) => `<span class="rounded-lg border border-red-400/30 bg-base-950/40 px-2.5 py-1 text-[12px] text-red-100">${esc(e)}</span>`).join('')}</div>` : ''}
+      <div class="flex flex-wrap items-center gap-2"><span class="rounded-full bg-red-500 px-2.5 py-0.5 text-[11px] font-black uppercase tracking-widest text-white">Кризис</span>
+        <span class="text-[12px] font-semibold uppercase tracking-wider text-red-300">${ev.quarter ? ['', 'I', 'II', 'III', 'IV'][ev.quarter] + ' квартал' : 'III квартал'} · 5-й час · ${esc(ev.district || '')}</span></div>
+      <h3 class="mt-2 text-2xl font-extrabold tracking-tight sm:text-3xl">${esc(ev.title)}</h3>
+      <p class="mt-2 max-w-3xl text-sm leading-relaxed text-slate-300">${esc(ev.description || '')}</p>
+      <div class="mt-3 flex flex-wrap gap-2">
+        ${effs.map((e) => `<span class="rounded-lg border border-red-400/30 bg-base-950/40 px-2.5 py-1 text-[12px] text-red-100">${esc(e)}</span>`).join('')}
+        ${E.score_before != null ? `<span class="rounded-lg border border-red-400/30 bg-base-950/40 px-2.5 py-1 text-[12px] text-red-100">Без замены: Score ${num(E.score_before)} → <b>${num(E.new_baseline_score)}</b> (${sign(E.new_baseline_score - E.score_before)})</span>` : ''}
+        <span class="rounded-lg border border-red-400/30 bg-base-950/40 px-2.5 py-1 text-[12px] text-red-100">Заменить ровно одну меру, бюджет тот же — ${S.ds.budget}</span>
+      </div>
+      ${ev.hint ? `<details class="mt-3 text-[13px] text-slate-400"><summary class="cursor-pointer text-slate-300">Подсказка штаба</summary><div class="mt-1">${esc(ev.hint)}</div></details>` : ''}
     </div>
-    <div class="grid gap-5 p-5 sm:p-6 lg:grid-cols-[1fr_1.3fr]">
+    <div class="grid gap-5 p-5 sm:p-6 lg:grid-cols-[1fr_1.35fr]">
       <div>
-        <div class="card-h mb-2">1 · Уберите одно решение</div>
-        <div class="space-y-2">${plan.map((d, i) => { const m = ms[d.measure_id]; const on = CR.removeIdx === i; return `
-          <button data-rm="${i}" class="flex w-full items-center gap-3 rounded-xl border px-3 py-2.5 text-left ${on ? 'border-red-400 bg-red-500/10' : 'border-base-700 bg-base-850 hover:border-base-600'}">
+        <div class="card-h mb-2">1 · Отказаться от</div>
+        <div class="space-y-2">${decs.map((d) => { const m = S.mi[d.measure]; const on = CR.outM === d.measure; return `
+          <button data-rm="${esc(d.measure)}" class="flex w-full items-center gap-3 rounded-xl border px-3 py-2.5 text-left ${on ? 'border-red-400 bg-red-500/10' : 'border-base-700 bg-base-850 hover:border-base-600'}">
             <span class="grid h-5 w-5 shrink-0 place-items-center rounded-full border ${on ? 'border-red-400 bg-red-500 text-white' : 'border-base-600'} text-[11px]">${on ? '×' : ''}</span>
-            <span class="min-w-0 flex-1"><span class="block truncate text-sm font-medium ${on ? 'line-through text-slate-400' : ''}">${esc(decLabel(d))}</span>
-            <span class="text-[11px] text-slate-400">${esc(m?.cost)} ед. · ${esc(DIR()[m?.direction]?.name || '')}</span></span></button>`; }).join('')}</div>
+            <span class="min-w-0 flex-1"><span class="block truncate text-sm font-medium ${on ? 'text-slate-400 line-through' : ''}"><span class="text-slate-400">${esc(d.measure)}</span> ${esc(m?.name)}</span>
+            <span class="text-[11px] text-slate-400">${esc(m?.cost)} ед. · ${esc(dirName(m?.direction))}${d.district ? ' · ' + esc(d.district) : ''}</span></span></button>`; }).join('')}</div>
       </div>
       <div>
-        <div class="card-h mb-2">2 · Добавьте одно</div>
-        ${CR.removeIdx == null ? '<div class="rounded-xl border border-dashed border-base-600 p-4 text-sm text-slate-500">Сначала выберите, от чего отказаться.</div>' : `
-        <div data-addlist class="grid max-h-[340px] gap-2 overflow-y-auto pr-1 sm:grid-cols-2">${S.ds.measures.filter((m) => !remaining.some((d) => d.measure_id === m.id)).map((m) => {
-          const dirFull = (cnt[m.direction] || 0) >= S.ds.max_per_direction;
-          const on = CR.add && CR.add.measure_id === m.id;
-          return `<div class="rounded-xl border px-3 py-2.5 ${on ? 'border-accent bg-accent/10' : 'border-base-700 bg-base-850'} ${dirFull ? 'opacity-40' : ''}">
-            <button data-add="${esc(m.id)}" ${dirFull ? 'disabled' : ''} class="w-full text-left">
-              <div class="flex items-start justify-between gap-2"><span class="text-sm font-medium leading-snug">${esc(m.name)}</span><span class="shrink-0 text-sm font-bold tabular-nums">${esc(m.cost)}</span></div>
-              <div class="text-[11px] text-slate-400">${esc(shortDir(m.direction))} · ${m.scope === 'district' ? 'район' : 'город'} · через ${esc(m.lag)} кв.${dirFull ? ' · направление заполнено' : ''}</div></button>
-            ${on && m.scope === 'district' ? `<select data-dist class="mt-2 w-full rounded-lg border border-base-600 bg-base-900 px-2 py-1.5 text-sm">
-              <option value="">— район —</option>${S.ds.districts.map((k) => `<option value="${esc(k.id)}" ${CR.add.district_id === k.id ? 'selected' : ''}>${esc(k.name)}</option>`).join('')}</select>` : ''}
+        <div class="card-h mb-2">2 · Добавить взамен</div>
+        ${!CR.outM ? '<div class="rounded-xl border border-dashed border-base-600 p-4 text-sm text-slate-500">Сначала выберите, от чего отказаться.</div>' : `
+        <div data-addlist class="grid max-h-[360px] gap-2 overflow-y-auto pr-1 sm:grid-cols-2">${S.ds.measures.filter((m) => !remaining.some((d) => d.measure === m.id)).map((m) => {
+          const block = blockReason(m, null, remaining);
+          const on = CR.inn?.measure === m.id;
+          return `<div class="rounded-xl border px-3 py-2.5 ${on ? 'border-accent bg-accent/10' : 'border-base-700 bg-base-850'} ${block ? 'opacity-40' : ''}">
+            <button data-add="${esc(m.id)}" ${block ? `disabled title="${esc(block)}"` : ''} class="w-full text-left">
+              <div class="flex items-start justify-between gap-2"><span class="text-sm font-medium leading-snug"><span class="text-slate-400">${esc(m.id)}</span> ${esc(m.name)}</span><span class="shrink-0 text-sm font-bold tabular-nums">${esc(m.cost)}</span></div>
+              <div class="text-[11px] text-slate-400">${Object.entries(m.effects).map(([k, v]) => `${v > 0 ? '+' : '−'}${Math.abs(v)} ${indShort(k)}`).join(', ')} · ${m.type === 'district' ? 'район' : 'город'} · лаг ${esc(m.lag)}${block ? ' · ' + esc(block) : ''}</div></button>
+            ${on && m.type === 'district' ? `<select data-dist class="mt-2 w-full rounded-lg border border-base-600 bg-base-900 px-2 py-1.5 text-sm">
+              <option value="">— выберите район —</option>${S.ds.districts.map((k) => { const b = blockReason(m, k.name, remaining); return `<option value="${esc(k.name)}" ${CR.inn.district === k.name ? 'selected' : ''} ${b ? 'disabled' : ''}>${esc(k.name)}${k.name === ev.district ? ' — зона кризиса' : ''}${b ? ' (нельзя)' : ''}</option>`; }).join('')}</select>` : ''}
           </div>`; }).join('')}</div>`}
       </div>
     </div>
     <div class="sticky bottom-0 border-t border-base-700 bg-base-900/95 p-4 backdrop-blur sm:px-6">
       <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
         <div class="min-w-0 flex-1">
-          <div class="flex items-baseline gap-2 text-sm"><span class="text-slate-400">Бюджет после кризиса</span><b class="tabular-nums ${over ? 'text-red-400' : ''}">${cost} / ${limit}</b></div>
-          <div class="mt-1.5 h-2 overflow-hidden rounded-full bg-base-800"><div class="h-full ${over ? 'bg-red-500' : 'bg-accent'}" style="width:${pct}%"></div></div>
-          <div class="mt-1.5 text-[12px] ${CR.validation?.valid ? 'text-emerald-300' : 'text-amber-200'}">${CR.validating ? spinner('Проверяем…') : esc(next ? (CR.validation?.message || '') : over ? `Сейчас план стоит ${cost} — нужно уложиться в ${limit}.` : 'Замените ровно одно решение.')}</div>
+          <div class="flex items-baseline gap-2 text-sm"><span class="text-slate-400">Бюджет после замены</span><b class="tabular-nums ${over ? 'text-red-400' : ''}">${cost} / ${S.ds.budget}</b></div>
+          <div class="mt-1.5 h-2 overflow-hidden rounded-full bg-base-800"><div class="h-full ${over ? 'bg-red-500' : 'bg-accent'}" style="width:${Math.min(100, cost)}%"></div></div>
+          <div class="mt-1.5 text-[12px] ${CR.val?.valid ? 'text-emerald-300' : next && CR.val ? 'text-red-300' : 'text-slate-400'}">${status == null ? spinner('Проверяем…') : esc(status)}</div>
         </div>
-        <button id="crGo" class="shrink-0 rounded-xl px-5 py-3 text-sm font-bold ${canSubmit ? 'bg-red-500 text-white hover:brightness-110' : 'cursor-not-allowed bg-base-800 text-slate-500'}" ${canSubmit ? '' : 'disabled'}>${CR.submitting ? '<span class="spin"></span> Пересчитываем…' : 'Применить замену'}</button>
+        <button id="crGo" class="shrink-0 rounded-xl px-5 py-3 text-sm font-bold ${canGo ? 'bg-red-500 text-white hover:brightness-110' : 'cursor-not-allowed bg-base-800 text-slate-500'}" ${canGo ? '' : 'disabled'}>${CR.submitting ? '<span class="spin"></span> Пересчитываем…' : 'Утвердить замену'}</button>
       </div>
     </div></div>`;
-
-  $$('#modal [data-rm]').forEach((b) => (b.onclick = () => { CR.removeIdx = +b.dataset.rm; CR.add = null; CR.validation = null; renderCrisis(); }));
+  $$('#modal [data-rm]').forEach((b) => (b.onclick = () => { CR.outM = b.dataset.rm; CR.inn = null; CR.val = null; renderCrisis(); }));
   $$('#modal [data-add]').forEach((b) => (b.onclick = () => {
-    const m = ms[b.dataset.add];
-    CR.add = { measure_id: m.id, district_id: m.scope === 'district' ? (CR.add?.measure_id === m.id ? CR.add.district_id : null) : null };
-    crisisValidate();
+    const m = S.mi[b.dataset.add];
+    CR.inn = { measure: m.id, district: m.type === 'district' ? (CR.inn?.measure === m.id ? CR.inn.district : null) : null };
+    CR.val = null; crisisValidate();
   }));
-  const sel = $('#modal [data-dist]'); if (sel) sel.onchange = () => { CR.add.district_id = sel.value || null; crisisValidate(); };
+  const sel = $('#modal [data-dist]'); if (sel) sel.onchange = () => { CR.inn.district = sel.value || null; CR.val = null; crisisValidate(); };
   $('#crGo').onclick = crisisSubmit;
   restore();
 }
 async function crisisValidate() {
   const next = crisisNext(); const seq = ++CR.seq;
+  if (!next) { renderCrisis(); return; }
   CR.validating = true; renderCrisis();
-  try { const r = await api('POST', '/api/validate', { decisions: next, budget_limit: S.crisis.budget_limit }); if (seq === CR.seq) CR.validation = r; }
-  catch (e) { if (seq === CR.seq) CR.validation = { valid: false, message: 'Проверка недоступна: ' + e.message }; }
-  if (seq === CR.seq) { CR.validating = false; renderCrisis(); }
+  let r;
+  try { r = await api('POST', '/api/validate', { plan: next }); } catch (e) { r = { valid: false, reason: 'Проверка недоступна: ' + e.message }; }
+  if (seq !== CR.seq) return;
+  CR.val = r; CR.validating = false; renderCrisis();
 }
 async function crisisSubmit() {
   CR.submitting = true; renderCrisis();
   try {
-    const r = await api('POST', '/api/shock/resolve', { decisions: crisisPlan(), shock_id: S.crisis.id, remove_index: CR.removeIdx, add: CR.add });
-    if (r.ok === false) { CR.validation = r.validation || { valid: false, message: 'Замена не прошла проверку' }; CR.submitting = false; renderCrisis(); return; }
-    CR.result = r;
-  } catch (e) { CR.validation = { valid: false, message: 'Ошибка: ' + e.message }; }
+    CR.result = await api('POST', '/api/shock/resolve', { plan: S.plan, event_id: CR.ev.event.id, swap: { out: CR.outM, in: CR.inn } });
+  } catch (e) { CR.val = { valid: false, reason: e.message }; }
   CR.submitting = false; renderCrisis();
 }
-function renderCrisisResult(sh) {
-  const r = CR.result; const b = r.before || S.verdict; const a = r.verdict;
-  const tile = (label, x, y, fmt, suffix = '') => `<div class="rounded-xl bg-base-850 p-4"><div class="card-h">${label}</div>
-    <div class="mt-2 flex items-baseline gap-2 tabular-nums"><span class="text-lg text-slate-400">${fmt(x)}${suffix}</span><span class="text-slate-500">→</span>
-    <span class="text-3xl font-extrabold">${fmt(y)}${suffix}</span></div>
-    <div class="mt-1 text-sm font-semibold ${y - x >= 0 ? 'text-emerald-300' : 'text-red-300'}">${sign(y - x, fmt === int ? 0 : 2)}${suffix}</div></div>`;
-  $('#modal').innerHTML = `<div data-lock class="card fade-in max-h-[92vh] w-full max-w-3xl overflow-y-auto rounded-b-none p-5 sm:rounded-2xl sm:p-6">
-    <div class="flex items-center gap-2"><span class="rounded-full bg-red-500 px-2.5 py-0.5 text-[11px] font-black uppercase tracking-widest text-white">Кризис пройден</span>
-      <span class="text-[12px] text-slate-400">${esc(sh.title)}</span></div>
-    <div class="mt-4 grid gap-3 sm:grid-cols-2">
-      ${tile('AQLS', b?.aqls, a.aqls, num)}
-      ${tile('Рейтинг акима', b?.approval, a.approval, int, '%')}
+function crisisComment() {
+  const c = S.crisis; if (!c) return '';
+  const r = c.result, ev = c.event, bp = r.best_possible_swap;
+  const swapTxt = `${c.swap.out} → ${decShort(c.swap.in)}`;
+  const parts = [`«${ev.title}» стоил ${num(r.crisis_cost)} Score.`, `Замена ${swapTxt} вернула ${sign(r.recovered)}.`];
+  if (r.swap_was_optimal) parts.push('Это лучшая из возможных замен.');
+  else if (bp) parts.push(`Лучшей была бы ${bp.out} → ${decShort(bp.in)}: ${sign(bp.gain)}, Score ${num(bp.score)}.`);
+  const a = r.approval;
+  if (a) parts.push(a.reelected ? `Рейтинг ${num(a.city, 1)}% — аким удерживает кресло.` : `Рейтинг ${num(a.city, 1)}% — ниже 50%: кризис стоил акиму кресла.`);
+  return parts.join(' ');
+}
+function renderCrisisResult() {
+  const r = CR.result, ev = CR.ev.event;
+  const prevAp = S.r.score.data?.approval?.city;
+  S.crisisDraft = { event: ev, swap: { out: CR.outM, in: CR.inn }, result: r, before: S.r.score.data };
+  const tmp = S.crisis; S.crisis = S.crisisDraft; const comment = crisisComment(); S.crisis = tmp;
+  const step = (label, val, cls = '') => `<div class="flex-1 rounded-xl bg-base-850 p-3 text-center"><div class="text-[10.5px] uppercase tracking-wider text-slate-500">${label}</div><div class="mt-1 text-2xl font-extrabold tabular-nums ${cls}">${val}</div></div>`;
+  $('#modal').innerHTML = `<div data-lock class="card fade-in max-h-[94vh] w-full max-w-3xl overflow-y-auto rounded-b-none p-5 sm:rounded-2xl sm:p-6">
+    <div class="flex flex-wrap items-center gap-2"><span class="rounded-full bg-red-500 px-2.5 py-0.5 text-[11px] font-black uppercase tracking-widest text-white">Кризис пройден</span>
+      <span class="text-[13px] text-slate-400">${esc(ev.title)}</span></div>
+    <div class="mt-4 flex flex-col gap-2 sm:flex-row sm:items-stretch">
+      ${step('До кризиса', num(r.score_before_crisis))}
+      ${step('Кризис, без замены', num(r.score_after_crisis_no_swap), 'text-red-300')}
+      ${step('После замены', num(r.score), 'text-accent')}
     </div>
-    <div class="mt-3 rounded-xl bg-base-850 p-3 text-center text-sm font-semibold ${a.reelected ?? a.approval >= S.ds.reelection_threshold ? 'text-accent' : 'text-red-300'}">
-      ${(a.reelected ?? a.approval >= S.ds.reelection_threshold) ? 'Аким удерживает кресло' : 'Рейтинг ниже порога переизбрания'}</div>
+    <div class="mt-2 grid grid-cols-2 gap-2 text-center text-sm sm:grid-cols-4">
+      <div class="rounded-lg bg-base-850 py-2"><div class="font-bold tabular-nums text-red-300">−${num(r.crisis_cost)}</div><div class="text-[10.5px] text-slate-500">цена кризиса</div></div>
+      <div class="rounded-lg bg-base-850 py-2"><div class="font-bold tabular-nums text-emerald-300">${sign(r.recovered)}</div><div class="text-[10.5px] text-slate-500">вернула замена</div></div>
+      <div class="rounded-lg bg-base-850 py-2"><div class="font-bold ${r.swap_was_optimal ? 'text-emerald-300' : 'text-amber-300'}">${r.swap_was_optimal ? 'да' : 'нет'}</div><div class="text-[10.5px] text-slate-500">лучшая замена</div></div>
+      <div class="rounded-lg bg-base-850 py-2"><div class="font-bold tabular-nums ${r.approval?.reelected ? 'text-accent' : 'text-red-300'}">${num(prevAp, 1)}→${num(r.approval?.city, 1)}%</div><div class="text-[10.5px] text-slate-500">рейтинг акима</div></div>
+    </div>
     <div class="mt-3 rounded-xl border border-accent/30 bg-accent/5 p-4">
-      <div class="mb-1 text-sm font-semibold text-accent">Комментарий ИИ</div>
-      <p class="text-[14px] leading-relaxed text-slate-200">${esc(r.comment || r.ai_comment || '—')}</p></div>
+      <div class="mb-1 text-sm font-semibold text-accent">Разбор замены · числа из движка</div>
+      <p class="text-[14px] leading-relaxed text-slate-200">${esc(comment)}</p></div>
     <div class="mt-5 flex flex-wrap gap-2">
       <button id="crVerdict" class="rounded-xl bg-accent px-4 py-2.5 text-sm font-bold text-base-950">Вердикт после кризиса</button>
       <button id="crPaper" class="rounded-xl border border-base-600 px-4 py-2.5 text-sm">Открыть газету</button></div></div>`;
   const apply = () => {
-    S.verdict = a; S.crisisResolved = r;
-    if (r.decisions) { S.submitted = r.decisions; loadPlan(r.decisions); }
+    const d = S.crisisDraft;
+    S.crisis = d;
+    S.r.score = { data: r };
+    S.narBody = { plan: S.plan, lang: 'ru', event_id: ev.id, swap: d.swap };
+    loadNarrative();
+    S.plan = r.new_plan || applySwap(S.plan, d.swap);
+    loadPlan(S.plan);
     closeModal();
-    loadNarrative(r.decisions || S.submitted, a);
   };
   $('#crVerdict').onclick = () => { apply(); go('verdict'); };
   $('#crPaper').onclick = () => { apply(); go('paper'); };
@@ -884,71 +975,85 @@ function renderCrisisResult(sh) {
    ===================================================================== */
 function renderPaper() {
   const root = $('#tab-paper');
-  if (!S.submitted) { root.innerHTML = emptyState('Газета ещё не вышла', 'Тираж печатается после того, как аким примет решения.'); return; }
-  if (S.narrativeLoading && !S.narrative) {
-    root.innerHTML = `<div class="paper mx-auto max-w-5xl rounded-sm p-6 sm:p-10"><div class="text-center font-display text-5xl font-black opacity-30">Астана Times</div>
-      <div class="mt-6 text-center text-sm text-stone-600"><span class="spin" style="border-top-color:#1c1917"></span> Вёрстка номера…</div>
-      <div class="mt-6 space-y-3 opacity-40">${Array(5).fill('<div class="h-3 rounded bg-stone-400/60"></div>').join('')}</div></div>`;
+  if (!S.plan) { root.innerHTML = emptyState('Газета ещё не вышла', 'Тираж печатается после того, как аким примет решения.'); return; }
+  const r = S.r.nar;
+  if (!r || r.loading) {
+    root.innerHTML = `<div class="paper mx-auto max-w-5xl rounded-sm p-6 sm:p-10"><div class="masthead text-center text-5xl opacity-30 sm:text-7xl">Астана Times</div>
+      <div class="mt-6 text-center text-sm text-stone-600"><span class="spin" style="border-top-color:#1c1917"></span> Редакция верстает номер…</div>
+      <div class="mt-6 space-y-3 opacity-40">${Array(6).fill('<div class="h-3 rounded bg-stone-400/60"></div>').join('')}</div></div>`;
     return;
   }
-  const n = S.narrative?.newspaper;
-  if (!n) {
+  if (r.error) {
     root.innerHTML = `<div class="card mx-auto max-w-xl p-8 text-center"><div class="font-semibold">Редакция не ответила</div>
-      <p class="mt-2 text-sm text-slate-400">${esc(S.narrativeError || 'Нет текста номера')}</p>
+      <p class="mt-2 text-sm text-slate-400">${esc(r.error)}</p>
       <button id="paperRetry" class="mt-4 rounded-xl bg-accent px-4 py-2.5 text-sm font-bold text-base-950">Повторить</button></div>`;
-    $('#paperRetry').onclick = () => loadNarrative(S.submitted, S.verdict); return;
+    $('#paperRetry').onclick = () => { loadNarrative(); renderPaper(); };
+    return;
   }
-  const lead = n.lead || {};
-  const body = Array.isArray(lead.body) ? lead.body : String(lead.body || n.body || '').split(/\n{2,}/).filter(Boolean);
-  const zones = n.critical_zones || [];
-  const quotes = (S.narrative.council || []).slice(0, 3);
-  const stats = n.stats || (S.verdict ? [
-    { label: 'AQLS', value: num(S.verdict.aqls) }, { label: 'Рейтинг акима', value: Math.round(S.verdict.approval) + '%' }, { label: 'Бюджет', value: `${S.verdict.budget_used}/100` }] : []);
+  const n = r.data.newspaper || {}, council = r.data.council || [];
+  const sc = S.r.score?.data, opt = S.r.opt?.data;
+  const hs = n.headlines || [];
+  const lead = hs[0] || { title: 'Итоги двух лет', lead: '' };
+  const rest = hs.slice(1);
+  const crit = n.crit_sidebar || [];
+  const quotes = council.slice().sort((a, b) => (a.approval ?? 0) - (b.approval ?? 0));
+  const qPick = quotes.length > 2 ? [quotes[quotes.length - 1], quotes[0]] : quotes;
+  const stats = [
+    sc && { label: 'Score', value: num(sc.score) },
+    sc?.approval && { label: 'Рейтинг акима', value: num(sc.approval.city, 1) + '%' },
+    sc && { label: 'Бюджет', value: `${sc.cost}/${S.ds.budget}` },
+    opt && { label: 'Место из 694 395', value: int(opt.rank) },
+  ].filter(Boolean);
+  const decs = planDecs(S.plan);
+  const provider = r.data.provider || 'offline';
   root.innerHTML = `
     <article id="newspaper" class="paper fade-in mx-auto max-w-5xl rounded-sm px-5 py-6 sm:px-10 sm:py-9">
-      <div class="flex items-center justify-between kicker text-stone-600"><span>Ежеквартальная газета столицы</span><span class="hidden sm:inline">Основана в 1998</span><span>Цена 150 ₸</span></div>
+      <div class="kicker flex items-center justify-between text-stone-600"><span>Ежеквартальная газета столицы</span><span class="hidden sm:inline">Специальный выпуск: итоги срока</span><span>Цена 150 ₸</span></div>
       <div class="rule-2 mt-2"></div>
       <h1 class="masthead py-3 text-center text-[13vw] sm:text-7xl md:text-8xl">${esc(n.masthead || 'Астана Times')}</h1>
       <div class="rule"></div>
-      <div class="flex items-center justify-between py-1.5 kicker text-stone-700"><span>${esc(n.edition || 'IV квартал 2028')}</span><span>${esc(n.issue || '')}</span><span>Астана</span></div>
+      <div class="kicker flex items-center justify-between py-1.5 text-stone-700"><span>${esc(n.date || 'IV квартал 2028')}</span><span class="hidden sm:inline">Выпуск № 208</span><span>Астана</span></div>
       <div class="rule-2"></div>
-
-      <h2 class="hl mt-6 text-center text-3xl sm:text-5xl">${esc(n.headline || '')}</h2>
-      ${n.subheadline ? `<p class="mx-auto mt-3 max-w-3xl text-center font-serif text-lg italic text-stone-700" style="text-align:center">${esc(n.subheadline)}</p>` : ''}
-
+      ${S.crisis ? `<div class="kicker red mt-5 text-center">Кризис III квартала: ${esc(S.crisis.event.title)}</div>` : ''}
+      <h2 class="hl ${S.crisis ? 'mt-2' : 'mt-6'} text-center text-3xl sm:text-5xl">${esc(lead.title)}</h2>
+      ${lead.lead ? `<p class="mx-auto mt-3 max-w-3xl font-serif text-lg italic text-stone-700" style="text-align:center">${esc(lead.lead)}</p>` : ''}
       <div class="mt-6 grid gap-6 border-t border-stone-800 pt-5 md:grid-cols-12">
         <div class="md:col-span-8">
-          <div class="kicker red">Главное</div>
-          <h3 class="hl mt-1 text-2xl">${esc(lead.title || 'Итоги двух лет')}</h3>
-          <div class="cols-2 mt-3 text-[15.5px] leading-relaxed">
-            ${body.map((p, i) => `<p class="${i === 0 ? 'dropcap' : ''} mb-3">${esc(p)}</p>`).join('')}
-            ${(n.articles || []).map((a) => `<h4 class="hl mt-2 text-lg" style="break-after:avoid">${esc(a.title)}</h4><p class="mb-3">${esc(a.body)}</p>`).join('')}
+          <div class="cols-2 text-[15.5px] leading-relaxed">
+            ${rest.map((h, i) => `<div style="break-inside:avoid-column" class="mb-4"><h3 class="hl text-xl">${esc(h.title)}</h3><p class="${i === 0 ? 'dropcap' : ''} mt-1">${esc(h.lead || '')}</p></div>`).join('')}
+            <div style="break-inside:avoid-column" class="mb-4"><h3 class="hl text-xl">Что утвердил аким</h3>
+              <ol class="mt-1 list-decimal pl-5 text-[14.5px]">${decs.map((d) => `<li>${esc(S.mi[d.measure]?.name || d.measure)}${d.district ? ` — ${esc(d.district)}` : ' — весь город'}</li>`).join('')}</ol></div>
           </div>
-          ${n.editorial ? `<div class="mt-5 border-t-2 border-stone-900 pt-4">
-            <div class="kicker text-stone-600">Мнение</div>
-            <h3 class="hl mt-1 text-xl italic">${esc(n.editorial.title || 'Колонка редактора')}</h3>
-            <p class="mt-2 text-[15.5px] italic leading-relaxed">${esc(n.editorial.body || n.editorial)}</p></div>` : ''}
+          ${n.editorial ? `<div class="mt-4 border-t-2 border-stone-900 pt-4">
+            <div class="kicker text-stone-600">Мнение редакции</div>
+            <h3 class="hl mt-1 text-xl italic">Колонка редактора</h3>
+            <p class="mt-2 text-[15.5px] italic leading-relaxed">${esc(typeof n.editorial === 'string' ? n.editorial : n.editorial.body || '')}</p></div>` : ''}
+          ${sc ? `<div class="mt-5 border-t-2 border-stone-900 pt-3">
+            <div class="kicker mb-2 text-stone-600">Индекс районов · до → после</div>
+            <table class="w-full text-[14px]"><tbody>${Object.entries(sc.districts).map(([name, d]) => `<tr class="border-b border-stone-400/50 last:border-0">
+              <td class="py-1 font-bold">${esc(name)}</td><td class="py-1 text-right tabular-nums">${num(d.D_before)} → ${num(d.D_after)}</td>
+              <td class="w-20 py-1 text-right font-bold tabular-nums">${sign(d.D_after - d.D_before)}</td></tr>`).join('')}</tbody></table></div>` : ''}
         </div>
         <aside class="space-y-5 md:col-span-4 md:border-l md:border-stone-800 md:pl-6">
           <div class="redbox">
-            <div class="redbar px-3 py-1.5 kicker">Критические зоны</div>
+            <div class="redbar kicker px-3 py-1.5">Критические зоны</div>
             <div class="divide-y divide-red-900/20 px-3">
-              ${zones.length ? zones.map((z) => `<div class="py-2.5"><div class="flex items-baseline justify-between"><b class="font-serif text-[16px]">${esc(z.district || z.name)}</b>
-                <span class="red font-display text-xl font-black">${num(z.aqls)}</span></div><div class="text-[13px] text-stone-700">${esc(z.note || '')}</div></div>`).join('')
-                : '<div class="py-3 text-[14px] italic text-stone-700">Ни один район не опустился ниже 40. Редакция проверила дважды.</div>'}
+              ${crit.length ? crit.map((z) => `<div class="py-2.5"><div class="flex items-baseline justify-between gap-2"><b class="font-serif text-[16px]">${esc(z.district)}</b>
+                <span class="red font-display text-xl font-black">${num(z.value, 1)}</span></div><div class="text-[13px] text-stone-700">${esc(z.indicator)} · ${esc(S.ind[z.indicator]?.name || '')} — ниже ${S.ds.crit_threshold}</div></div>`).join('')
+                : `<div class="py-3 text-[14px] text-stone-800">Ни одной ячейки ниже ${S.ds.crit_threshold}.${sc ? ` Но слабейший район — <b>${esc(sc.d_min_district)}</b>: индекс ${num(sc.d_min)}.` : ''}</div>`}
             </div>
           </div>
           <div class="border-y-2 border-stone-900 py-3">
-            <div class="kicker mb-2 text-stone-600">Цифры квартала</div>
-            <div class="grid grid-cols-3 gap-2 text-center">${stats.map((s) => `<div><div class="font-display text-2xl font-black leading-none">${esc(s.value)}</div><div class="mt-1 text-[11px] text-stone-600">${esc(s.label)}</div></div>`).join('')}</div>
+            <div class="kicker mb-2 text-stone-600">Цифры срока</div>
+            <div class="grid grid-cols-2 gap-3 text-center">${stats.map((s) => `<div><div class="font-display text-2xl font-black leading-none">${esc(s.value)}</div><div class="mt-1 text-[11px] text-stone-600">${esc(s.label)}</div></div>`).join('')}</div>
           </div>
-          ${quotes.length ? `<div><div class="kicker mb-2 text-stone-600">Говорят депутаты</div>${quotes.map((q) => `
-            <blockquote class="mb-3 border-l-2 border-stone-800 pl-3"><p class="text-[14px] italic leading-snug" style="text-align:left">${esc(q.reaction)}</p>
-            <div class="mt-1 text-[12px] text-stone-600">— ${esc(q.deputy)}, ${esc(q.district)}</div></blockquote>`).join('')}</div>` : ''}
+          ${qPick.length ? `<div><div class="kicker mb-2 text-stone-600">Говорят депутаты</div>${qPick.map((q) => `
+            <blockquote class="mb-3 border-l-2 border-stone-800 pl-3"><p class="text-[14px] italic leading-snug" style="text-align:left">«${esc(String(q.quote || '').replace(/^«|»$/g, ''))}»</p>
+            <div class="mt-1 text-[12px] text-stone-600">— ${esc(q.deputy)}</div></blockquote>`).join('')}</div>` : ''}
         </aside>
       </div>
       <div class="rule mt-6"></div>
-      <div class="flex justify-between pt-1.5 text-[11px] text-stone-600"><span>Данные — модель AQLS по решениям читателя</span><span>${S.narrative.mode && S.narrative.mode !== 'llm' ? 'Текст: офлайн-шаблон' : 'Текст: ИИ-редакция'}</span></div>
+      <div class="flex justify-between pt-1.5 text-[11px] text-stone-600"><span>Все цифры — движок AQLS; ИИ пишет текст, но не считает</span><span>${provider === 'offline' ? 'Текст: офлайн-шаблон' : 'Текст: ИИ-редакция (' + esc(provider) + ')'}</span></div>
     </article>
     <div class="mx-auto mt-6 flex max-w-5xl flex-wrap justify-center gap-2">
       <button data-go="verdict" class="rounded-xl border border-base-600 px-4 py-2.5 text-sm">← К вердикту</button>
@@ -958,33 +1063,46 @@ function renderPaper() {
 /* =====================================================================
    ЛИДЕРБОРД
    ===================================================================== */
-const B = { timer: null, rows: null, error: null, updated: 0, loading: false, mine: null };
+const B = { timer: null, rows: null, error: null, updated: 0, loading: false, mine: null, reveal: false, opt: null };
+const TAG = CONFIG.SESSION ? ` [${CONFIG.SESSION}]` : '';
 function startBoard() { renderBoard(); refreshBoard(); clearInterval(B.timer); B.timer = setInterval(refreshBoard, 5000); }
 function stopBoard() { clearInterval(B.timer); B.timer = null; }
 async function refreshBoard() {
   B.loading = true; renderBoardTable();
   try {
-    const r = await api('GET', '/api/leaderboard' + (CONFIG.SESSION ? '?session=' + encodeURIComponent(CONFIG.SESSION) : ''));
-    B.rows = (Array.isArray(r) ? r : r.entries || r.rows || []).slice().sort((a, b) => (b.aqls ?? 0) - (a.aqls ?? 0));
+    const r = await api('GET', '/api/leaderboard');
+    let rows = Array.isArray(r) ? r : r.entries || [];
+    rows = rows.filter((x) => (CONFIG.SESSION ? String(x.team).endsWith(TAG) : !/\s\[[^\]]+\]$/.test(String(x.team))));
+    B.rows = rows.sort((a, b) => (b.score ?? 0) - (a.score ?? 0));
     B.error = null; B.updated = Date.now();
   } catch (e) { B.error = e.message; }
   B.loading = false; renderBoardTable();
 }
+async function revealOptimum() {
+  B.reveal = !B.reveal;
+  if (B.reveal && !B.opt) {
+    if (S.r.opt?.data) B.opt = S.r.opt.data;
+    else { try { B.opt = await api('POST', '/api/optimize', { plan: { decisions: S.ds.reference.doc_example.decisions } }); } catch (e) { toast('Оптимизатор недоступен: ' + e.message); B.reveal = false; } }
+  }
+  renderBoard();
+}
 function renderBoard() {
-  const has = !!S.verdict;
+  const sc = S.r.score?.data;
+  const has = !!(sc && S.plan);
   $('#tab-board').innerHTML = `
     <div class="mb-6 flex flex-wrap items-end justify-between gap-4">
       <div><div class="card-h mb-1">Лидерборд${CONFIG.SESSION ? ' · комната ' + esc(CONFIG.SESSION) : ''}</div>
         <h1 class="text-2xl font-bold tracking-tight sm:text-3xl">Кто лучше управляет Астаной</h1>
-        <p class="mt-1.5 text-sm text-slate-400">Сортировка по AQLS. Но смотрите на рейтинг: лучший индекс не всегда переизбирают.</p></div>
+        <p class="mt-1.5 text-sm text-slate-400">Сортировка по Score. Но смотрите на рейтинг: лучший индекс не всегда переизбирают.</p></div>
+      <button id="btnReveal" class="rounded-xl border ${B.reveal ? 'border-red-400/60 text-red-200' : 'border-base-600'} px-4 py-2.5 text-sm font-semibold">${B.reveal ? 'Скрыть оптимум машины' : 'Показать оптимум машины'}</button>
     </div>
     <div class="grid gap-4 lg:grid-cols-[340px_1fr]">
       <form id="lbForm" class="card h-fit p-5">
-        <div class="card-h mb-3">Отправить результат</div>
-        ${has ? `<div class="mb-3 rounded-xl bg-base-850 p-3 text-sm">Ваш AQLS <b class="tabular-nums">${num(S.verdict.aqls)}</b> · рейтинг <b class="tabular-nums">${Math.round(S.verdict.approval)}%</b></div>`
+        <div class="card-h mb-3">Сохранить результат</div>
+        ${has ? `<div class="mb-3 rounded-xl bg-base-850 p-3 text-sm">Ваш Score <b class="tabular-nums">${num(sc.score)}</b> · рейтинг <b class="tabular-nums">${num(sc.approval?.city, 1)}%</b>${S.crisis ? '<div class="mt-1 text-[11px] text-slate-500">Сервер пересчитает Score по плану без кризиса.</div>' : ''}</div>`
           : '<div class="mb-3 rounded-xl border border-dashed border-base-600 p-3 text-sm text-slate-400">Сначала получите вердикт в кабинете.</div>'}
         <label class="text-[12px] text-slate-400" for="team">Название команды</label>
-        <input id="team" maxlength="40" required autocomplete="off" placeholder="Например, «Сарыарка вперёд»" class="mt-1 w-full rounded-xl border border-base-600 bg-base-900 px-3 py-2.5 text-sm outline-none focus:border-accent" ${has ? '' : 'disabled'}>
+        <input id="team" maxlength="${40 - TAG.length}" required autocomplete="off" placeholder="Например, «Сарыарка вперёд»" class="mt-1 w-full rounded-xl border border-base-600 bg-base-900 px-3 py-2.5 text-sm outline-none focus:border-accent" ${has ? '' : 'disabled'}>
         <button class="mt-3 w-full rounded-xl px-4 py-2.5 text-sm font-bold ${has ? 'bg-accent text-base-950' : 'cursor-not-allowed bg-base-800 text-slate-500'}" ${has ? '' : 'disabled'}>Отправить</button>
         <div id="lbMsg" class="mt-2 min-h-[18px] text-[12px] text-slate-400"></div>
       </form>
@@ -993,13 +1111,15 @@ function renderBoard() {
         <div id="lbTable" class="overflow-x-auto"></div>
       </div>
     </div>`;
+  $('#btnReveal').onclick = revealOptimum;
   $('#lbForm').onsubmit = async (e) => {
     e.preventDefault();
-    const team = $('#team').value.trim(); if (!team || !S.verdict) return;
+    const team = $('#team').value.trim(); if (!team || !S.plan) return;
     $('#lbMsg').innerHTML = spinner('Отправляем…');
     try {
-      await api('POST', '/api/leaderboard', { team, session: CONFIG.SESSION, decisions: S.verdict.decisions || S.submitted, aqls: S.verdict.aqls, approval: S.verdict.approval });
-      B.mine = team; $('#lbMsg').textContent = 'Готово — вы в таблице.'; $('#team').value = '';
+      const full = team + TAG;
+      const r = await api('POST', '/api/submit', { team: full, plan: S.plan, score: sc.score });
+      B.mine = full; $('#lbMsg').textContent = `Готово — вы на ${r.rank ?? '?'}-м месте в общей таблице.`; $('#team').value = '';
       refreshBoard();
     } catch (err) { $('#lbMsg').textContent = 'Не удалось отправить: ' + err.message; }
   };
@@ -1007,21 +1127,32 @@ function renderBoard() {
 }
 function renderBoardTable() {
   const t = $('#lbTable'), st = $('#lbStatus'); if (!t) return;
-  st.innerHTML = B.loading ? '<span class="spin"></span>' : B.error ? `<span class="text-red-400">нет связи</span>` : B.updated ? `обновлено ${new Date(B.updated).toLocaleTimeString('ru-RU')} · каждые 5 с` : '';
+  st.innerHTML = B.loading && !B.rows ? '<span class="spin"></span>' : B.error ? '<span class="text-red-400">нет связи — повторяем</span>' : B.updated ? `обновлено ${new Date(B.updated).toLocaleTimeString('ru-RU')} · каждые 5 с` : '';
   if (!B.rows) { t.innerHTML = B.error ? `<div class="p-5 text-sm text-slate-400">Лидерборд недоступен: ${esc(B.error)}</div>` : `<div class="space-y-2 p-5">${Array(4).fill(skel('h-10')).join('')}</div>`; return; }
-  if (!B.rows.length) { t.innerHTML = '<div class="p-6 text-center text-sm text-slate-400">Пока пусто. Будьте первыми.</div>'; return; }
-  const thr = S.ds?.reelection_threshold ?? 50;
-  t.innerHTML = `<table class="w-full min-w-[520px] text-sm"><thead><tr class="text-[11px] uppercase tracking-wider text-slate-500">
-    <th class="px-5 py-2.5 text-left font-semibold">#</th><th class="py-2.5 text-left font-semibold">Команда</th><th class="px-3 py-2.5 text-right font-semibold">AQLS</th>
+  const pinned = [];
+  if (B.reveal && B.opt) {
+    pinned.push({ team: 'Машинный оптимум · перебор 694 395 планов', score: B.opt.best.score, approval: B.opt.best.approval, cost: B.opt.best.cost, plan: B.opt.best.plan, pin: 'opt' });
+    if (B.opt.balanced) pinned.push({ team: 'Баланс ИИ · лучший план с рейтингом ≥50%', score: B.opt.balanced.score, approval: B.opt.balanced.approval, cost: B.opt.balanced.cost, plan: B.opt.balanced.plan, pin: 'bal' });
+  }
+  const rows = [...pinned, ...B.rows].sort((a, b) => (b.score ?? 0) - (a.score ?? 0));
+  if (!rows.length) { t.innerHTML = '<div class="p-6 text-center text-sm text-slate-400">Пока пусто. Будьте первыми.</div>'; return; }
+  let place = 0;
+  t.innerHTML = `<table class="w-full min-w-[560px] text-sm"><thead><tr class="text-[11px] uppercase tracking-wider text-slate-500">
+    <th class="px-5 py-2.5 text-left font-semibold">#</th><th class="py-2.5 text-left font-semibold">Команда</th><th class="px-3 py-2.5 text-right font-semibold">Score</th>
     <th class="px-3 py-2.5 text-right font-semibold">Рейтинг</th><th class="px-3 py-2.5 text-left font-semibold">Итог</th><th class="px-5 py-2.5 text-right font-semibold">Бюджет</th></tr></thead>
-    <tbody>${B.rows.map((r, i) => { const re = r.reelected ?? (r.approval >= thr); const mine = B.mine && r.team === B.mine; return `
-      <tr class="border-t border-base-800 ${mine ? 'bg-accent/10' : ''}">
-        <td class="px-5 py-3 font-bold tabular-nums ${i === 0 ? 'text-accent' : 'text-slate-400'}">${i + 1}</td>
-        <td class="py-3 font-medium">${esc(r.team)}</td>
-        <td class="px-3 py-3 text-right font-bold tabular-nums">${num(r.aqls)}</td>
-        <td class="px-3 py-3 text-right tabular-nums ${re ? '' : 'text-red-400'}">${r.approval != null ? Math.round(r.approval) + '%' : '—'}</td>
+    <tbody>${rows.map((r) => {
+      const re = (r.approval ?? 0) >= 50; const mine = B.mine && r.team === B.mine;
+      if (!r.pin) place++;
+      const name = String(r.team).replace(/\s\[[^\]]+\]$/, '');
+      const pinCls = r.pin === 'opt' ? 'bg-red-500/10' : r.pin === 'bal' ? 'bg-amber-400/5' : mine ? 'bg-accent/10' : '';
+      return `<tr data-pin="${r.pin || ''}" class="border-t border-base-800 ${pinCls}" ${r.plan ? `title="${esc(planDecs(r.plan).map(decShort).join(', '))}"` : ''}>
+        <td class="px-5 py-3 font-bold tabular-nums ${r.pin ? 'text-slate-500' : place === 1 ? 'text-accent' : 'text-slate-400'}">${r.pin ? (r.pin === 'opt' ? '◆' : '▲') : place}</td>
+        <td class="py-3 font-medium ${r.pin === 'opt' ? 'text-red-200' : r.pin === 'bal' ? 'text-amber-200' : ''}">${esc(name)}</td>
+        <td class="px-3 py-3 text-right font-bold tabular-nums">${num(r.score)}</td>
+        <td class="px-3 py-3 text-right tabular-nums ${re ? '' : 'text-red-400'}">${r.approval != null ? num(r.approval, 1) + '%' : '—'}</td>
         <td class="px-3 py-3"><span class="rounded-full px-2 py-0.5 text-[11px] font-bold ${re ? 'bg-accent/15 text-accent' : 'bg-red-500/15 text-red-300'}">${re ? 'Переизбран' : 'Уволен'}</span></td>
-        <td class="px-5 py-3 text-right tabular-nums text-slate-400">${r.budget_used ?? '—'}</td></tr>`; }).join('')}</tbody></table>`;
+        <td class="px-5 py-3 text-right tabular-nums text-slate-400">${r.cost ?? '—'}</td></tr>`;
+    }).join('')}</tbody></table>`;
 }
 
 /* =====================================================================
@@ -1033,19 +1164,22 @@ async function boot() {
   let raw = null;
   if (!CONFIG.MOCK) {
     try { raw = await api('GET', '/api/dataset'); SOURCE = 'api'; }
-    catch (e) {
-      console.warn('API недоступен, переходим на демо-данные', e);
-      const b = $('#banner'); b.textContent = 'Сервер недоступен — работаем на демо-данных. Все экраны доступны.'; b.classList.remove('hidden');
-    }
+    catch (e) { const b = $('#banner'); b.textContent = 'Сервер недоступен — показываем записанные ответы движка для примера из ТЗ.'; b.classList.remove('hidden'); }
   }
-  if (!raw) { SOURCE = 'mock'; try { raw = await mockCall('GET', '/api/dataset'); } catch (e) {
-    $('#measures').innerHTML = `<div class="card p-6 text-sm text-red-300">Не удалось загрузить данные: ${esc(e.message)}. Откройте страницу через веб-сервер (не file://).</div>`; return; } }
-  S.ds = normalizeDataset(raw);
-  S.slots = Array(S.ds.slots).fill(null);
-  const mb = $('#modeBadge'); mb.textContent = SOURCE === 'api' ? 'API · живые данные' : 'демо-данные'; mb.classList.remove('hidden');
+  if (!raw) {
+    SOURCE = 'mock';
+    try { raw = await mockCall('GET', '/api/dataset'); }
+    catch (e) { $('#measures').innerHTML = `<div class="card p-6 text-sm text-red-300">Не удалось загрузить данные: ${esc(e.message)}. Запустите сервер: <code>uvicorn api.main:app</code></div>`; return; }
+  }
+  indexDataset(raw);
+  S.slots = Array(S.ds.decisions_required).fill(null);
+  const mb = $('#modeBadge');
+  mb.textContent = SOURCE === 'api' ? 'движок · API' : 'демо-запись';
+  mb.classList.remove('hidden');
+  if (SOURCE === 'api') api('GET', '/api/health').then((h) => { mb.textContent = `движок · ИИ: ${h.provider === 'offline' ? 'офлайн' : h.provider}`; }).catch(() => {});
   onPlanChange();
   const h = location.hash.replace('#', '');
-  if (h === 'board') go('board', false); else go('cabinet', false);
+  go(h === 'board' ? 'board' : 'cabinet');
 }
 boot();
 </script>

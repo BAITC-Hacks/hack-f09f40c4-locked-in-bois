@@ -1,0 +1,402 @@
+{
+ "best": {
+  "plan": {
+   "decisions": [
+    {
+     "measure": "M14",
+     "district": null
+    },
+    {
+     "measure": "M2",
+     "district": null
+    },
+    {
+     "measure": "M3",
+     "district": "Нура"
+    },
+    {
+     "measure": "M8",
+     "district": "Нура"
+    },
+    {
+     "measure": "M9",
+     "district": "Нура"
+    }
+   ]
+  },
+  "score": 57.24,
+  "cost": 98,
+  "approval": 48.41
+ },
+ "rank": 559,
+ "total_valid": 694395,
+ "percentile": 99.92,
+ "pareto": [
+  {
+   "plan": {
+    "decisions": [
+     {
+      "measure": "M10",
+      "district": "Нура"
+     },
+     {
+      "measure": "M11",
+      "district": "Нура"
+     },
+     {
+      "measure": "M12",
+      "district": null
+     },
+     {
+      "measure": "M4",
+      "district": "Нура"
+     },
+     {
+      "measure": "M9",
+      "district": "Нура"
+     }
+    ]
+   },
+   "score": 55.67,
+   "cost": 61
+  },
+  {
+   "plan": {
+    "decisions": [
+     {
+      "measure": "M10",
+      "district": "Нура"
+     },
+     {
+      "measure": "M11",
+      "district": "Нура"
+     },
+     {
+      "measure": "M12",
+      "district": null
+     },
+     {
+      "measure": "M14",
+      "district": null
+     },
+     {
+      "measure": "M9",
+      "district": "Нура"
+     }
+    ]
+   },
+   "score": 55.79,
+   "cost": 62
+  },
+  {
+   "plan": {
+    "decisions": [
+     {
+      "measure": "M10",
+      "district": "Нура"
+     },
+     {
+      "measure": "M11",
+      "district": "Нура"
+     },
+     {
+      "measure": "M12",
+      "district": null
+     },
+     {
+      "measure": "M8",
+      "district": "Нура"
+     },
+     {
+      "measure": "M9",
+      "district": "Нура"
+     }
+    ]
+   },
+   "score": 56.57,
+   "cost": 66
+  },
+  {
+   "plan": {
+    "decisions": [
+     {
+      "measure": "M10",
+      "district": "Нура"
+     },
+     {
+      "measure": "M11",
+      "district": "Нура"
+     },
+     {
+      "measure": "M14",
+      "district": null
+     },
+     {
+      "measure": "M8",
+      "district": "Нура"
+     },
+     {
+      "measure": "M9",
+      "district": "Нура"
+     }
+    ]
+   },
+   "score": 56.67,
+   "cost": 68
+  },
+  {
+   "plan": {
+    "decisions": [
+     {
+      "measure": "M10",
+      "district": "Нура"
+     },
+     {
+      "measure": "M12",
+      "district": null
+     },
+     {
+      "measure": "M4",
+      "district": "Нура"
+     },
+     {
+      "measure": "M8",
+      "district": "Нура"
+     },
+     {
+      "measure": "M9",
+      "district": "Нура"
+     }
+    ]
+   },
+   "score": 56.75,
+   "cost": 71
+  },
+  {
+   "plan": {
+    "decisions": [
+     {
+      "measure": "M10",
+      "district": "Нура"
+     },
+     {
+      "measure": "M12",
+      "district": null
+     },
+     {
+      "measure": "M14",
+      "district": null
+     },
+     {
+      "measure": "M8",
+      "district": "Нура"
+     },
+     {
+      "measure": "M9",
+      "district": "Нура"
+     }
+    ]
+   },
+   "score": 56.87,
+   "cost": 72
+  },
+  {
+   "plan": {
+    "decisions": [
+     {
+      "measure": "M14",
+      "district": null
+     },
+     {
+      "measure": "M2",
+      "district": null
+     },
+     {
+      "measure": "M4",
+      "district": "Нура"
+     },
+     {
+      "measure": "M8",
+      "district": "Нура"
+     },
+     {
+      "measure": "M9",
+      "district": "Нура"
+     }
+    ]
+   },
+   "score": 56.9,
+   "cost": 83
+  },
+  {
+   "plan": {
+    "decisions": [
+     {
+      "measure": "M10",
+      "district": "Нура"
+     },
+     {
+      "measure": "M12",
+      "district": null
+     },
+     {
+      "measure": "M3",
+      "district": "Нура"
+     },
+     {
+      "measure": "M8",
+      "district": "Нура"
+     },
+     {
+      "measure": "M9",
+      "district": "Нура"
+     }
+    ]
+   },
+   "score": 57.09,
+   "cost": 86
+  },
+  {
+   "plan": {
+    "decisions": [
+     {
+      "measure": "M10",
+      "district": "Нура"
+     },
+     {
+      "measure": "M14",
+      "district": null
+     },
+     {
+      "measure": "M3",
+      "district": "Нура"
+     },
+     {
+      "measure": "M8",
+      "district": "Нура"
+     },
+     {
+      "measure": "M9",
+      "district": "Нура"
+     }
+    ]
+   },
+   "score": 57.19,
+   "cost": 88
+  },
+  {
+   "plan": {
+    "decisions": [
+     {
+      "measure": "M14",
+      "district": null
+     },
+     {
+      "measure": "M3",
+      "district": "Нура"
+     },
+     {
+      "measure": "M4",
+      "district": "Нура"
+     },
+     {
+      "measure": "M8",
+      "district": "Нура"
+     },
+     {
+      "measure": "M9",
+      "district": "Нура"
+     }
+    ]
+   },
+   "score": 57.23,
+   "cost": 91
+  },
+  {
+   "plan": {
+    "decisions": [
+     {
+      "measure": "M14",
+      "district": null
+     },
+     {
+      "measure": "M2",
+      "district": null
+     },
+     {
+      "measure": "M3",
+      "district": "Нура"
+     },
+     {
+      "measure": "M8",
+      "district": "Нура"
+     },
+     {
+      "measure": "M9",
+      "district": "Нура"
+     }
+    ]
+   },
+   "score": 57.24,
+   "cost": 98
+  }
+ ],
+ "best_at_same_cost": {
+  "plan": {
+   "decisions": [
+    {
+     "measure": "M14",
+     "district": null
+    },
+    {
+     "measure": "M3",
+     "district": "Нура"
+    },
+    {
+     "measure": "M4",
+     "district": "Нура"
+    },
+    {
+     "measure": "M8",
+     "district": "Нура"
+    },
+    {
+     "measure": "M9",
+     "district": "Нура"
+    }
+   ]
+  },
+  "score": 57.23,
+  "cost": 91
+ },
+ "balanced": {
+  "plan": {
+   "decisions": [
+    {
+     "measure": "M11",
+     "district": "Есиль"
+    },
+    {
+     "measure": "M14",
+     "district": null
+    },
+    {
+     "measure": "M3",
+     "district": "Нура"
+    },
+    {
+     "measure": "M7",
+     "district": "Нура"
+    },
+    {
+     "measure": "M8",
+     "district": "Нура"
+    }
+   ]
+  },
+  "score": 57.0,
+  "cost": 100,
+  "approval": 53.35
+ },
+ "gap_to_best": 0.7
+}
