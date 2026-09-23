@@ -60,6 +60,16 @@ def guard(payload: dict, facts: list) -> list[str]:
     This is a provenance check for numbers, not a semantic fact checker. Model
     strings and model numeric fields never become their own supporting facts.
     """
+    def without_args(value):
+        if isinstance(value, dict):
+            return {key: without_args(child) for key, child in value.items()
+                    if key not in {"args", "arguments"}}
+        if isinstance(value, (list, tuple)):
+            return [without_args(child) for child in value]
+        return value
+
+    # Tool-call arguments are model input, even when echoed inside a trace.
+    facts = without_args(facts)
     data = load_dataset()
     sources = [data, facts, 694395, *range(2026, 2031),
                *[d["pop"] * 100 for d in data["districts"]], *_percentages(facts)]
@@ -67,20 +77,23 @@ def guard(payload: dict, facts: list) -> list[str]:
     for value in _leaves(sources):
         if isinstance(value, (int, float)) and not isinstance(value, bool) and math.isfinite(value):
             n = Decimal(str(value))
-            for number in (n, abs(n)):
-                allowed.add(number)
-                allowed.update(number.quantize(Decimal(1).scaleb(-dp)) for dp in range(3))
+            allowed.add(n)
+            allowed.update(n.quantize(Decimal(1).scaleb(-dp)) for dp in range(3))
     rejected, rounded = [], {}
     identifiers = re.compile(r"\b(?:" + "|".join(re.escape(m["id"]) for m in data["measures"]) + r")\b")
     for value in _leaves(payload):
         if not isinstance(value, str):
             continue
         value = _GROUP.sub(lambda m: re.sub(r"[ \u00a0\u202f]", "", m[0]), value)
-        value = re.sub(r"(?<=\d),(?=\d)", ".", value.replace("−", "-"))
+        value = value.translate(str.maketrans({"−": "-", "‐": "-", "－": "-", "＋": "+"}))
+        value = re.sub(r"([+-])\s+(?=\d)", r"\1", value)
+        value = re.sub(r"(?<=\d),(?=\d)", ".", value)
         # Dataset IDs such as M11 name a measure, not a numerical assertion.
         # Strip only complete, known IDs; a bare invented 11 still gets checked.
         value = identifiers.sub("", value)
-        for token in _NUMBER.findall(value):
+        for token in re.findall(r"[+-]?\d+(?:\.\d+)?", value):
+            signed = token.startswith(("-", "+"))
+            token = token.lstrip("+")  # Keep the existing rejected-token format.
             n = Decimal(token)
             if "." not in token and abs(n) < 10:
                 continue
@@ -90,7 +103,9 @@ def guard(payload: dict, facts: list) -> list[str]:
                     ctx.prec = max(32, dp + 20)
                     unit = Decimal(1).scaleb(-dp)
                     rounded[dp] = {v.quantize(unit, rounding=ROUND_HALF_EVEN) for v in allowed}
-            if n not in rounded[dp] and token not in rejected:
+            # Unsigned magnitudes remain valid for phrases such as "loss of X".
+            matches = n in rounded[dp] or (not signed and -n in rounded[dp])
+            if not matches and token not in rejected:
                 rejected.append(token)
     return rejected
 
