@@ -28,42 +28,36 @@ def _connection():
                     created_at TEXT
                 )
             """)
-            # Rooms for live audience play (QR code): older databases get the column added.
-            columns = {row[1] for row in connection.execute("PRAGMA table_info(submissions)")}
-            if "session" not in columns:
-                connection.execute("ALTER TABLE submissions ADD COLUMN session TEXT NOT NULL DEFAULT ''")
             yield connection
     finally:
         connection.close()
 
 
-def add(team, score, cost, approval, plan, session="") -> tuple[int, int]:
+def add(team, score, cost, approval, plan) -> tuple[int, int]:
     with _connection() as connection:
         created_at = datetime.now(timezone.utc).isoformat(timespec="microseconds")
         cursor = connection.execute(
             """INSERT INTO submissions
-               (team, score, cost, approval, plan_json, created_at, session)
-               VALUES (?, ?, ?, ?, ?, ?, ?)""",
-            (team, score, cost, approval, json.dumps(plan, ensure_ascii=False), created_at, session),
+               (team, score, cost, approval, plan_json, created_at)
+               VALUES (?, ?, ?, ?, ?, ?)""",
+            (team, score, cost, approval, json.dumps(plan, ensure_ascii=False), created_at),
         )
         submission_id = cursor.lastrowid
         rank = connection.execute(
             """SELECT COUNT(*) FROM submissions
-               WHERE session = ? AND (score > ? OR (score = ? AND
-                   (created_at < ? OR (created_at = ? AND id <= ?))))""",
-            (session, score, score, created_at, created_at, submission_id),
+               WHERE score > ? OR (score = ? AND
+                   (created_at < ? OR (created_at = ? AND id <= ?)))""",
+            (score, score, created_at, created_at, submission_id),
         ).fetchone()[0]
     return submission_id, rank
 
 
-def top(limit=50, session=None) -> list[dict]:
-    """All rooms when session is None; one room ('' = the main board) otherwise."""
-    where, params = ("WHERE session = ?", (session,)) if session is not None else ("", ())
+def top(limit=50) -> list[dict]:
     with _connection() as connection:
         rows = connection.execute(
-            f"""SELECT team, score, cost, approval, plan_json, created_at, session
-               FROM submissions {where} ORDER BY score DESC, created_at ASC, id ASC LIMIT ?""",
-            (*params, limit),
+            """SELECT team, score, cost, approval, plan_json, created_at
+               FROM submissions ORDER BY score DESC, created_at ASC, id ASC LIMIT ?""",
+            (limit,),
         ).fetchall()
     entries = []
     for row in rows:

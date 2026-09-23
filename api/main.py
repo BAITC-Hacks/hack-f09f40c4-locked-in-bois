@@ -2,7 +2,6 @@
 
 import json
 import os
-import re
 from pathlib import Path
 
 from dotenv import load_dotenv
@@ -146,21 +145,14 @@ def submit_plan(body: dict = Body(...)):
     plan = _valid_plan(body)
     result = _engine_call(score.evaluate, plan)
     political = _engine_call(approval.approval, plan)
-    room = _room(body.get("session"))
     submission_id, rank = db.add(team.strip(), result["score"], result["cost"],
-                                 political["city"], plan, session=room)
-    return {"ok": True, "id": submission_id, "rank": rank, "session": room}
-
-
-def _room(value) -> str:
-    """Room id for live audience play: letters, digits, '-' and '_' only, max 12."""
-    return re.sub(r"[^\w-]", "", value if isinstance(value, str) else "")[:12]
+                                 political["city"], plan)
+    return {"ok": True, "id": submission_id, "rank": rank}
 
 
 @app.get("/api/leaderboard")
-def leaderboard(session: str | None = None):
-    """No `session` → every submission; `?session=room1` → only that room."""
-    return db.top(session=None if session is None else _room(session))
+def leaderboard():
+    return db.top()
 
 
 def _brief(body: dict):
