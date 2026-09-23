@@ -3,7 +3,8 @@
 Build the portable, losslessly compressed column table with
 ``python -m engine.promise``. Queries never enumerate or rescore the search
 space. Numeric constraints use full precision (including D_after - D_before),
-just like the optimizer; only public output is rounded. Equal scores retain
+just like the optimizer; calculated output is rounded, input thresholds are
+preserved. Equal scores retain
 the optimizer's enumeration order. No political-risk terms enter Score.
 """
 
@@ -83,7 +84,7 @@ def _checked(promise):
 
 
 def _number(value):
-    return f"{value:.2f}".rstrip("0").rstrip(".")
+    return str(value)
 
 
 def _label(key):
@@ -302,7 +303,7 @@ def price(promises: list, plan: dict | None = None) -> dict:
     rows = []
     for promise, key, mask in zip(promises, keys, masks):
         index = _best_index(mask)
-        rows.append({**{k: round(v, 2) if isinstance(v, float) else v for k, v in promise.items()},
+        rows.append({**promise,
                      "label": _label(key), "feasible_alone": index is not None,
                      "price_alone": diff2(unconstrained, columns["score"][index]) if index is not None else None})
     joint = _intersection(masks)

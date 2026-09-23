@@ -1,6 +1,7 @@
 """HTTP contract checks using the documented reference plan."""
 
 import json
+import re
 
 import pytest
 from fastapi.testclient import TestClient
@@ -53,6 +54,12 @@ def test_validate_partial_and_complete(client, plan):
 @pytest.mark.parametrize("body", [{}, {"decisions": []}, {"plan": None}, {"decisions": [None]}, []])
 def test_validate_malformed_or_empty_plan(client, body):
     response = client.post("/api/validate", json=body)
+    if not isinstance(body, dict):
+        assert response.status_code in (400, 422)
+        detail = response.json()["detail"]
+        assert isinstance(detail, str)
+        assert re.search("[А-Яа-яЁё]", detail)
+        return
     assert response.status_code == 200
     result = response.json()
     assert result["valid"] is False
@@ -65,13 +72,17 @@ def test_validate_malformed_or_empty_plan(client, body):
 def test_validate_missing_and_invalid_json(client):
     for content in (b"", b"{"):
         response = client.post("/api/validate", content=content, headers={"Content-Type": "application/json"})
-        assert response.status_code == 200
-        assert response.json()["valid"] is False
+        assert response.status_code in (400, 422)
+        detail = response.json()["detail"]
+        assert isinstance(detail, str)
+        assert re.search("[А-Яа-яЁё]", detail)
 
 
 def test_validate_unknown_measure(client, plan):
     plan["decisions"][0]["measure"] = "M404"
-    result = client.post("/api/validate", json=plan).json()
+    response = client.post("/api/validate", json=plan)
+    assert response.status_code == 200
+    result = response.json()
     assert result["valid"] is False
     assert "Неизвестная мера" in result["reason"]
     assert result["cost"] == 71

@@ -1,16 +1,19 @@
 """FastAPI transport for the deterministic engine and optional language agent."""
 
 import json
+import math
 import os
 from pathlib import Path
 
 from dotenv import load_dotenv
 from fastapi import Body, FastAPI, HTTPException, Request
-from fastapi.exception_handlers import request_validation_exception_handler
+from fastapi.exception_handlers import http_exception_handler
 from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse, HTMLResponse, JSONResponse, PlainTextResponse
+from fastapi.routing import APIRoute
 from fastapi.staticfiles import StaticFiles
+from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from api import db
 from engine import approval, optimize, score, shock, validate
@@ -19,7 +22,46 @@ from engine.model import load_dataset, load_events, measures_by_id
 REPO_ROOT = Path(__file__).resolve().parents[1]
 load_dotenv(REPO_ROOT / ".env")
 
+
+def _check_json_values(body):
+    """Reject unsafe values before validation can interpolate them into errors."""
+    pending = [body]
+    while pending:
+        value = pending.pop()
+        if isinstance(value, str):
+            try:
+                value.encode("utf-8")
+            except UnicodeEncodeError as exc:
+                raise HTTPException(422, "Недопустимый Unicode в запросе") from exc
+        elif isinstance(value, float) and not math.isfinite(value):
+            raise HTTPException(422, "Числа в запросе должны быть конечными")
+        elif isinstance(value, dict):
+            pending.extend(value.keys())
+            pending.extend(value.values())
+        elif isinstance(value, list):
+            pending.extend(value)
+
+
+class CheckedJSONRoute(APIRoute):
+    def get_route_handler(self):
+        handler = super().get_route_handler()
+
+        async def checked(request: Request):
+            if request.method == "POST":
+                try:
+                    body = await request.json()
+                except (ValueError, RecursionError):
+                    # Preserve FastAPI's syntax (422) and body-parsing (400) statuses.
+                    pass
+                else:
+                    _check_json_values(body)
+            return await handler(request)
+
+        return checked
+
+
 app = FastAPI(title="Кабинет акима — API")
+app.router.route_class = CheckedJSONRoute
 app.add_middleware(
     CORSMiddleware, allow_origins=["*"], allow_methods=["*"], allow_headers=["*"]
 )
@@ -71,12 +113,19 @@ def _validation_report(plan):
 
 @app.exception_handler(RequestValidationError)
 async def request_validation_error(request: Request, exc: RequestValidationError):
-    # The live validator always returns its contract, even for malformed bodies.
-    if request.url.path == "/api/validate":
-        result = _validation_report({})
-        result["reason"] = "Тело запроса должно быть JSON-объектом с планом"
-        return JSONResponse(result)
-    return await request_validation_exception_handler(request, exc)
+    # Never serialize exc.errors(): its raw inputs can contain NaN or surrogates.
+    return JSONResponse(status_code=422, content={
+        "detail": "Тело запроса должно быть корректным JSON-объектом",
+    })
+
+
+@app.exception_handler(StarletteHTTPException)
+async def http_error(request: Request, exc: StarletteHTTPException):
+    if exc.status_code == 400 and exc.detail == "There was an error parsing the body":
+        return JSONResponse(status_code=400, headers=exc.headers, content={
+            "detail": "Не удалось прочитать тело запроса: некорректный JSON или кодировка UTF-8",
+        })
+    return await http_exception_handler(request, exc)
 
 
 @app.get("/api/dataset")
@@ -182,6 +231,7 @@ def get_brief(plan: str = ""):
         raise HTTPException(status_code=422, detail="План должен быть корректным JSON") from exc
     if not isinstance(body, dict):
         raise HTTPException(status_code=422, detail="План должен быть JSON-объектом")
+    _check_json_values(body)
     return _brief(body)
 
 

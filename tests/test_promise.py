@@ -407,7 +407,28 @@ def test_precision_boundaries_agree_for_table_and_submitted_plan():
         result = price([exact], plan)
         assert result["your_plan"]["keeps_promises"]
         assert result["price"] == 0
-        assert not price([above], plan)["your_plan"]["keeps_promises"]
+        assert result["promises"][0]["value"] == value
+        assert str(value) in result["promises"][0]["label"]
+        rejected = price([above], plan)
+        assert not rejected["your_plan"]["keeps_promises"]
+        assert rejected["promises"][0]["value"] == above["value"]
+        assert str(above["value"]) in rejected["your_plan"]["broken"][0]
+
+
+def test_budget_threshold_is_not_rounded_into_a_different_promise():
+    promise = {"type": "max_cost", "value": 60.999}
+    result = price([promise])
+    assert not result["feasible"]
+    assert result["count_feasible"] == 0
+    assert result["promises"][0]["value"] == 60.999
+    assert result["promises"][0]["label"] == "Бюджет — не больше 60.999"
+    assert "невыполнимо обещание «Бюджет — не больше 60.999»" in result["verdict"]
+    rounded = price([{**promise, "value": 61}])
+    assert rounded["feasible"]
+    assert rounded["count_feasible"] == 625
+    assert rounded["best"]["score"] == 55.67
+    assert rounded["price"] == diff2(57.24, 55.67)
+    assert promise == {"type": "max_cost", "value": 60.999}
 
 
 def test_district_delta_uses_full_precision_despite_rounded_display():

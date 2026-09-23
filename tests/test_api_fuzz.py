@@ -207,6 +207,12 @@ def test_post_malformed_input_never_500(fuzz_client, route, content):
     if response.status_code >= 500:
         raise ServerFailure(f"POST {route}: HTTP {response.status_code}: {response.text[:500]}")
     assert response.status_code == 200 or 400 <= response.status_code < 500
+    try:
+        body = json.loads(content)
+    except (json.JSONDecodeError, UnicodeDecodeError):
+        body = None
+    if not isinstance(body, dict):
+        assert response.status_code in (400, 422)
     if response.status_code == 200 and route == "/api/brief":
         assert response.headers["content-type"].startswith("text/markdown")
         assert response.text.strip()
@@ -215,22 +221,11 @@ def test_post_malformed_input_never_500(fuzz_client, route, content):
     result = response.json()
     assert isinstance(result, dict)
     if response.status_code >= 400:
+        assert response.status_code in (400, 422)
         assert "detail" in result
         detail = result["detail"]
-        if isinstance(detail, str):
-            if response.status_code == 400 and content == b"\xff":
-                # FastAPI rejects undecodable bytes before business validation.
-                assert detail == "There was an error parsing the body"
-            else:
-                assert re.search("[А-Яа-яЁё]", detail), detail
-        else:
-            # FastAPI/Pydantic envelope errors have structured English messages;
-            # business validation reasons above must be Russian.
-            assert isinstance(detail, list) and detail
-            for error in detail:
-                assert {"loc", "msg", "type"} <= error.keys()
-                assert error["loc"][0] == "body"
-                assert isinstance(error["msg"], str) and error["msg"]
+        assert isinstance(detail, str)
+        assert re.search("[А-Яа-яЁё]", detail), detail
     elif route == "/api/validate" and result.get("valid") is False:
         assert isinstance(result.get("reason"), str)
         assert re.search("[А-Яа-яЁё]", result["reason"])
