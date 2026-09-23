@@ -50,3 +50,4 @@ swap = {"out": best[0]["out"], "in": best[0]["in"]} if best else {"out": "M12", 
 save("resolve", call("POST", "/api/shock/resolve", {"plan": plan, "event_id": event_id, "swap": swap}))
 save("narrative_crisis", call("POST", "/api/narrative", {**body, "event_id": event_id, "swap": swap}))
 save("leaderboard", call("GET", "/api/leaderboard"))
+save("receipt", call("POST", "/api/receipt", body))

@@ -1,0 +1,945 @@
+{
+ "label": "Чек расчёта Score",
+ "score": 56.54,
+ "cost": 95,
+ "horizon_quarters": 8,
+ "score_weights": {
+  "avg": 0.7,
+  "min": 0.3,
+  "crit_penalty": 1.0
+ },
+ "d_avg": 58.08,
+ "d_min": 52.96,
+ "d_min_district": "Нура",
+ "n_crit": 0,
+ "lines": [
+  {
+   "kind": "district",
+   "label": "Вклад района Есиля",
+   "district": "Есиль",
+   "D_after": 63.43,
+   "pop": 0.27,
+   "avg_contribution": 17.13,
+   "formula": "0.70 × pop × D_after",
+   "additive": true,
+   "amount": 11.99,
+   "rounded_term": 11.99,
+   "rounding_adjustment": 0.0
+  },
+  {
+   "kind": "district",
+   "label": "Вклад района Алматы",
+   "district": "Алматы",
+   "D_after": 57.5,
+   "pop": 0.24,
+   "avg_contribution": 13.79,
+   "formula": "0.70 × pop × D_after",
+   "additive": true,
+   "amount": 9.66,
+   "rounded_term": 9.66,
+   "rounding_adjustment": 0.0
+  },
+  {
+   "kind": "district",
+   "label": "Вклад района Сарыарки",
+   "district": "Сарыарка",
+   "D_after": 56.3,
+   "pop": 0.2,
+   "avg_contribution": 11.26,
+   "formula": "0.70 × pop × D_after",
+   "additive": true,
+   "amount": 7.88,
+   "rounded_term": 7.88,
+   "rounding_adjustment": 0.0
+  },
+  {
+   "kind": "district",
+   "label": "Вклад района Байконура",
+   "district": "Байконур",
+   "D_after": 57.07,
+   "pop": 0.13,
+   "avg_contribution": 7.42,
+   "formula": "0.70 × pop × D_after",
+   "additive": true,
+   "amount": 5.19,
+   "rounded_term": 5.19,
+   "rounding_adjustment": 0.0
+  },
+  {
+   "kind": "district",
+   "label": "Вклад района Нуры",
+   "district": "Нура",
+   "D_after": 52.96,
+   "pop": 0.16,
+   "avg_contribution": 8.48,
+   "formula": "0.70 × pop × D_after",
+   "additive": true,
+   "amount": 5.93,
+   "rounded_term": 5.93,
+   "rounding_adjustment": 0.0
+  },
+  {
+   "kind": "average",
+   "label": "Средний индекс города D_avg = Σ pop × D_after",
+   "value": 58.08,
+   "amount": 40.65,
+   "additive": false
+  },
+  {
+   "kind": "minimum",
+   "label": "Минимальный индекс — у Нуры",
+   "district": "Нура",
+   "D_after": 52.96,
+   "formula": "0.30 × min(D_after)",
+   "additive": true,
+   "amount": 15.89,
+   "rounded_term": 15.89,
+   "rounding_adjustment": 0.0
+  },
+  {
+   "kind": "total",
+   "label": "Итого Score",
+   "amount": 56.54,
+   "additive": false
+  }
+ ],
+ "districts": [
+  {
+   "kind": "district",
+   "label": "Вклад района Есиля",
+   "district": "Есиль",
+   "D_after": 63.43,
+   "pop": 0.27,
+   "avg_contribution": 17.13,
+   "formula": "0.70 × pop × D_after",
+   "additive": true,
+   "amount": 11.99,
+   "rounded_term": 11.99,
+   "rounding_adjustment": 0.0,
+   "cells": [
+    {
+     "indicator": "T1",
+     "label": "Разгрузка дорог",
+     "before": 45,
+     "after": 45,
+     "weight": 0.1,
+     "amount": 4.5,
+     "rounded_term": 4.5,
+     "rounding_adjustment": 0.0
+    },
+    {
+     "indicator": "T2",
+     "label": "Доступность общественного транспорта",
+     "before": 62,
+     "after": 62,
+     "weight": 0.1,
+     "amount": 6.2,
+     "rounded_term": 6.2,
+     "rounding_adjustment": 0.0
+    },
+    {
+     "indicator": "E1",
+     "label": "Озеленение",
+     "before": 68,
+     "after": 68,
+     "weight": 0.09,
+     "amount": 6.12,
+     "rounded_term": 6.12,
+     "rounding_adjustment": 0.0
+    },
+    {
+     "indicator": "E2",
+     "label": "Качество воздуха",
+     "before": 72,
+     "after": 72,
+     "weight": 0.11,
+     "amount": 7.92,
+     "rounded_term": 7.92,
+     "rounding_adjustment": 0.0
+    },
+    {
+     "indicator": "S1",
+     "label": "Школы и детсады",
+     "before": 48,
+     "after": 48,
+     "weight": 0.11,
+     "amount": 5.28,
+     "rounded_term": 5.28,
+     "rounding_adjustment": 0.0
+    },
+    {
+     "indicator": "S2",
+     "label": "Поликлиники и первичная медпомощь",
+     "before": 55,
+     "after": 55,
+     "weight": 0.11,
+     "amount": 6.05,
+     "rounded_term": 6.05,
+     "rounding_adjustment": 0.0
+    },
+    {
+     "indicator": "B1",
+     "label": "Безопасность улиц",
+     "before": 78,
+     "after": 78,
+     "weight": 0.09,
+     "amount": 7.02,
+     "rounded_term": 7.02,
+     "rounding_adjustment": 0.0
+    },
+    {
+     "indicator": "B2",
+     "label": "Безопасность дорожного движения",
+     "before": 60,
+     "after": 60,
+     "weight": 0.09,
+     "amount": 5.4,
+     "rounded_term": 5.4,
+     "rounding_adjustment": 0.0
+    },
+    {
+     "indicator": "C1",
+     "label": "Надёжность ЖКХ",
+     "before": 75,
+     "after": 75,
+     "weight": 0.1,
+     "amount": 7.5,
+     "rounded_term": 7.5,
+     "rounding_adjustment": 0.0
+    },
+    {
+     "indicator": "C2",
+     "label": "Скорость решения обращений жителей",
+     "before": 70,
+     "after": 74.38,
+     "weight": 0.1,
+     "amount": 7.44,
+     "rounded_term": 7.44,
+     "rounding_adjustment": 0.0
+    }
+   ]
+  },
+  {
+   "kind": "district",
+   "label": "Вклад района Алматы",
+   "district": "Алматы",
+   "D_after": 57.5,
+   "pop": 0.24,
+   "avg_contribution": 13.79,
+   "formula": "0.70 × pop × D_after",
+   "additive": true,
+   "amount": 9.66,
+   "rounded_term": 9.66,
+   "rounding_adjustment": 0.0,
+   "cells": [
+    {
+     "indicator": "T1",
+     "label": "Разгрузка дорог",
+     "before": 40,
+     "after": 40,
+     "weight": 0.1,
+     "amount": 4.0,
+     "rounded_term": 4.0,
+     "rounding_adjustment": 0.0
+    },
+    {
+     "indicator": "T2",
+     "label": "Доступность общественного транспорта",
+     "before": 75,
+     "after": 75,
+     "weight": 0.1,
+     "amount": 7.5,
+     "rounded_term": 7.5,
+     "rounding_adjustment": 0.0
+    },
+    {
+     "indicator": "E1",
+     "label": "Озеленение",
+     "before": 50,
+     "after": 50,
+     "weight": 0.09,
+     "amount": 4.5,
+     "rounded_term": 4.5,
+     "rounding_adjustment": 0.0
+    },
+    {
+     "indicator": "E2",
+     "label": "Качество воздуха",
+     "before": 55,
+     "after": 55,
+     "weight": 0.11,
+     "amount": 6.05,
+     "rounded_term": 6.05,
+     "rounding_adjustment": 0.0
+    },
+    {
+     "indicator": "S1",
+     "label": "Школы и детсады",
+     "before": 60,
+     "after": 60,
+     "weight": 0.11,
+     "amount": 6.6,
+     "rounded_term": 6.6,
+     "rounding_adjustment": 0.0
+    },
+    {
+     "indicator": "S2",
+     "label": "Поликлиники и первичная медпомощь",
+     "before": 65,
+     "after": 65,
+     "weight": 0.11,
+     "amount": 7.15,
+     "rounded_term": 7.15,
+     "rounding_adjustment": 0.0
+    },
+    {
+     "indicator": "B1",
+     "label": "Безопасность улиц",
+     "before": 62,
+     "after": 62,
+     "weight": 0.09,
+     "amount": 5.58,
+     "rounded_term": 5.58,
+     "rounding_adjustment": 0.0
+    },
+    {
+     "indicator": "B2",
+     "label": "Безопасность дорожного движения",
+     "before": 52,
+     "after": 52,
+     "weight": 0.09,
+     "amount": 4.68,
+     "rounded_term": 4.68,
+     "rounding_adjustment": 0.0
+    },
+    {
+     "indicator": "C1",
+     "label": "Надёжность ЖКХ",
+     "before": 50,
+     "after": 50,
+     "weight": 0.1,
+     "amount": 5.0,
+     "rounded_term": 5.0,
+     "rounding_adjustment": 0.0
+    },
+    {
+     "indicator": "C2",
+     "label": "Скорость решения обращений жителей",
+     "before": 60,
+     "after": 64.38,
+     "weight": 0.1,
+     "amount": 6.44,
+     "rounded_term": 6.44,
+     "rounding_adjustment": 0.0
+    }
+   ]
+  },
+  {
+   "kind": "district",
+   "label": "Вклад района Сарыарки",
+   "district": "Сарыарка",
+   "D_after": 56.3,
+   "pop": 0.2,
+   "avg_contribution": 11.26,
+   "formula": "0.70 × pop × D_after",
+   "additive": true,
+   "amount": 7.88,
+   "rounded_term": 7.88,
+   "rounding_adjustment": 0.0,
+   "cells": [
+    {
+     "indicator": "T1",
+     "label": "Разгрузка дорог",
+     "before": 50,
+     "after": 50,
+     "weight": 0.1,
+     "amount": 5.0,
+     "rounded_term": 5.0,
+     "rounding_adjustment": 0.0
+    },
+    {
+     "indicator": "T2",
+     "label": "Доступность общественного транспорта",
+     "before": 70,
+     "after": 70,
+     "weight": 0.1,
+     "amount": 7.0,
+     "rounded_term": 7.0,
+     "rounding_adjustment": 0.0
+    },
+    {
+     "indicator": "E1",
+     "label": "Озеленение",
+     "before": 42,
+     "after": 42,
+     "weight": 0.09,
+     "amount": 3.78,
+     "rounded_term": 3.78,
+     "rounding_adjustment": 0.0
+    },
+    {
+     "indicator": "E2",
+     "label": "Качество воздуха",
+     "before": 40,
+     "after": 48.75,
+     "weight": 0.11,
+     "amount": 5.36,
+     "rounded_term": 5.36,
+     "rounding_adjustment": 0.0
+    },
+    {
+     "indicator": "S1",
+     "label": "Школы и детсады",
+     "before": 62,
+     "after": 62,
+     "weight": 0.11,
+     "amount": 6.82,
+     "rounded_term": 6.82,
+     "rounding_adjustment": 0.0
+    },
+    {
+     "indicator": "S2",
+     "label": "Поликлиники и первичная медпомощь",
+     "before": 68,
+     "after": 68,
+     "weight": 0.11,
+     "amount": 7.48,
+     "rounded_term": 7.48,
+     "rounding_adjustment": 0.0
+    },
+    {
+     "indicator": "B1",
+     "label": "Безопасность улиц",
+     "before": 58,
+     "after": 58,
+     "weight": 0.09,
+     "amount": 5.22,
+     "rounded_term": 5.22,
+     "rounding_adjustment": 0.0
+    },
+    {
+     "indicator": "B2",
+     "label": "Безопасность дорожного движения",
+     "before": 55,
+     "after": 55,
+     "weight": 0.09,
+     "amount": 4.95,
+     "rounded_term": 4.95,
+     "rounding_adjustment": 0.0
+    },
+    {
+     "indicator": "C1",
+     "label": "Надёжность ЖКХ",
+     "before": 45,
+     "after": 47.5,
+     "weight": 0.1,
+     "amount": 4.75,
+     "rounded_term": 4.75,
+     "rounding_adjustment": 0.0
+    },
+    {
+     "indicator": "C2",
+     "label": "Скорость решения обращений жителей",
+     "before": 55,
+     "after": 59.38,
+     "weight": 0.1,
+     "amount": 5.94,
+     "rounded_term": 5.94,
+     "rounding_adjustment": 0.0
+    }
+   ]
+  },
+  {
+   "kind": "district",
+   "label": "Вклад района Байконура",
+   "district": "Байконур",
+   "D_after": 57.07,
+   "pop": 0.13,
+   "avg_contribution": 7.42,
+   "formula": "0.70 × pop × D_after",
+   "additive": true,
+   "amount": 5.19,
+   "rounded_term": 5.19,
+   "rounding_adjustment": 0.0,
+   "cells": [
+    {
+     "indicator": "T1",
+     "label": "Разгрузка дорог",
+     "before": 52,
+     "after": 52,
+     "weight": 0.1,
+     "amount": 5.2,
+     "rounded_term": 5.2,
+     "rounding_adjustment": 0.0
+    },
+    {
+     "indicator": "T2",
+     "label": "Доступность общественного транспорта",
+     "before": 68,
+     "after": 68,
+     "weight": 0.1,
+     "amount": 6.8,
+     "rounded_term": 6.8,
+     "rounding_adjustment": 0.0
+    },
+    {
+     "indicator": "E1",
+     "label": "Озеленение",
+     "before": 55,
+     "after": 55,
+     "weight": 0.09,
+     "amount": 4.95,
+     "rounded_term": 4.95,
+     "rounding_adjustment": 0.0
+    },
+    {
+     "indicator": "E2",
+     "label": "Качество воздуха",
+     "before": 50,
+     "after": 50,
+     "weight": 0.11,
+     "amount": 5.5,
+     "rounded_term": 5.5,
+     "rounding_adjustment": 0.0
+    },
+    {
+     "indicator": "S1",
+     "label": "Школы и детсады",
+     "before": 58,
+     "after": 58,
+     "weight": 0.11,
+     "amount": 6.38,
+     "rounded_term": 6.38,
+     "rounding_adjustment": 0.0
+    },
+    {
+     "indicator": "S2",
+     "label": "Поликлиники и первичная медпомощь",
+     "before": 60,
+     "after": 60,
+     "weight": 0.11,
+     "amount": 6.6,
+     "rounded_term": 6.6,
+     "rounding_adjustment": 0.0
+    },
+    {
+     "indicator": "B1",
+     "label": "Безопасность улиц",
+     "before": 52,
+     "after": 52,
+     "weight": 0.09,
+     "amount": 4.68,
+     "rounded_term": 4.68,
+     "rounding_adjustment": 0.0
+    },
+    {
+     "indicator": "B2",
+     "label": "Безопасность дорожного движения",
+     "before": 58,
+     "after": 58,
+     "weight": 0.09,
+     "amount": 5.22,
+     "rounded_term": 5.22,
+     "rounding_adjustment": 0.0
+    },
+    {
+     "indicator": "C1",
+     "label": "Надёжность ЖКХ",
+     "before": 55,
+     "after": 55,
+     "weight": 0.1,
+     "amount": 5.5,
+     "rounded_term": 5.5,
+     "rounding_adjustment": 0.0
+    },
+    {
+     "indicator": "C2",
+     "label": "Скорость решения обращений жителей",
+     "before": 58,
+     "after": 62.38,
+     "weight": 0.1,
+     "amount": 6.24,
+     "rounded_term": 6.24,
+     "rounding_adjustment": 0.0
+    }
+   ]
+  },
+  {
+   "kind": "district",
+   "label": "Вклад района Нуры",
+   "district": "Нура",
+   "D_after": 52.96,
+   "pop": 0.16,
+   "avg_contribution": 8.48,
+   "formula": "0.70 × pop × D_after",
+   "additive": true,
+   "amount": 5.93,
+   "rounded_term": 5.93,
+   "rounding_adjustment": 0.0,
+   "cells": [
+    {
+     "indicator": "T1",
+     "label": "Разгрузка дорог",
+     "before": 55,
+     "after": 55,
+     "weight": 0.1,
+     "amount": 5.5,
+     "rounded_term": 5.5,
+     "rounding_adjustment": 0.0
+    },
+    {
+     "indicator": "T2",
+     "label": "Доступность общественного транспорта",
+     "before": 40,
+     "after": 40,
+     "weight": 0.1,
+     "amount": 4.0,
+     "rounded_term": 4.0,
+     "rounding_adjustment": 0.0
+    },
+    {
+     "indicator": "E1",
+     "label": "Озеленение",
+     "before": 45,
+     "after": 45,
+     "weight": 0.09,
+     "amount": 4.05,
+     "rounded_term": 4.05,
+     "rounding_adjustment": 0.0
+    },
+    {
+     "indicator": "E2",
+     "label": "Качество воздуха",
+     "before": 65,
+     "after": 65,
+     "weight": 0.11,
+     "amount": 7.15,
+     "rounded_term": 7.15,
+     "rounding_adjustment": 0.0
+    },
+    {
+     "indicator": "S1",
+     "label": "Школы и детсады",
+     "before": 38,
+     "after": 48.0,
+     "weight": 0.11,
+     "amount": 5.28,
+     "rounded_term": 5.28,
+     "rounding_adjustment": 0.0
+    },
+    {
+     "indicator": "S2",
+     "label": "Поликлиники и первичная медпомощь",
+     "before": 35,
+     "after": 43.75,
+     "weight": 0.11,
+     "amount": 4.81,
+     "rounded_term": 4.81,
+     "rounding_adjustment": 0.0
+    },
+    {
+     "indicator": "B1",
+     "label": "Безопасность улиц",
+     "before": 55,
+     "after": 67.5,
+     "weight": 0.09,
+     "amount": 6.08,
+     "rounded_term": 6.08,
+     "rounding_adjustment": 0.0
+    },
+    {
+     "indicator": "B2",
+     "label": "Безопасность дорожного движения",
+     "before": 50,
+     "after": 51.75,
+     "weight": 0.09,
+     "amount": 4.66,
+     "rounded_term": 4.66,
+     "rounding_adjustment": 0.0
+    },
+    {
+     "indicator": "C1",
+     "label": "Надёжность ЖКХ",
+     "before": 60,
+     "after": 60,
+     "weight": 0.1,
+     "amount": 6.0,
+     "rounded_term": 6.0,
+     "rounding_adjustment": 0.0
+    },
+    {
+     "indicator": "C2",
+     "label": "Скорость решения обращений жителей",
+     "before": 50,
+     "after": 54.38,
+     "weight": 0.1,
+     "amount": 5.43,
+     "rounded_term": 5.44,
+     "rounding_adjustment": -0.01
+    }
+   ]
+  }
+ ],
+ "critical_penalties": [],
+ "decisions": [
+  {
+   "measure": "M7",
+   "district": "Нура",
+   "label": "M7 «Школа + детсад (модульное строительство)» в Нуре",
+   "lag": 3,
+   "realized_share": 0.62,
+   "share_formula": "(8.00 − 3.00) / 8.00",
+   "effects": [
+    {
+     "district": "Нура",
+     "indicator": "S1",
+     "label": "Школы и детсады",
+     "before": 38,
+     "after": 48.0,
+     "applied_value": 10.0,
+     "rounded_term": 10.0,
+     "rounding_adjustment": 0.0,
+     "full_effect": 16,
+     "lag": 3,
+     "realized_share": 0.62,
+     "share_formula": "(8.00 − 3.00) / 8.00"
+    }
+   ],
+   "synergy_lines": [],
+   "clip_notes": []
+  },
+  {
+   "measure": "M8",
+   "district": "Нура",
+   "label": "M8 «Центр семейного здоровья / поликлиника» в Нуре",
+   "lag": 3,
+   "realized_share": 0.62,
+   "share_formula": "(8.00 − 3.00) / 8.00",
+   "effects": [
+    {
+     "district": "Нура",
+     "indicator": "S2",
+     "label": "Поликлиники и первичная медпомощь",
+     "before": 35,
+     "after": 43.75,
+     "applied_value": 8.75,
+     "rounded_term": 8.75,
+     "rounding_adjustment": 0.0,
+     "full_effect": 14,
+     "lag": 3,
+     "realized_share": 0.62,
+     "share_formula": "(8.00 − 3.00) / 8.00"
+    }
+   ],
+   "synergy_lines": [],
+   "clip_notes": []
+  },
+  {
+   "measure": "M10",
+   "district": "Нура",
+   "label": "M10 «Освещение и камеры (расширение Safe City)» в Нуре",
+   "lag": 1,
+   "realized_share": 0.88,
+   "share_formula": "(8.00 − 1.00) / 8.00",
+   "effects": [
+    {
+     "district": "Нура",
+     "indicator": "B1",
+     "label": "Безопасность улиц",
+     "before": 55,
+     "after": 65.5,
+     "applied_value": 10.5,
+     "rounded_term": 10.5,
+     "rounding_adjustment": 0.0,
+     "full_effect": 12,
+     "lag": 1,
+     "realized_share": 0.88,
+     "share_formula": "(8.00 − 1.00) / 8.00"
+    },
+    {
+     "district": "Нура",
+     "indicator": "B2",
+     "label": "Безопасность дорожного движения",
+     "before": 50,
+     "after": 51.75,
+     "applied_value": 1.75,
+     "rounded_term": 1.75,
+     "rounding_adjustment": 0.0,
+     "full_effect": 2,
+     "lag": 1,
+     "realized_share": 0.88,
+     "share_formula": "(8.00 − 1.00) / 8.00"
+    }
+   ],
+   "synergy_lines": [
+    {
+     "district": "Нура",
+     "indicator": "B1",
+     "label": "Бонус синергии M10 + M12: B1",
+     "before": 65.5,
+     "after": 67.5,
+     "applied_value": 2.0,
+     "rounded_term": 2,
+     "rounding_adjustment": 0.0,
+     "pair": [
+      "M10",
+      "M12"
+     ],
+     "full_bonus": 2,
+     "note": "Фиксированный бонус без уменьшения на лаг; учтён один раз."
+    }
+   ],
+   "clip_notes": []
+  },
+  {
+   "measure": "M12",
+   "district": null,
+   "label": "M12 «Единая цифровая платформа обращений» по всему городу",
+   "lag": 1,
+   "realized_share": 0.88,
+   "share_formula": "(8.00 − 1.00) / 8.00",
+   "effects": [
+    {
+     "district": "Есиль",
+     "indicator": "C2",
+     "label": "Скорость решения обращений жителей",
+     "before": 70,
+     "after": 74.38,
+     "applied_value": 4.38,
+     "rounded_term": 4.38,
+     "rounding_adjustment": 0.0,
+     "full_effect": 5,
+     "lag": 1,
+     "realized_share": 0.88,
+     "share_formula": "(8.00 − 1.00) / 8.00"
+    },
+    {
+     "district": "Алматы",
+     "indicator": "C2",
+     "label": "Скорость решения обращений жителей",
+     "before": 60,
+     "after": 64.38,
+     "applied_value": 4.38,
+     "rounded_term": 4.38,
+     "rounding_adjustment": 0.0,
+     "full_effect": 5,
+     "lag": 1,
+     "realized_share": 0.88,
+     "share_formula": "(8.00 − 1.00) / 8.00"
+    },
+    {
+     "district": "Сарыарка",
+     "indicator": "C2",
+     "label": "Скорость решения обращений жителей",
+     "before": 55,
+     "after": 59.38,
+     "applied_value": 4.38,
+     "rounded_term": 4.38,
+     "rounding_adjustment": 0.0,
+     "full_effect": 5,
+     "lag": 1,
+     "realized_share": 0.88,
+     "share_formula": "(8.00 − 1.00) / 8.00"
+    },
+    {
+     "district": "Байконур",
+     "indicator": "C2",
+     "label": "Скорость решения обращений жителей",
+     "before": 58,
+     "after": 62.38,
+     "applied_value": 4.38,
+     "rounded_term": 4.38,
+     "rounding_adjustment": 0.0,
+     "full_effect": 5,
+     "lag": 1,
+     "realized_share": 0.88,
+     "share_formula": "(8.00 − 1.00) / 8.00"
+    },
+    {
+     "district": "Нура",
+     "indicator": "C2",
+     "label": "Скорость решения обращений жителей",
+     "before": 50,
+     "after": 54.38,
+     "applied_value": 4.38,
+     "rounded_term": 4.38,
+     "rounding_adjustment": 0.0,
+     "full_effect": 5,
+     "lag": 1,
+     "realized_share": 0.88,
+     "share_formula": "(8.00 − 1.00) / 8.00"
+    }
+   ],
+   "synergy_lines": [],
+   "clip_notes": []
+  },
+  {
+   "measure": "M5",
+   "district": "Сарыарка",
+   "label": "M5 «Перевод частного сектора на чистое топливо» в Сарыарке",
+   "lag": 3,
+   "realized_share": 0.62,
+   "share_formula": "(8.00 − 3.00) / 8.00",
+   "effects": [
+    {
+     "district": "Сарыарка",
+     "indicator": "E2",
+     "label": "Качество воздуха",
+     "before": 40,
+     "after": 48.75,
+     "applied_value": 8.75,
+     "rounded_term": 8.75,
+     "rounding_adjustment": 0.0,
+     "full_effect": 14,
+     "lag": 3,
+     "realized_share": 0.62,
+     "share_formula": "(8.00 − 3.00) / 8.00"
+    },
+    {
+     "district": "Сарыарка",
+     "indicator": "C1",
+     "label": "Надёжность ЖКХ",
+     "before": 45,
+     "after": 47.5,
+     "applied_value": 2.5,
+     "rounded_term": 2.5,
+     "rounding_adjustment": 0.0,
+     "full_effect": 4,
+     "lag": 3,
+     "realized_share": 0.62,
+     "share_formula": "(8.00 − 3.00) / 8.00"
+    }
+   ],
+   "synergy_lines": [],
+   "clip_notes": []
+  }
+ ],
+ "application_order": [
+  "M10",
+  "M12",
+  "M5",
+  "M7",
+  "M8"
+ ],
+ "synergy_lines": [
+  {
+   "district": "Нура",
+   "indicator": "B1",
+   "label": "Бонус синергии M10 + M12: B1",
+   "before": 65.5,
+   "after": 67.5,
+   "applied_value": 2.0,
+   "rounded_term": 2,
+   "rounding_adjustment": 0.0,
+   "pair": [
+    "M10",
+    "M12"
+   ],
+   "full_bonus": 2,
+   "note": "Фиксированный бонус без уменьшения на лаг; учтён один раз."
+  }
+ ],
+ "clip_notes": [],
+ "rounding_note": "Строки — разности округлённых накопленных итогов (diff2). Поправка округления уже включена в строку; повторно её не прибавляйте. Произведения и доли вычисляются до округления.",
+ "clip_note": "Ограничение применяется один раз после всех эффектов и бонусов. Ограничение не изменило значения."
+}
