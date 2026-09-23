@@ -1002,7 +1002,7 @@ function renderPaper() {
     sc && { label: 'Score', value: num(sc.score) },
     sc?.approval && { label: 'Рейтинг акима', value: num(sc.approval.city, 1) + '%' },
     sc && { label: 'Бюджет', value: `${sc.cost}/${S.ds.budget}` },
-    opt && { label: 'Место из 694 395', value: int(opt.rank) },
+    opt && { label: S.crisis ? 'Место до кризиса' : 'Место из 694 395', value: int(opt.rank) },
   ].filter(Boolean);
   const decs = planDecs(S.plan);
   const provider = r.data.provider || 'offline';
