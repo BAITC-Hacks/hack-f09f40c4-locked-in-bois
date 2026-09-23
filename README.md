@@ -216,7 +216,7 @@ pytest -q
 **Пересборка кэша оптимизатора** (нужна только при изменении датасета):
 ```bash
 python -m engine.optimize      # ≈ 21 с, пишет data/optimizer_cache.json
-RUN_SLOW=1 pytest -q           # плюс тест с полным перебором
+RUN_SLOW=1 pytest -q           # плюс тест с полным перебором (Windows PowerShell: $env:RUN_SLOW=1; pytest -q)
 ```
 
 ---
