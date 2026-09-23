@@ -179,6 +179,41 @@ def post_brief(body: dict = Body(...)):
     return _brief(body)
 
 
+@app.post("/api/stress")
+def stress_plan(body: dict = Body(...)):
+    """Crisis stress test: the plan under each crisis and all three at once + the crisis-proof plan."""
+    from engine import stress
+
+    return _engine_call(stress.stress_test, _valid_plan(body))
+
+
+@app.post("/api/promise")
+def promise_price(body: dict = Body(...)):
+    """Price of a promise: best legal plan keeping every promise, and its cost in Score points."""
+    from engine import promise
+
+    promises = body.get("promises")
+    if not isinstance(promises, list):
+        raise HTTPException(status_code=422, detail="Поле promises должно быть списком обещаний")
+    plan = body.get("plan")
+    return _engine_call(promise.price, promises, plan)
+
+
+@app.get("/api/promise/catalog")
+def promise_catalog():
+    from engine import promise
+
+    return promise.promise_catalog()
+
+
+@app.post("/api/grade")
+def grade_plan(body: dict = Body(...)):
+    """«Разбор партии»: chess-engine grading of each decision + eval bar."""
+    from engine import grading
+
+    return _engine_call(grading.grade, _valid_plan(body))
+
+
 @app.get("/api/health")
 def health():
     return {"ok": True, "provider": os.getenv("LLM_PROVIDER", "offline"),
