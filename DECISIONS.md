@@ -12,3 +12,6 @@ One line per choice made without asking. Newest at the bottom.
 - Every displayed difference (delta, marginal, delta_D, gain, crisis_cost, recovered) = difference of the 2-dp rounded values, so 56.54 − 52.56 shows +3.98, not +3.99 from full precision (`engine.score.diff2`).
 - LLM loop budget `LLM_TIMEOUT` (default 60 s) with `reasoning_effort=low` for gpt-5 models; on timeout the offline template is returned with `fallback_reason`.
 - District case forms (`cases.gen/acc/loc`) added to `dataset.json` so offline Russian text declines district names correctly.
+- LLM fallback chain: `LLM_PROVIDER` is an ordered list (`openai,nvidia`), each provider takes several comma-separated keys (`*_API_KEYS`). Keys are tried in order under one shared `LLM_TIMEOUT`; 401/403/404/410 marks a key dead for the process (fingerprint only); failed runs are not cached. Responses show slot labels (`openai#2`), never keys.
+- Agent's first turn is forced to call `optimize_same_budget` (live gpt-5-mini otherwise answered from the prompt with zero tool calls and recommended the user's own plan).
+- NVIDIA default model → `nvidia/nemotron-3-super-120b-a12b` (`meta/llama-3.3-70b-instruct` reached end-of-life 2026-08-26, HTTP 410). The two NVIDIA keys supplied return 401 at integrate.api.nvidia.com, so the NVIDIA path is unverified live; OpenAI keys verified.

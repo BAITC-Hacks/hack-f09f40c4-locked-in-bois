@@ -367,7 +367,7 @@ def test_nvidia_configuration(monkeypatch, doc):
     assert agent.analyze(doc)["provider"] == "nvidia"
     assert options == {"api_key": "fake-nvidia", "base_url": "https://integrate.api.nvidia.com/v1",
                        "timeout": 60.0, "max_retries": 0}
-    assert client.requests[0]["model"] == "meta/llama-3.3-70b-instruct"
+    assert client.requests[0]["model"] == "nvidia/nemotron-3-super-120b-a12b"
 
 
 def test_narrative_offline(doc):
@@ -476,3 +476,54 @@ def test_brief_is_instant_offline_and_deterministic(monkeypatch, doc):
     assert "Кабинет акима — решение команды" in output
     assert "Все числа посчитаны движком `engine/`; ИИ только объясняет." in output
     assert output == agent.brief(list(reversed(doc["decisions"])))
+
+
+# --- multi-key fallback chain -------------------------------------------------
+
+class _ApiError(Exception):
+    def __init__(self, status):
+        super().__init__(f"boom {status}")
+        self.status_code = status
+
+
+def _chain(monkeypatch, provider_env, keys, clients):
+    """keys: {"OPENAI_API_KEYS": "k1,k2", ...}; clients: {key: FakeClient}."""
+    monkeypatch.setenv("LLM_PROVIDER", provider_env)
+    for name, value in keys.items():
+        monkeypatch.setenv(name, value)
+    monkeypatch.setattr(agent, "_client_factory", lambda api_key, base_url: clients[api_key])
+
+
+def test_second_key_takes_over_and_dead_key_is_skipped(monkeypatch, doc):
+    first = FakeClient([_ApiError(401)])
+    second = FakeClient([_message(_answer(doc)), _message(_answer(doc))])
+    _chain(monkeypatch, "openai", {"OPENAI_API_KEYS": "secret-one,secret-two"},
+           {"secret-one": first, "secret-two": second})
+    result = agent.analyze(doc)
+    assert result["provider"] == "openai" and result["grounded"] is True
+    assert result["fallback_chain"] == ["openai#1: _ApiError 401"]
+    assert "secret" not in json.dumps(result, ensure_ascii=False)
+    agent._CACHE.clear()
+    agent.narrative(doc)  # the 401 key is now skipped: no second request to it
+    assert len(first.requests) == 1
+
+
+def test_openai_fails_then_nvidia_answers(monkeypatch, doc):
+    clients = {"o1": FakeClient([_ApiError(429)]), "n1": FakeClient([_message(_answer(doc))])}
+    _chain(monkeypatch, "openai,nvidia", {"OPENAI_API_KEYS": "o1", "NVIDIA_API_KEYS": "n1"}, clients)
+    result = agent.analyze(doc)
+    assert result["provider"] == "nvidia"
+    assert result["fallback_chain"] == ["openai#1: _ApiError 429"]
+
+
+def test_all_keys_fail_offline_not_cached(monkeypatch, doc):
+    clients = {"a": FakeClient([_ApiError(401)]), "b": FakeClient([_ApiError(500), _message(_answer(doc))])}
+    _chain(monkeypatch, "openai", {"OPENAI_API_KEYS": "a,b"}, clients)
+    result = agent.analyze(doc)
+    assert result["provider"] == "offline"
+    assert result["fallback_reason"] == "LLM unavailable: openai#1: _ApiError 401; openai#2: _ApiError 500"
+    assert "_error" not in result
+    # not cached: the next click retries; key "a" is dead (401), key "b" had a transient 500
+    retry = agent.analyze(doc)
+    assert retry["provider"] == "openai"
+    assert len(clients["a"].requests) == 1

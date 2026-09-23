@@ -244,17 +244,54 @@ def _tool(name, args):
     raise ValueError("Неизвестный инструмент")
 
 
-def _provider():
-    provider = os.getenv("LLM_PROVIDER", "offline").lower().strip()
-    if provider not in ("openai", "nvidia"):
-        return "offline", "", "", ""
-    prefix = provider.upper()
-    key = os.getenv(prefix + "_API_KEY", "").strip()
-    if not key:
-        return "offline", "", "", ""
-    model = os.getenv(prefix + "_MODEL") or ("gpt-5-mini" if provider == "openai" else "meta/llama-3.3-70b-instruct")
-    base = "https://api.openai.com/v1" if provider == "openai" else (os.getenv("NVIDIA_BASE_URL") or "https://integrate.api.nvidia.com/v1")
-    return provider, key, model, base
+_OFFLINE = ("offline", "", "", "")
+_DEFAULT_MODEL = {"openai": "gpt-5-mini", "nvidia": "nvidia/nemotron-3-super-120b-a12b"}
+# Keys that failed with an auth/model error are skipped for the rest of the process.
+# Stored as fingerprints only; the key itself never leaves os.environ.
+_DEAD = set()
+
+
+def _fingerprint(key):
+    return hashlib.sha256(key.encode()).hexdigest()[:16]
+
+
+def _env_keys(prefix):
+    keys = []
+    for chunk in (os.getenv(prefix + "_API_KEYS", ""), os.getenv(prefix + "_API_KEY", "")):
+        for key in chunk.split(","):
+            key = key.strip()
+            if key and key not in keys:
+                keys.append(key)
+    return keys
+
+
+def _providers():
+    """Ordered fallback chain: every key of every provider in LLM_PROVIDER (comma list).
+
+    Returns [(provider, key, model, base, label)], label like "openai#2" (safe to show).
+    An empty list means offline.
+    """
+    chain = []
+    for provider in os.getenv("LLM_PROVIDER", "offline").lower().split(","):
+        provider = provider.strip()
+        if provider not in _DEFAULT_MODEL:
+            continue
+        prefix = provider.upper()
+        model = os.getenv(prefix + "_MODEL") or _DEFAULT_MODEL[provider]
+        base = "https://api.openai.com/v1" if provider == "openai" else (
+            os.getenv("NVIDIA_BASE_URL") or "https://integrate.api.nvidia.com/v1")
+        for index, key in enumerate(_env_keys(prefix), 1):
+            if _fingerprint(key) not in _DEAD:
+                chain.append((provider, key, model, base, f"{provider}#{index}"))
+    return chain
+
+
+def _chain_id(chain):
+    """Cache namespace for a chain (no raw keys)."""
+    if not chain:
+        return _OFFLINE
+    return (",".join(c[4] for c in chain), "".join(c[1] for c in chain),
+            ",".join(c[2] for c in chain), ",".join(c[3] for c in chain))
 
 
 def _client_factory(api_key, base_url):
@@ -303,14 +340,17 @@ def _get(value, name, default=None):
     return value.get(name, default) if isinstance(value, dict) else getattr(value, name, default)
 
 
-def _complete(client, model, messages, deadline, use_tools=False):
+def _complete(client, model, messages, deadline, use_tools=False, force_tool=None):
     remaining = deadline - monotonic()
     if remaining <= 0:
         raise TimeoutError("LLM deadline exceeded")
     kwargs = {"model": model, "messages": messages, "timeout": remaining,
               "response_format": {"type": "json_object"}}
     if use_tools:
-        kwargs.update(tools=TOOLS, tool_choice="auto", parallel_tool_calls=False)
+        # The first agent turn is forced into a real tool call, so the analysis always
+        # starts from the engine (rank, best plan in budget), not from the prompt alone.
+        choice = {"type": "function", "function": {"name": force_tool}} if force_tool else "auto"
+        kwargs.update(tools=TOOLS, tool_choice=choice, parallel_tool_calls=False)
     if str(model).startswith(("gpt-5", "o3", "o4")):
         kwargs["reasoning_effort"] = "low"  # judges' patience > eloquence
     # Unsupported response_format and all other provider failures fall back offline.
@@ -365,7 +405,7 @@ def _narrative_answer(payload, facts):
             "editorial": paper["editorial"], "crit_sidebar": deepcopy(facts["crit_cells"])}}
 
 
-def _explain(config, messages, facts, fallback, finalize, agent=False):
+def _explain(config, messages, facts, fallback, finalize, agent=False, deadline=None):
     provider, key, model, base = config
     offline = {**deepcopy(fallback), "provider": "offline", "grounded": True,
                "guard": {"attempts": 0, "rejected": []}}
@@ -376,10 +416,12 @@ def _explain(config, messages, facts, fallback, finalize, agent=False):
         return offline
     client = None
     try:
-        deadline = monotonic() + float(os.getenv("LLM_TIMEOUT", "60"))
+        if deadline is None:
+            deadline = monotonic() + float(os.getenv("LLM_TIMEOUT", "60"))
         client = _client_factory(api_key=key, base_url=base)
         while True:
-            message = _complete(client, model, messages, deadline, use_tools=agent and len(trace) < 6)
+            message = _complete(client, model, messages, deadline, use_tools=agent and len(trace) < 6,
+                                force_tool="optimize_same_budget" if agent and not trace else None)
             calls = _get(message, "tool_calls") or []
             if not calls:
                 content = _get(message, "content")
@@ -423,6 +465,7 @@ def _explain(config, messages, facts, fallback, finalize, agent=False):
     except Exception as exc:
         # Do not echo SDK exception bodies: they can contain credentials or request data.
         offline["fallback_reason"] = f"LLM unavailable: {type(exc).__name__}"
+        offline["_error"] = (getattr(exc, "status_code", None), type(exc).__name__)
         offline["guard"] = {"attempts": attempts, "rejected": rejected}
         if rejected:
             offline["grounded"] = False
@@ -435,10 +478,35 @@ def _explain(config, messages, facts, fallback, finalize, agent=False):
                 pass
 
 
+def _explain_chain(chain, messages, facts, fallback, finalize, agent=False):
+    """Try each key in order under one shared deadline; offline template if all fail."""
+    if not chain:
+        return _explain(_OFFLINE, messages, facts, fallback, finalize, agent)
+    deadline = monotonic() + float(os.getenv("LLM_TIMEOUT", "60"))
+    failures = []
+    for provider, key, model, base, label in chain:
+        result = _explain((provider, key, model, base), deepcopy(messages), list(facts),
+                          fallback, finalize, agent, deadline=deadline)
+        error = result.pop("_error", None)
+        if error is None or result.get("guard", {}).get("rejected"):
+            if failures:
+                result["fallback_chain"] = failures
+            return result
+        status, name = error
+        failures.append(f"{label}: {name}" + (f" {status}" if status else ""))
+        if status in (401, 403, 404, 410):
+            _DEAD.add(_fingerprint(key))
+        if monotonic() >= deadline:
+            break
+    LOG.warning("All LLM providers failed: %s", failures)
+    result["fallback_reason"] = "LLM unavailable: " + "; ".join(failures)
+    return result
+
+
 def analyze(plan: dict, lang: str = "ru") -> dict:
     plan = _plan(plan)
-    config = _provider()
-    key = _cache_key("analyze", plan, lang, config)
+    chain = _providers()
+    key = _cache_key("analyze", plan, lang, _chain_id(chain))
     cached = _cached(key)
     if cached is not None:
         return cached
@@ -446,9 +514,9 @@ def analyze(plan: dict, lang: str = "ru") -> dict:
     fallback = _offline_analyze(plan, context)
     messages = [{"role": "system", "content": ANALYST_SYSTEM},
                 {"role": "user", "content": _json({"plan": plan, "lang": lang, "dataset": load_dataset(), **context})}]
-    result = _explain(config, messages, [context], fallback,
-                      lambda payload: _analyst_answer(payload, fallback), agent=True)
-    return _save(key, result)
+    result = _explain_chain(chain, messages, [context], fallback,
+                            lambda payload: _analyst_answer(payload, fallback), agent=True)
+    return result if "fallback_reason" in result else _save(key, result)
 
 
 def _narrative_facts(plan, event_id=None, swap=None):
@@ -487,8 +555,8 @@ def _narrative_facts(plan, event_id=None, swap=None):
 
 def narrative(plan: dict, lang: str = "ru", event_id: str | None = None, swap: dict | None = None) -> dict:
     plan = _plan(plan)
-    config = _provider()
-    key = _cache_key("narrative", plan, lang, config, event_id, swap)
+    chain = _providers()
+    key = _cache_key("narrative", plan, lang, _chain_id(chain), event_id, swap)
     cached = _cached(key)
     if cached is not None:
         return cached
@@ -496,8 +564,9 @@ def narrative(plan: dict, lang: str = "ru", event_id: str | None = None, swap: d
     fallback = template(plan, facts)
     messages = [{"role": "system", "content": NARRATOR_SYSTEM},
                 {"role": "user", "content": _json({"plan": plan, "lang": lang, "facts": facts})}]
-    result = _explain(config, messages, [facts], fallback, lambda payload: _narrative_answer(payload, facts))
-    return _save(key, result)
+    result = _explain_chain(chain, messages, [facts], fallback, lambda payload: _narrative_answer(payload, facts))
+    # A failed online run is not cached, so the next click retries the providers.
+    return result if "fallback_reason" in result else _save(key, result)
 
 
 def brief(plan: dict) -> str:
