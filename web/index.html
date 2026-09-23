@@ -3,23 +3,23 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Кабинет акима</title>
+<title>Кабинет акима · Астана</title>
+<meta name="description" content="Пять решений, сто единиц, 694 395 законных планов. Симулятор решений акима Астаны с движком AQLS.">
+<meta name="theme-color" content="#0d2a33">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%230d2a33'/%3E%3Cpath d='M4 22 L11 20 L16 12 L21 14 L28 6' fill='none' stroke='%2319b8d8' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Playfair+Display:ital,wght@0,700;0,900;1,400;1,700&family=PT+Serif:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Sofia+Sans+Extra+Condensed:wght@600;700;800;900&family=Sofia+Sans:ital,wght@0,400;0,500;0,600;0,700;1,400&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdn.tailwindcss.com"></script>
 <script>
   tailwind.config = {
     theme: {
       extend: {
-        colors: {
-          accent: { DEFAULT: '#19b8d8', soft: '#0e3a47', ink: '#062a33' },
-          base: { 950: '#070b14', 900: '#0b1120', 850: '#0f1628', 800: '#141c30', 700: '#1e293b', 600: '#334155' },
-        },
+        colors: { paper: '#f0f5f5', ink: '#0d2a33', pen: '#19b8d8', peni: '#0a7d95', alarm: '#cf3a2c', steel: '#dfe5e6', rule: '#b9c7ca', graph: '#56696f' },
         fontFamily: {
-          sans: ['Inter', 'system-ui', 'Segoe UI', 'Roboto', 'Arial', 'sans-serif'],
-          display: ['"Playfair Display"', 'Georgia', 'Times New Roman', 'serif'],
-          serif: ['"PT Serif"', 'Georgia', 'Times New Roman', 'serif'],
+          display: ['"Sofia Sans Extra Condensed"', '"Sofia Sans"', 'Arial Narrow', 'sans-serif'],
+          sans: ['"Sofia Sans"', 'system-ui', 'Segoe UI', 'Roboto', 'sans-serif'],
+          mono: ['"JetBrains Mono"', 'ui-monospace', 'Consolas', 'monospace'],
         },
       },
     },
@@ -27,75 +27,164 @@
 </script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <style>
-  :root { --accent: #19b8d8; --danger: #ef4444; --ok: #22c55e; }
-  html { background: #070b14; }
-  body { background: radial-gradient(1200px 600px at 80% -10%, rgba(25,184,216,.08), transparent 60%), #070b14; color: #e2e8f0; font-feature-settings: "tnum" 1, "cv11" 1; }
-  .card { background: #0f1628; border: 1px solid #1e293b; border-radius: 16px; }
-  .card-h { font-size: 11px; letter-spacing: .12em; text-transform: uppercase; color: #94a3b8; font-weight: 600; }
-  .skel { background: linear-gradient(90deg, #141c30 0%, #1e293b 50%, #141c30 100%); background-size: 200% 100%; animation: skel 1.2s infinite linear; border-radius: 10px; }
-  @keyframes skel { from { background-position: 200% 0 } to { background-position: -200% 0 } }
-  .spin { width: 14px; height: 14px; border: 2px solid rgba(148,163,184,.35); border-top-color: var(--accent); border-radius: 50%; animation: spin .8s linear infinite; display: inline-block; vertical-align: -2px; }
-  @keyframes spin { to { transform: rotate(360deg) } }
-  .tab-btn[aria-selected="true"] { color: #fff; background: #141c30; box-shadow: inset 0 -2px 0 var(--accent); }
-  .measure { transition: transform .12s ease, border-color .12s ease, background .12s ease; }
-  .measure:hover:not([disabled]) { transform: translateY(-1px); border-color: #334155; }
-  .measure[data-selected="true"] { border-color: var(--accent); background: linear-gradient(180deg, rgba(25,184,216,.10), rgba(25,184,216,.02)); }
-  .measure[disabled] { opacity: .38; cursor: not-allowed; }
-  .no-scrollbar::-webkit-scrollbar { display: none; } .no-scrollbar { scrollbar-width: none; }
-  .pulse-ring { box-shadow: 0 0 0 0 rgba(239,68,68,.55); animation: pring 1.8s infinite; }
-  @keyframes pring { 70% { box-shadow: 0 0 0 12px rgba(239,68,68,0) } 100% { box-shadow: 0 0 0 0 rgba(239,68,68,0) } }
-  .fade-in { animation: fin .35s ease both; } @keyframes fin { from { opacity: 0; transform: translateY(6px) } to { opacity: 1; transform: none } }
-
-  /* ---------- newspaper ---------- */
-  .paper { background: #f4efe4; color: #1c1917; font-family: "PT Serif", Georgia, serif;
-    background-image: radial-gradient(rgba(120,100,60,.06) 1px, transparent 1px); background-size: 3px 3px;
-    box-shadow: 0 30px 80px rgba(0,0,0,.55), 0 0 0 1px rgba(0,0,0,.2); }
-  .paper .masthead { font-family: "Playfair Display", Georgia, serif; font-weight: 900; letter-spacing: -.01em; line-height: .9; }
-  .paper .rule-2 { border-top: 3px double #1c1917; }
-  .paper .rule { border-top: 1px solid #1c1917; }
-  .paper .hl { font-family: "Playfair Display", Georgia, serif; font-weight: 900; line-height: 1.02; letter-spacing: -.01em; }
-  .paper .cols-2 { column-count: 2; column-gap: 1.6rem; column-rule: 1px solid rgba(28,25,23,.25); }
-  @media (max-width: 640px) { .paper .cols-2 { column-count: 1; } }
-  .paper .dropcap::first-letter { float: left; font-family: "Playfair Display", serif; font-weight: 900; font-size: 3.6em; line-height: .8; padding: .08em .08em 0 0; }
-  .paper p { text-align: justify; hyphens: auto; }
-  .paper .kicker { font-family: Inter, sans-serif; font-size: 10.5px; letter-spacing: .18em; text-transform: uppercase; font-weight: 700; }
-  .paper .red { color: #b91c1c; }
-  .paper .redbox { border: 2px solid #b91c1c; }
-  .paper .redbar { background: #b91c1c; color: #fff; }
+  :root{--page:#e3eaeb;--paper:#f0f5f5;--grid:#d3e8ec;--grid2:#a9d6df;--ink:#0d2a33;--ink2:#0a2229;--row:#0f2c35;--graph:#56696f;--pen:#19b8d8;--pen-ink:#0a7d95;--red:#cf3a2c;--steel:#dfe5e6;--rule:#b9c7ca;--white:#fbfdfd}
+  *{box-sizing:border-box}
+  html{background:var(--page);scrollbar-color:#9fb0b4 var(--page)}
+  body{margin:0;background:var(--page);color:var(--ink);font:15px/1.5 "Sofia Sans",system-ui,sans-serif;font-variant-numeric:tabular-nums;-webkit-font-smoothing:antialiased}
+  ::selection{background:var(--pen);color:#fff}
+  :focus-visible{outline:2px solid var(--pen);outline-offset:2px}
+  .disp{font-family:"Sofia Sans Extra Condensed","Sofia Sans",sans-serif}
+  .mono{font-family:"JetBrains Mono",ui-monospace,monospace}
+  button{font:inherit;color:inherit}
+  /* materials */
+  .paper{background-color:var(--paper);
+    background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px),linear-gradient(var(--grid2) 1px,transparent 1px),linear-gradient(90deg,var(--grid2) 1px,transparent 1px);
+    background-size:8px 8px,8px 8px,40px 40px,40px 40px;border:1px solid var(--rule)}
+  .strip{position:relative;padding:18px 40px}
+  .strip:before,.strip:after{content:"";position:absolute;top:0;bottom:0;width:20px;background:radial-gradient(circle at 10px 12px,var(--page) 4px,transparent 4.5px) 0 0/20px 24px repeat-y}
+  .strip:before{left:0;border-right:1px dashed var(--rule)} .strip:after{right:0;border-left:1px dashed var(--rule)}
+  .plate{background:var(--steel);border:1px solid var(--rule)}
+  .sheet-w{background:var(--white);border:1px solid var(--rule)}
+  .inkp{background:var(--ink);color:#e9f6f8}
+  .lbl{font:600 11.5px/1.3 "Sofia Sans";letter-spacing:.12em;text-transform:uppercase;color:var(--graph)}
+  .inkp .lbl{color:#8fc9d6}
+  .h2{font:800 34px/1 "Sofia Sans Extra Condensed";letter-spacing:.005em;margin:0}
+  .hsec{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 14px;margin:0 0 14px}
+  .hsec p{margin:0;color:var(--graph);font-size:14px}
+  .big{font:900 124px/.82 "Sofia Sans Extra Condensed";letter-spacing:-.01em}
+  .mid{font:800 44px/.9 "Sofia Sans Extra Condensed"}
+  .sm{font:700 22px/1.05 "Sofia Sans Extra Condensed"}
+  .peni{color:var(--pen-ink)} .red{color:var(--red)} .mut{color:var(--graph)}
+  /* top bar */
+  .topbar{position:sticky;top:env(safe-area-inset-top,0);z-index:30;background:var(--steel);border-bottom:1px solid var(--rule);box-shadow:0 1px 0 #fff inset}
+  .mark{width:30px;height:30px;background:var(--ink);display:grid;place-items:center;flex:none}
+  .tab{padding:8px 14px;font:700 17px/1 "Sofia Sans Extra Condensed";letter-spacing:.04em;text-transform:uppercase;color:var(--graph);border:1px solid transparent;white-space:nowrap;cursor:pointer;background:none}
+  .tab:hover{color:var(--ink)}
+  .tab[aria-selected="true"]{background:var(--ink);color:#fff}
+  .tab[disabled]{opacity:.45;cursor:default}
+  /* buttons */
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:0;cursor:pointer;padding:12px 18px;font:800 18px/1 "Sofia Sans Extra Condensed";letter-spacing:.06em;text-transform:uppercase;transition:background .15s,color .15s,transform .1s}
+  .btn:active:not([disabled]){transform:translateY(1px)}
+  .btn-ink{background:var(--ink);color:#fff} .btn-ink:hover:not([disabled]){background:#12394a}
+  .btn-pen{background:var(--pen);color:#04232b} .btn-pen:hover:not([disabled]){background:#35c6e2}
+  .btn-red{background:var(--red);color:#fff} .btn-red:hover:not([disabled]){background:#b73125}
+  .btn-line{background:transparent;color:var(--ink);box-shadow:inset 0 0 0 1.5px var(--ink)} .btn-line:hover{background:rgba(13,42,51,.06)}
+  .btn[disabled]{background:#c9d3d5;color:#7f8e92;cursor:not-allowed;box-shadow:none}
+  /* cabinet */
+  .dirrow{display:grid;grid-template-columns:132px 1fr;gap:12px;margin-bottom:12px}
+  .dirname{border-top:3px solid var(--ink);padding-top:8px}
+  .dirname b{display:block;font:800 23px/1 "Sofia Sans Extra Condensed"}
+  .dirname small{display:block;margin-top:6px;font-size:12px;line-height:1.35;color:var(--graph)}
+  .cnt{display:inline-block;margin-top:8px;font:600 12px "JetBrains Mono";padding:1px 6px;border:1px solid var(--rule)}
+  .cnt.full{background:var(--ink);color:#fff;border-color:var(--ink)}
+  .ch{position:relative;text-align:left;background:var(--white);border:1px solid var(--rule);padding:11px 12px 10px;display:flex;flex-direction:column;gap:5px;cursor:pointer;transition:border-color .12s,transform .12s,box-shadow .12s}
+  .ch:hover:not([disabled]){border-color:var(--ink);transform:translateY(-1px);box-shadow:0 3px 10px rgba(13,42,51,.08)}
+  .ch[data-selected="true"]{border:2px solid var(--pen);padding:10px 11px 9px;background:#effafd}
+  .ch[disabled]{opacity:.45;cursor:not-allowed}
+  .code{font:600 12px "JetBrains Mono";border:1.5px solid var(--ink);padding:1px 5px;line-height:1.3}
+  .ch[data-selected="true"] .code{background:var(--ink);color:#fff}
+  .typ{font:600 10.5px "Sofia Sans";letter-spacing:.1em;text-transform:uppercase;color:var(--graph)}
+  .cost{font:800 28px/1 "Sofia Sans Extra Condensed"} .cost small{font:600 13px "Sofia Sans";color:var(--graph)}
+  .nm{font-weight:700;line-height:1.2}
+  .eff{font:500 11.5px/1.45 "JetBrains Mono";color:var(--graph)} .eff .neg{color:var(--red)}
+  .lagbar{display:grid;grid-template-columns:repeat(8,1fr);gap:2px}
+  .lagbar i{height:7px;background:var(--grid2)} .lagbar i.r{background:var(--pen)}
+  .why{font-size:12px;color:var(--graph)}
+  .pin{position:absolute;right:-1px;top:-11px;background:var(--pen);color:#04232b;font:700 11px/1 "JetBrains Mono";padding:5px 7px}
+  .slot{display:grid;grid-template-columns:22px 1fr auto;gap:8px;align-items:center;border-top:1px solid var(--rule);padding:7px 0;font-size:13.5px}
+  .slot .n{font:600 12px "JetBrains Mono";color:var(--graph)}
+  .slot.empty{color:#8a989c}
+  .x{border:0;background:none;cursor:pointer;color:var(--graph);font-size:18px;line-height:1;padding:2px 6px}
+  .x:hover{color:var(--red)}
+  .tape{font:500 12.5px/1.45 "JetBrains Mono";background:#fffdf7;border:1px dashed var(--rule);padding:9px 10px;min-height:44px}
+  .dirc{display:grid;grid-template-columns:repeat(5,1fr);gap:4px}
+  .dirc div{border:1px solid var(--rule);background:var(--white);text-align:center;padding:4px 2px}
+  .dirc b{display:block;font:600 13px "JetBrains Mono"} .dirc span{display:block;font-size:10px;color:var(--graph);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .dirc .on{border-color:var(--pen)} .dirc .on b{color:var(--pen-ink)} .dirc .bad{border-color:var(--red)} .dirc .bad b{color:var(--red)}
+  /* verdict */
+  .dialbox{padding:14px 16px 16px}
+  .board{background:var(--ink);padding:10px;border:1px solid #061a20}
+  .brow{display:grid;align-items:center;gap:10px;background:var(--row);padding:9px 10px;color:#e9f6f8;margin-top:4px}
+  .bhead{display:grid;gap:10px;padding:2px 10px 6px;font:600 11px "Sofia Sans";letter-spacing:.12em;text-transform:uppercase;color:#8fb4bd}
+  .lamp{width:12px;height:12px;border-radius:50%;background:#26414a;box-shadow:inset 0 1px 2px #000}
+  .lamp.on{background:var(--pen);box-shadow:0 0 0 3px rgba(25,184,216,.22)} .lamp.r{background:var(--red);box-shadow:0 0 0 3px rgba(207,58,44,.22)}
+  .cells{display:grid;grid-template-columns:repeat(10,1fr);gap:3px}
+  .cell{background:#163843;text-align:center;padding:3px 0 2px;font:500 12px/1.2 "JetBrains Mono"}
+  .cell small{display:block;font-size:9.5px;color:#7fc9d9}
+  .cell.crit{background:var(--red);color:#fff} .cell.crit small{color:#ffd7d2}
+  .cell.fix{box-shadow:inset 0 0 0 1.5px var(--pen)}
+  .bval{font:600 16px "JetBrains Mono"} .bval.pen{color:#6fd6ea} .bval.red{color:#ff8e82}
+  .notice{background:var(--white);border:1px solid var(--rule);padding:14px 16px;box-shadow:0 2px 6px rgba(13,42,51,.07)}
+  .notice h3{margin:0 0 6px;font:800 21px/1.05 "Sofia Sans Extra Condensed";text-transform:uppercase;letter-spacing:.02em}
+  .notice ul{margin:0;padding-left:16px;font-size:14px} .notice li{margin:3px 0}
+  .council-card{background:var(--white);border:1px solid var(--rule);padding:12px 14px;display:flex;flex-direction:column}
+  .council-card .head{display:flex;justify-content:space-between;align-items:baseline;border-bottom:2px solid var(--ink);padding-bottom:6px;margin-bottom:8px}
+  .mood{font:600 11.5px "JetBrains Mono";letter-spacing:.06em}
+  table.log{width:100%;border-collapse:collapse;font:500 14px "JetBrains Mono"}
+  .log th{font:600 11.5px "Sofia Sans";text-transform:uppercase;letter-spacing:.08em;color:var(--graph);padding:8px 8px;border-bottom:2px solid var(--ink);text-align:right}
+  .log td{padding:9px 8px;border-bottom:1px solid var(--rule);text-align:right}
+  .log th:nth-child(2),.log td:nth-child(2){text-align:left}
+  .log tr.me td{background:#effafd} .log tr.pin-opt td{background:#fbe9e7} .log tr.pin-bal td{background:#f3f8e9}
+  /* crisis */
+  .opp{background:var(--ink);color:#e9f6f8;padding:22px}
+  .opp h3{margin:0;font:900 44px/.95 "Sofia Sans Extra Condensed"}
+  .chip{display:inline-block;font:500 12px "JetBrains Mono";border:1px solid rgba(255,142,130,.5);color:#ffcfc9;padding:3px 7px;margin:3px 4px 0 0}
+  .opt{width:100%;display:grid;grid-template-columns:18px 1fr auto;gap:10px;align-items:center;text-align:left;border:1px solid var(--rule);background:var(--white);padding:8px 10px;margin-top:5px;cursor:pointer}
+  .opt:hover:not([disabled]){border-color:var(--ink)}
+  .opt .rd{width:16px;height:16px;border:1.5px solid var(--ink);border-radius:50%;display:grid;place-items:center}
+  .opt.out{border-color:var(--red);background:#fdf1ef} .opt.out .rd{background:var(--red);border-color:var(--red)} .opt.out .t{text-decoration:line-through;color:var(--graph)}
+  .opt.in{border-color:var(--pen);background:#effafd} .opt.in .rd{background:var(--pen);border-color:var(--pen)}
+  .opt[disabled]{opacity:.4;cursor:not-allowed}
+  select{font:500 14px "Sofia Sans";border:1.5px solid var(--ink);background:#fff;padding:6px 8px;width:100%;margin-top:6px}
+  /* paper page */
+  .tele{max-width:900px;margin:0 auto;background:#fbfbf6;border:1px solid var(--rule);padding:30px 52px 26px;position:relative;box-shadow:0 18px 40px rgba(13,42,51,.12)}
+  .tele:before,.tele:after{content:"";position:absolute;top:0;bottom:0;width:26px;background:radial-gradient(circle at 13px 12px,var(--page) 5px,transparent 5.5px) 0 0/26px 24px repeat-y}
+  .tele:before{left:0}.tele:after{right:0}
+  .tele .mast{font:900 64px/.9 "Sofia Sans Extra Condensed";letter-spacing:.01em;text-align:center;margin:6px 0 4px}
+  .tele .hl{font:900 44px/.98 "Sofia Sans Extra Condensed";margin:18px 0 10px}
+  .tele .item{margin-top:14px} .tele .item b{font:600 14px "JetBrains Mono";text-transform:uppercase;display:block}
+  .tele .body{font:14.5px/1.6 "JetBrains Mono"}
+  /* misc */
+  .skel{background:linear-gradient(90deg,#e8eff0 0%,#f6fafa 50%,#e8eff0 100%);background-size:200% 100%;animation:sk 1.3s infinite linear;border:1px solid var(--rule)}
+  @keyframes sk{from{background-position:200% 0}to{background-position:-200% 0}}
+  .spin{width:14px;height:14px;border:2px solid rgba(86,105,111,.3);border-top-color:var(--pen);border-radius:50%;animation:spin .8s linear infinite;display:inline-block;vertical-align:-2px}
+  @keyframes spin{to{transform:rotate(360deg)}}
+  .fade{animation:fade .35s cubic-bezier(.16,1,.3,1) both} @keyframes fade{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+  .pulse{animation:pulse 1.8s infinite} @keyframes pulse{0%{box-shadow:0 0 0 0 rgba(207,58,44,.5)}70%{box-shadow:0 0 0 12px rgba(207,58,44,0)}100%{box-shadow:0 0 0 0 rgba(207,58,44,0)}}
+  #modal{position:fixed;inset:0;z-index:50;background:rgba(6,26,32,.62);display:none;align-items:flex-end;justify-content:center;padding:0}
+  #modal.open{display:flex}
+  @media(min-width:640px){#modal{align-items:center;padding:24px}}
+  #toast{position:fixed;left:50%;bottom:96px;transform:translateX(-50%);z-index:60;pointer-events:none}
+  @media(min-width:1024px){#toast{bottom:28px}}
+  @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+  @media(max-width:1023px){.dirrow{grid-template-columns:1fr}.big{font-size:96px}}
+  @media(max-width:640px){.strip{padding:14px 28px}.strip:before,.strip:after{width:14px;background-size:14px 24px}.tele{padding:22px 30px}.tele .mast{font-size:44px}.tele .hl{font-size:32px}.big{font-size:80px}.h2{font-size:28px}}
 </style>
 </head>
-<body class="min-h-screen font-sans antialiased">
-
-<!-- ================= HEADER ================= -->
-<header class="sticky z-30 border-b border-base-700/70 bg-base-950/85 backdrop-blur" style="top: env(safe-area-inset-top, 0px)">
-  <div class="mx-auto flex max-w-7xl items-center gap-3 px-4 py-3">
-    <div class="flex items-center gap-2.5 shrink-0">
-      <div class="grid h-8 w-8 place-items-center rounded-lg bg-accent text-base-950 font-extrabold text-sm">А</div>
-      <div class="leading-tight">
-        <div class="text-sm font-bold tracking-tight">Кабинет акима</div>
-        <div class="text-[11px] text-slate-400">Астана · 694 395 планов</div>
-      </div>
+<body>
+<header class="topbar">
+  <div class="mx-auto flex max-w-[1280px] items-center gap-3 px-4 py-2.5 sm:px-6">
+    <div class="mark" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 32 32"><path d="M3 22 L10 20 L15 11 L21 14 L29 5" fill="none" stroke="#19b8d8" stroke-width="3.4" stroke-linecap="round" stroke-linejoin="round"/></svg></div>
+    <div class="mr-2 leading-tight">
+      <div class="disp whitespace-nowrap text-[20px] font-extrabold leading-none sm:text-[22px]">Кабинет акима</div>
+      <div class="mono hidden text-[11px] text-graph sm:block">Астана · 694 395 планов</div>
     </div>
-    <nav id="tabs" class="no-scrollbar ml-2 flex flex-1 gap-1 overflow-x-auto" role="tablist"></nav>
-    <span id="modeBadge" class="hidden shrink-0 rounded-full border border-base-600 px-2.5 py-1 text-[11px] text-slate-300 sm:inline-flex"></span>
+    <nav id="tabs" class="flex flex-1 gap-1 overflow-x-auto" role="tablist" aria-label="Разделы"></nav>
+    <span id="modeBadge" class="mono hidden shrink-0 border border-rule bg-white/60 px-2 py-1 text-[11px] text-graph md:inline"></span>
   </div>
 </header>
+<div id="banner" class="hidden border-b border-rule bg-[#fff4d6] px-4 py-2 text-center text-[13px]" role="status"></div>
 
-<div id="banner" class="hidden border-b border-amber-500/30 bg-amber-500/10 px-4 py-2 text-center text-xs text-amber-200"></div>
-
-<main class="mx-auto max-w-7xl px-4 pb-32 pt-6 lg:pb-16">
-  <section id="tab-cabinet" data-tab="cabinet"></section>
-  <section id="tab-verdict" data-tab="verdict" hidden></section>
-  <section id="tab-paper" data-tab="paper" hidden></section>
-  <section id="tab-board" data-tab="board" hidden></section>
+<main class="mx-auto max-w-[1280px] px-4 pb-32 pt-6 sm:px-6 lg:pb-16">
+  <section id="tab-cabinet" data-tab="cabinet" aria-label="Кабинет"></section>
+  <section id="tab-verdict" data-tab="verdict" aria-label="Вердикт" hidden></section>
+  <section id="tab-paper" data-tab="paper" aria-label="Газета" hidden></section>
+  <section id="tab-board" data-tab="board" aria-label="Лидерборд" hidden></section>
 </main>
 
-<!-- mobile action bar (cabinet) -->
-<div id="mobileBar" class="fixed inset-x-0 bottom-0 z-30 border-t border-base-700 bg-base-950/95 px-4 pt-3 backdrop-blur lg:hidden" style="padding-bottom: calc(12px + env(safe-area-inset-bottom, 0px))"></div>
-
-<!-- modal root -->
-<div id="modal" class="fixed inset-0 z-50 hidden items-end justify-center bg-black/70 p-0 backdrop-blur-sm sm:items-center sm:p-6"></div>
-<div id="toast" class="pointer-events-none fixed bottom-24 left-1/2 z-[60] -translate-x-1/2 lg:bottom-8"></div>
+<div id="mobileBar" class="fixed inset-x-0 bottom-0 z-30 border-t border-rule bg-steel px-4 pt-3 lg:hidden" style="padding-bottom:calc(12px + env(safe-area-inset-bottom,0px))"></div>
+<div id="modal" role="dialog" aria-modal="true"></div>
+<div id="toast" aria-live="polite"></div>
 
 <script>
 'use strict';
@@ -103,7 +192,7 @@
    CONFIG — the ONE place to point the page at a backend.
    ?mock=1        → replay web/mock/*.json fixtures (real API responses for the doc example)
    ?api=https://… → API base URL (default: same origin; FastAPI serves this page at /)
-   ?session=room1 → leaderboard room for the QR audience
+   ?session=room1 → leaderboard room
    ?seed=1        → fixed crisis event (events[seed % 3]); random otherwise
    ===================================================================== */
 const QS = new URLSearchParams(location.search);
@@ -123,21 +212,21 @@ const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '
 const num = (x, d = 2) => (x == null || isNaN(x) ? '—' : Number(x).toFixed(d).replace('.', ','));
 const int = (x) => (x == null || isNaN(x) ? '—' : Math.round(Number(x)).toLocaleString('ru-RU'));
 const sign = (x, d = 2) => (x == null || isNaN(x) ? '—' : (x > 0 ? '+' : x < 0 ? '−' : '±') + num(Math.abs(x), d));
-const pct = (x, d = 0) => (x == null || isNaN(x) ? '—' : num(x, d) + '%');
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const plural = (n, one, few, many) => { const a = n % 10, b = n % 100; return a === 1 && b !== 11 ? one : a >= 2 && a <= 4 && (b < 10 || b >= 20) ? few : many; };
+const unq = (s) => String(s || '').replace(/^«|»$/g, '');
 const skel = (h = 'h-24', extra = '') => `<div class="skel ${h} ${extra}"></div>`;
-const spinner = (t = 'Загрузка…') => `<span class="inline-flex items-center gap-2 text-slate-400"><span class="spin"></span>${esc(t)}</span>`;
+const spinner = (t = 'Загрузка…') => `<span class="inline-flex items-center gap-2 text-graph"><span class="spin"></span>${esc(t)}</span>`;
+const scale = (v, a, b, c, d) => c + ((v - a) / (b - a)) * (d - c);
 function toast(msg) {
   const t = $('#toast');
-  t.innerHTML = `<div class="fade-in rounded-xl border border-base-600 bg-base-800 px-4 py-2.5 text-sm shadow-2xl">${esc(msg)}</div>`;
+  t.innerHTML = `<div class="fade mono border border-ink bg-ink px-4 py-2.5 text-[13px] text-white shadow-lg">${esc(msg)}</div>`;
   clearTimeout(toast._t); toast._t = setTimeout(() => (t.innerHTML = ''), 2600);
 }
 
 /* ---------------- API layer ---------------- */
 let SOURCE = null; // 'api' | 'mock'
 class HttpError extends Error { constructor(status, msg) { super(msg); this.status = status; } }
-
 async function api(method, path, body, { timeout = CONFIG.TIMEOUT_MS } = {}) {
   if (SOURCE === 'mock') return mockCall(method, path, body);
   const ctl = new AbortController();
@@ -190,34 +279,34 @@ async function mockCall(method, path, body) {
   throw new Error('mock: нет ответа для ' + p);
 }
 
-/* ---------------- dataset helpers ---------------- */
+/* ---------------- dataset + state ---------------- */
 const S = {
   ds: null, mi: {}, dir: {}, ind: {}, dist: {},
   slots: [], val: null, validating: false, valSeq: 0,
-  plan: null, run: 0,
+  plan: null, run: 0, narBody: null,
   r: { score: null, opt: null, ai: null, nar: null },   // each: {loading}|{data}|{error}
   crisis: null,                                         // {event, swap, result, before}
-  tab: 'cabinet', provider: null,
+  tab: 'cabinet',
 };
 const IND_SHORT = { T1: 'дороги', T2: 'общ. транспорт', E1: 'зелень', E2: 'воздух', S1: 'школы', S2: 'поликлиники', B1: 'улицы', B2: 'ДТП', C1: 'ЖКХ', C2: 'обращения' };
+const QL = ['старт', 'I кв. 27', 'II кв. 27', 'III кв. 27', 'IV кв. 27', 'I кв. 28', 'II кв. 28', 'III кв. 28', 'IV кв. 28'];
 const indShort = (c) => IND_SHORT[c] || S.ind[c]?.name || c;
 const dirName = (id) => S.dir[id]?.name || id;
-const gen = (name) => S.dist[name]?.cases?.gen || name;
 const loc = (name) => S.dist[name]?.cases?.loc || name;
 const realized = (m) => Math.max(0, S.ds.horizon_quarters - m.lag) / S.ds.horizon_quarters;
 const districtD = (d) => S.ds.indicators.reduce((s, i) => s + i.weight * d.values[i.code], 0);
 const planOf = () => ({ decisions: S.slots.filter(Boolean).map((s) => ({ measure: s.measure, district: s.district ?? null })) });
+const planDecs = (p) => (Array.isArray(p) ? p : p?.decisions) || [];
 const decShort = (d) => `${d.measure}${d.district ? ' · ' + d.district : ''}`;
 const decLong = (d) => { const m = S.mi[d.measure]; return m ? `${m.id} «${m.name}»${d.district ? ' · ' + d.district : ''}` : d.measure; };
-const planDecs = (p) => (Array.isArray(p) ? p : p?.decisions) || [];
+const BASELINE = () => S.ds?.reference?.baseline_score ?? 52.56;
 function applySwap(plan, swap) {
   const decs = planDecs(plan).map((d) => ({ ...d }));
   const i = decs.findIndex((d) => d.measure === swap?.out);
   if (i >= 0 && swap?.in) decs[i] = { measure: swap.in.measure, district: swap.in.district ?? null };
   return { decisions: decs };
 }
-function indexDataset(raw) {
-  const ds = raw;
+function indexDataset(ds) {
   ds.budget ??= 100; ds.horizon_quarters ??= 8; ds.decisions_required ??= 5; ds.max_per_direction ??= 2; ds.crit_threshold ??= 40;
   S.ds = ds;
   S.mi = Object.fromEntries(ds.measures.map((m) => [m.id, m]));
@@ -225,10 +314,9 @@ function indexDataset(raw) {
   S.ind = Object.fromEntries(ds.indicators.map((i) => [i.code, i]));
   S.dist = Object.fromEntries(ds.districts.map((d) => [d.name, d]));
 }
-const BASELINE = () => S.ds?.reference?.baseline_score ?? 52.56;
 
-/* local validator: same rules and order as engine/validate.py. Used for instant UI hints + mock mode.
-   With {partial:true} the "exactly 5" rule is skipped so conflicts show up while the plan is being built. */
+/* local validator: same rules and order as engine/validate.py (instant hints + mock mode).
+   {partial:true} skips "exactly 5" so conflicts show while the plan is still being built. */
 function localValidate(plan, { partial = false } = {}) {
   const ds = S.ds, decs = planDecs(plan), ms = S.mi;
   let cost = 0; const counts = Object.fromEntries(ds.directions.map((d) => [d.id, 0]));
@@ -251,7 +339,6 @@ function localValidate(plan, { partial = false } = {}) {
   }
   return res(null);
 }
-/* why can't measure m (optionally in district) be added to the current slots? */
 function blockReason(m, district, decs) {
   if (decs.some((d) => d.measure === m.id)) return 'Уже в плане';
   if (decs.length >= S.ds.decisions_required) return 'Все 5 слотов заняты';
@@ -269,10 +356,9 @@ function blockReason(m, district, decs) {
 }
 
 /* ---------------- tabs ---------------- */
-const TABS = [{ id: 'cabinet', name: 'Кабинет акима' }, { id: 'verdict', name: 'Вердикт' }, { id: 'paper', name: 'Астана Times' }, { id: 'board', name: 'Лидерборд' }];
+const TABS = [{ id: 'cabinet', name: 'Кабинет' }, { id: 'verdict', name: 'Вердикт' }, { id: 'paper', name: 'Газета' }, { id: 'board', name: 'Лидерборд' }];
 function renderTabs() {
-  $('#tabs').innerHTML = TABS.map((t) => `<button role="tab" data-go="${t.id}" aria-selected="${S.tab === t.id}"
-    class="tab-btn whitespace-nowrap rounded-lg px-3 py-2 text-sm font-medium text-slate-400 hover:text-white">${t.name}</button>`).join('');
+  $('#tabs').innerHTML = TABS.map((t) => `<button role="tab" class="tab" data-go="${t.id}" aria-selected="${S.tab === t.id}">${t.name}</button>`).join('');
 }
 function go(tab) {
   S.tab = tab;
@@ -288,26 +374,25 @@ function go(tab) {
 document.addEventListener('click', (e) => { const b = e.target.closest('[data-go]'); if (b) go(b.dataset.go); });
 
 /* =====================================================================
-   КАБИНЕТ АКИМА
+   КАБИНЕТ
    ===================================================================== */
 function renderCabinetShell() {
   $('#tab-cabinet').innerHTML = `
     <div class="mb-6 flex flex-wrap items-end justify-between gap-4">
-      <div>
-        <div class="card-h mb-1">Кабинет акима · Астана, 8 кварталов до IV кв. 2028</div>
-        <h1 class="text-2xl font-bold tracking-tight sm:text-3xl">Пять решений. Сто единиц. Пять районов ждут.</h1>
-        <p class="mt-1.5 max-w-2xl text-sm text-slate-400">Ровно 5 мер, не больше 2 из одного направления, бюджет 100. Районную меру привязываем к району. Эффект растёт после лага: к концу срока реализуется только его часть.</p>
+      <div class="max-w-3xl">
+        <h1 class="disp m-0 text-[44px] font-black leading-[.95] sm:text-[56px]">Пять решений. Сто единиц. Пять районов.</h1>
+        <p class="mt-3 text-[16px] text-graph">Выберите ровно 5 мер из 14: не больше 2 в одном направлении, бюджет — 100 единиц. Районную меру нужно привязать к району. Эффект набирается после лага, и к IV кварталу 2028 года успевает реализоваться только его часть.</p>
       </div>
       <div class="flex gap-2">
-        <button id="btnExample" class="rounded-lg border border-base-600 px-3 py-2 text-sm text-slate-200 hover:border-accent hover:text-white">Пример из ТЗ</button>
-        <button id="btnClear" class="rounded-lg border border-base-700 px-3 py-2 text-sm text-slate-400 hover:text-white">Очистить</button>
+        <button id="btnExample" class="btn btn-line">Пример из ТЗ</button>
+        <button id="btnClear" class="btn btn-line" style="box-shadow:inset 0 0 0 1.5px var(--rule);color:var(--graph)">Очистить</button>
       </div>
     </div>
-    <div class="grid gap-6 lg:grid-cols-[1fr_340px]">
-      <div id="measures" class="space-y-7">${skel('h-40')}${skel('h-40')}${skel('h-40')}</div>
-      <aside id="rail" class="lg:sticky lg:top-20 lg:self-start">${skel('h-96')}</aside>
+    <div class="grid gap-6 lg:grid-cols-[1fr_320px]">
+      <div id="measures">${skel('h-40')}${skel('h-40', 'mt-3')}${skel('h-40', 'mt-3')}</div>
+      <aside id="rail" class="lg:sticky lg:top-[76px] lg:self-start">${skel('h-96')}</aside>
     </div>`;
-  $('#btnExample').onclick = () => { if (!S.ds) return; loadPlan(S.ds.reference?.doc_example?.decisions || []); toast('Загружен пример из ТЗ: Score 56,54'); };
+  $('#btnExample').onclick = () => { if (!S.ds) return; loadPlan(S.ds.reference?.doc_example?.decisions || []); toast('Загружен пример из ТЗ'); };
   $('#btnClear').onclick = () => { if (!S.ds) return; S.slots = Array(S.ds.decisions_required).fill(null); onPlanChange(); };
 }
 
@@ -317,35 +402,23 @@ function renderMeasures() {
   $('#measures').innerHTML = S.ds.directions.map((d) => {
     const list = S.ds.measures.filter((m) => m.direction === d.id);
     const cnt = decs.filter((x) => S.mi[x.measure]?.direction === d.id).length;
-    return `<div>
-      <div class="mb-3 flex items-center gap-3">
-        <h2 class="text-base font-semibold">${esc(d.name)}</h2>
-        <span class="text-[11px] text-slate-500">${(d.indicators || []).map((c) => `${c} ${indShort(c)}`).join(' · ')}</span>
-        <span class="rounded-full px-2 py-0.5 text-[11px] font-semibold ${cnt >= S.ds.max_per_direction ? 'bg-accent/15 text-accent' : 'bg-base-800 text-slate-400'}">${cnt}/${S.ds.max_per_direction}</span>
-        <div class="h-px flex-1 bg-base-700"></div>
-      </div>
-      <div class="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+    return `<div class="dirrow">
+      <div class="dirname"><b>${esc(d.name)}</b><small>${(d.indicators || []).map((c) => `${c} ${indShort(c)}`).join('<br>')}</small><span class="cnt ${cnt >= S.ds.max_per_direction ? 'full' : ''}">${cnt}/${S.ds.max_per_direction}</span></div>
+      <div class="grid gap-2.5 sm:grid-cols-2 xl:grid-cols-3">
       ${list.map((m) => {
         const sel = slotOf[m.id];
         const reason = sel ? null : blockReason(m, null, decs);
-        const eff = Object.entries(m.effects || {}).map(([k, v]) => `<span title="${esc(S.ind[k]?.name || k)}" class="rounded-md ${v < 0 ? 'bg-red-500/10 text-red-300' : 'bg-base-800 text-slate-300'} px-1.5 py-0.5 text-[11px]">${v > 0 ? '+' : '−'}${Math.abs(v)} ${esc(indShort(k))}</span>`).join('');
-        const incs = (S.ds.incompatibilities || []).filter((i) => i.pair.includes(m.id)).map((i) => (i.pair[0] === m.id ? i.pair[1] : i.pair[0]) + (i.scope === 'same_district' ? ' в том же районе' : ''));
         const share = Math.round(realized(m) * 100);
-        return `<button class="measure card relative flex flex-col gap-2 p-4 text-left" data-mid="${esc(m.id)}" data-selected="${!!sel}" ${reason ? `disabled title="${esc(reason)}"` : ''}>
-          <div class="flex items-start justify-between gap-2">
-            <span class="flex items-center gap-1.5"><span class="rounded-md bg-base-800 px-1.5 py-0.5 text-[10.5px] font-bold text-slate-300">${esc(m.id)}</span>
-            <span class="rounded-md px-1.5 py-0.5 text-[10.5px] font-semibold uppercase tracking-wider ${m.type === 'district' ? 'bg-amber-400/10 text-amber-300' : 'bg-accent/10 text-accent'}">${m.type === 'district' ? 'Район' : 'Город'}</span></span>
-            <span class="text-right"><span class="text-xl font-bold tabular-nums">${esc(m.cost)}</span><span class="ml-0.5 text-xs text-slate-400">ед.</span></span>
-          </div>
-          <div class="font-semibold leading-snug">${esc(m.name)}</div>
-          <div class="flex flex-wrap gap-1.5">${eff}</div>
-          <div class="mt-auto flex flex-wrap items-center gap-x-2 gap-y-1 pt-1 text-[11px] text-slate-400">
-            <span>лаг ${esc(m.lag)} кв.</span><span class="text-slate-600">·</span>
-            <span class="${share <= 50 ? 'text-amber-300' : ''}">к IV кв. 2028 — ${share}% эффекта</span>
-            ${incs.length ? `<span class="w-full text-slate-500">несовместима: ${esc(incs.join(', '))}</span>` : ''}
-            ${reason && !sel ? `<span class="w-full text-slate-500">${esc(reason)}</span>` : ''}
-          </div>
-          ${sel ? `<div class="absolute -right-2 -top-2 rounded-full bg-accent px-2 py-0.5 text-[11px] font-bold text-base-950 shadow-lg">Слот ${sel.slot + 1}${sel.district ? ' · ' + esc(sel.district) : ''}</div>` : ''}
+        const eff = Object.entries(m.effects || {}).map(([k, v]) => `<span class="${v < 0 ? 'neg' : ''}">${v > 0 ? '+' : '−'}${Math.abs(v)} ${esc(indShort(k))}</span>`).join(' · ');
+        const incs = (S.ds.incompatibilities || []).filter((i) => i.pair.includes(m.id)).map((i) => (i.pair[0] === m.id ? i.pair[1] : i.pair[0]) + (i.scope === 'same_district' ? ' в том же районе' : ''));
+        return `<button class="ch" data-mid="${esc(m.id)}" data-selected="${!!sel}" ${reason ? `disabled title="${esc(reason)}"` : ''} aria-pressed="${!!sel}">
+          <div class="flex items-center justify-between gap-2"><span class="flex items-center gap-2"><span class="code">${esc(m.id)}</span><span class="typ">${m.type === 'district' ? 'район' : 'город'}</span></span><span class="cost">${esc(m.cost)}<small> ед.</small></span></div>
+          <div class="nm">${esc(m.name)}</div>
+          <div class="eff">${eff}</div>
+          <div class="lagbar" title="Лаг ${m.lag} кв.: к IV кв. 2028 реализуется ${share}% эффекта" aria-hidden="true">${Array.from({ length: 8 }, (_, i) => `<i class="${i >= m.lag ? 'r' : ''}"></i>`).join('')}</div>
+          <div class="why">лаг ${m.lag} кв. · к концу срока <b class="${share <= 50 ? 'red' : 'peni'}">${share}%</b>${incs.length ? ` · несовместима: ${esc(incs.join(', '))}` : ''}</div>
+          ${reason ? `<div class="why" style="color:var(--ink)">${esc(reason)}</div>` : ''}
+          ${sel ? `<span class="pin">Слот ${sel.slot + 1}${sel.district ? ' · ' + esc(sel.district) : ''}</span>` : ''}
         </button>`;
       }).join('')}
       </div></div>`;
@@ -353,65 +426,59 @@ function renderMeasures() {
   $$('#measures [data-mid]').forEach((b) => (b.onclick = () => pickMeasure(b.dataset.mid)));
 }
 
+function budgetSvg(used, budget, over) {
+  const h = 200, fill = Math.min(1, used / budget) * h;
+  return `<svg viewBox="0 0 54 ${h + 20}" width="54" height="${h + 20}" aria-hidden="true">
+    <rect x="18" y="10" width="22" height="${h}" fill="#fbfdfd" stroke="#0d2a33"/>
+    <rect x="18" y="${10 + h - fill}" width="22" height="${fill}" fill="${over ? '#cf3a2c' : '#19b8d8'}"/>
+    ${[0, 25, 50, 75, 100].map((v) => `<line x1="10" x2="18" y1="${10 + h - v / 100 * h}" y2="${10 + h - v / 100 * h}" stroke="#0d2a33"/><text x="0" y="${14 + h - v / 100 * h}" font-size="8.5" font-family="JetBrains Mono" fill="#56696f">${v}</text>`).join('')}</svg>`;
+}
+
 function renderRail() {
   const plan = planOf(), decs = plan.decisions;
   const local = localValidate(plan, { partial: true });
   const used = local.cost, over = used > S.ds.budget, full = decs.length === S.ds.decisions_required;
   const v = S.val;
-  const pctW = Math.min(100, (used / S.ds.budget) * 100);
-  const okServer = v && v.valid && !S.validating;
-  const canSubmit = okServer && full && !over;
+  const canSubmit = v && v.valid && !S.validating && full && !over;
   let msg, tone;
   if (over) { msg = `Перерасход: ${used} из ${S.ds.budget}. Уберите одну из дорогих мер.`; tone = 'err'; }
   else if (local.reason) { msg = local.reason; tone = 'err'; }
   else if (!full) { const k = S.ds.decisions_required - decs.length; msg = `Выберите ещё ${k} ${plural(k, 'решение', 'решения', 'решений')}.`; tone = 'wait'; }
   else if (S.validating || !v) { msg = null; tone = 'load'; }
-  else if (v.valid) { msg = `План принят к рассмотрению. Остаток ${v.remaining} ед. не сгорает и не даёт бонуса.`; tone = 'ok'; }
+  else if (v.valid) { msg = `План допустим. Остаток ${v.remaining} ед. не сгорает и не даёт бонуса.`; tone = 'ok'; }
   else { msg = v.reason || 'План не проходит проверку'; tone = 'err'; }
-  const toneCls = { ok: 'text-emerald-300', err: 'text-red-300', wait: 'text-slate-300', load: 'text-slate-400' }[tone];
-  const icon = { ok: ['✓', 'bg-emerald-400/20'], err: ['!', 'bg-red-500/20'], wait: ['…', 'bg-base-700'], load: ['', ''] }[tone];
-  const msgHtml = tone === 'load' ? spinner('Проверяем на сервере…') : `<div class="flex items-start gap-2 text-sm ${toneCls}"><span class="mt-0.5 grid h-4 w-4 shrink-0 place-items-center rounded-full ${icon[1]} text-[10px] font-bold">${icon[0]}</span><span>${esc(msg)}</span></div>`;
+  const tcol = { ok: 'var(--pen-ink)', err: 'var(--red)', wait: 'var(--ink)', load: 'var(--graph)' }[tone];
+  const mark = { ok: '✓', err: '!', wait: '·', load: '' }[tone];
+  const msgHtml = tone === 'load' ? spinner('Проверяем на сервере…') : `<span style="color:${tcol}">${mark} ${esc(msg)}</span>`;
 
   $('#rail').innerHTML = `
-    <div class="card p-4">
-      <div class="card-h mb-3">План акима</div>
-      <ol class="space-y-2">
-        ${S.slots.map((s, i) => {
-          if (!s) return `<li class="flex items-center gap-3 rounded-xl border border-dashed border-base-600 px-3 py-2.5 text-sm text-slate-500"><span class="grid h-6 w-6 place-items-center rounded-full bg-base-800 text-xs">${i + 1}</span>Пустой слот</li>`;
-          const m = S.mi[s.measure];
-          return `<li class="fade-in flex items-center gap-3 rounded-xl border border-base-700 bg-base-850 px-3 py-2">
-            <span class="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-accent text-xs font-bold text-base-950">${i + 1}</span>
-            <div class="min-w-0 flex-1"><div class="truncate text-sm font-medium"><span class="text-slate-400">${esc(s.measure)}</span> ${esc(m ? m.name : '')}</div>
-              <div class="text-[11px] text-slate-400">${m ? esc(m.cost) + ' ед. · ' + esc(dirName(m.direction)) : ''}${s.district ? ' · <span class="text-amber-300">' + esc(s.district) + '</span>' : ''}</div></div>
-            <button class="rounded-md px-1.5 text-lg leading-none text-slate-500 hover:text-white" data-remove="${i}" aria-label="Убрать">×</button>
-          </li>`;
-        }).join('')}
-      </ol>
-      <div class="mt-5">
-        <div class="flex items-baseline justify-between text-sm"><span class="text-slate-400">Бюджет</span>
-          <span class="font-bold tabular-nums ${over ? 'text-red-400' : ''}">${used} <span class="font-normal text-slate-500">/ ${S.ds.budget}</span></span></div>
-        <div class="mt-2 h-2.5 overflow-hidden rounded-full bg-base-800"><div class="h-full rounded-full transition-all duration-300 ${over ? 'bg-red-500' : 'bg-accent'}" style="width:${pctW}%"></div></div>
-        <div class="mt-1.5 text-[12px] ${over ? 'text-red-400' : 'text-slate-400'}">${over ? `Перерасход на ${used - S.ds.budget} ед.` : `Остаток ${S.ds.budget - used} ед. — <span class="text-slate-300">не сгорает и не даёт бонуса</span>`}</div>
+    <div class="plate p-4">
+      <div class="flex items-baseline justify-between"><span class="lbl">План акима</span><span class="mono text-[12px] text-graph">${decs.length}/${S.ds.decisions_required}</span></div>
+      <div class="mt-2">${S.slots.map((s, i) => {
+        if (!s) return `<div class="slot empty"><span class="n">${i + 1}</span><span>свободный слот</span><span></span></div>`;
+        const m = S.mi[s.measure];
+        return `<div class="slot fade"><span class="n">${i + 1}</span><span class="min-w-0"><b class="mono text-[12px]">${esc(s.measure)}</b> ${esc(m?.name || '')}<span class="block text-[12px] text-graph">${m ? m.cost + ' ед. · ' + esc(dirName(m.direction)) : ''}${s.district ? ' · <b class="peni">' + esc(s.district) + '</b>' : ' · весь город'}</span></span><button class="x" data-remove="${i}" aria-label="Убрать ${esc(s.measure)}">×</button></div>`;
+      }).join('')}</div>
+      <div class="mt-3 flex items-end gap-3 border-t border-rule pt-3">
+        ${budgetSvg(used, S.ds.budget, over)}
+        <div class="pb-2"><div class="lbl">Бюджет</div><div class="big" style="font-size:84px;color:${over ? 'var(--red)' : 'var(--ink)'}">${used}</div>
+          <div class="sm">из ${S.ds.budget}${over ? ` · <span class="red">+${used - S.ds.budget}</span>` : ` · остаток ${S.ds.budget - used}`}</div>
+          <div class="mt-1 text-[12px] text-graph">остаток не сгорает и не даёт бонуса</div></div>
       </div>
-      <div class="mt-5 grid grid-cols-5 gap-1.5">
-        ${S.ds.directions.map((d) => { const c = local.direction_counts[d.id] || 0; const bad = c > S.ds.max_per_direction; return `
-          <div class="rounded-lg border ${bad ? 'border-red-500/60' : c ? 'border-accent/40' : 'border-base-700'} px-1 py-1.5 text-center" title="${esc(d.name)}">
-            <div class="text-sm font-bold tabular-nums ${bad ? 'text-red-400' : c ? 'text-accent' : 'text-slate-500'}">${c}/${S.ds.max_per_direction}</div>
-            <div class="truncate text-[10px] text-slate-400">${esc(d.name)}</div></div>`; }).join('')}
-      </div>
-      <div class="mt-5 min-h-[44px] rounded-xl bg-base-850 px-3 py-2.5" aria-live="polite">${msgHtml}</div>
-      <button id="btnSubmit" class="mt-4 w-full rounded-xl px-4 py-3 text-sm font-bold transition ${canSubmit ? 'bg-accent text-base-950 hover:brightness-110' : 'cursor-not-allowed bg-base-800 text-slate-500'}" ${canSubmit ? '' : 'disabled'}>Принять решения</button>
+      <div class="dirc mt-3">${S.ds.directions.map((d) => { const c = local.direction_counts[d.id] || 0; return `<div class="${c > S.ds.max_per_direction ? 'bad' : c ? 'on' : ''}" title="${esc(d.name)}"><b>${c}/${S.ds.max_per_direction}</b><span>${esc(d.name)}</span></div>`; }).join('')}</div>
+      <div class="tape mt-3" aria-live="polite">${msgHtml}</div>
+      <button id="btnSubmit" class="btn btn-ink mt-3 w-full" ${canSubmit ? '' : 'disabled'}>Принять решения</button>
     </div>`;
   $$('#rail [data-remove]').forEach((b) => (b.onclick = () => { S.slots[+b.dataset.remove] = null; onPlanChange(); }));
   $('#btnSubmit').onclick = submitPlan;
   $('#mobileBar').innerHTML = `
     <div class="flex items-center gap-3">
       <div class="min-w-0 flex-1">
-        <div class="flex items-baseline gap-2 text-sm"><b class="tabular-nums ${over ? 'text-red-400' : ''}">${used}/${S.ds.budget}</b><span class="text-slate-400">· ${decs.length}/${S.ds.decisions_required} решений</span></div>
-        <div class="mt-1 h-1.5 overflow-hidden rounded-full bg-base-800"><div class="h-full ${over ? 'bg-red-500' : 'bg-accent'}" style="width:${pctW}%"></div></div>
-        <div class="mt-1 truncate text-[11px] ${toneCls}">${esc(msg || 'Проверяем…')}</div>
+        <div class="mono text-[13px]"><b style="color:${over ? 'var(--red)' : 'var(--ink)'}">${used}/${S.ds.budget}</b> · ${decs.length}/${S.ds.decisions_required} решений</div>
+        <div class="mt-1 h-1.5 bg-[#c9d3d5]"><div class="h-full" style="width:${Math.min(100, used)}%;background:${over ? 'var(--red)' : 'var(--pen)'}"></div></div>
+        <div class="mt-1 truncate text-[12px]" style="color:${tcol}">${esc(msg || 'Проверяем…')}</div>
       </div>
-      <button id="btnSubmitM" class="shrink-0 rounded-xl px-4 py-3 text-sm font-bold ${canSubmit ? 'bg-accent text-base-950' : 'bg-base-800 text-slate-500'}" ${canSubmit ? '' : 'disabled'}>Принять</button>
+      <button id="btnSubmitM" class="btn btn-ink shrink-0" ${canSubmit ? '' : 'disabled'}>Принять</button>
     </div>`;
   $('#btnSubmitM').onclick = submitPlan;
 }
@@ -426,43 +493,43 @@ function pickMeasure(mid) {
   else { S.slots[free] = { measure: mid, district: null }; onPlanChange(); }
 }
 
-function districtOptionsHtml(m, decs, attr = 'data-pick') {
-  const share = realized(m);
-  return S.ds.districts.map((k) => {
-    const block = blockReason(m, k.name, decs);
-    const cells = Object.entries(m.effects).map(([c, e]) => {
-      const now = k.values[c], after = Math.max(0, Math.min(100, now + e * share));
-      return `<span class="whitespace-nowrap"><span class="text-slate-500">${esc(indShort(c))}</span> <span class="${now < S.ds.crit_threshold ? 'font-bold text-red-400' : ''}">${num(now, 0)}</span>→<b class="${after < S.ds.crit_threshold ? 'text-red-400' : 'text-white'}">${num(after, 1)}</b></span>`;
-    }).join(' ');
-    return `<button ${attr}="${esc(k.name)}" ${block ? 'disabled' : ''} class="flex w-full items-start gap-3 rounded-xl border border-base-700 bg-base-850 px-3 py-3 text-left hover:border-accent disabled:cursor-not-allowed disabled:opacity-40">
-      <span class="grid h-9 w-9 shrink-0 place-items-center rounded-full bg-base-800 text-xs font-bold">${esc(k.name.slice(0, 2).toUpperCase())}</span>
-      <span class="min-w-0 flex-1"><span class="flex items-baseline justify-between gap-2"><span class="font-semibold">${esc(k.name)}</span><span class="text-[11px] text-slate-400">${Math.round(k.pop * 100)}% жителей · D ${num(districtD(k))}</span></span>
-        <span class="block text-[12px] text-slate-400">${esc(k.profile || '')}</span>
-        <span class="mt-1 block text-[12px]">${block ? `<span class="text-red-300">${esc(block)}</span>` : cells}</span></span>
-    </button>`;
-  }).join('');
-}
 function openDistrictPicker(m, onPick) {
-  const decs = planOf().decisions;
+  const decs = planOf().decisions, share = realized(m), thr = S.ds.crit_threshold;
   openModal(`
-    <div class="card fade-in max-h-[92vh] w-full max-w-lg overflow-y-auto rounded-b-none p-5 sm:rounded-2xl">
-      <div class="card-h">${esc(m.id)} · районная мера · ${esc(m.cost)} ед. · лаг ${esc(m.lag)} кв.</div>
-      <h3 class="mt-1 text-lg font-bold">${esc(m.name)}</h3>
-      <p class="mt-1 text-sm text-slate-400">Где запускаем? Показано, как изменятся показатели района к IV кв. 2028 (реализуется ${Math.round(realized(m) * 100)}% эффекта). Красное — ниже ${S.ds.crit_threshold}, это штраф в Score.</p>
-      <div class="mt-4 space-y-2">${districtOptionsHtml(m, decs)}</div>
-      <button data-close class="mt-4 w-full rounded-xl border border-base-700 py-2.5 text-sm text-slate-400 hover:text-white">Отмена</button>
+    <div class="fade max-h-[92vh] w-full max-w-xl overflow-y-auto bg-paper" style="border:1px solid var(--rule)">
+      <div class="inkp flex items-start justify-between gap-3 px-5 py-4">
+        <div><h3 class="disp m-0 text-[30px] font-black leading-none">${esc(m.name)}</h3>
+          <div class="mono mt-2 text-[12px] text-[#8fc9d6]">${esc(m.id)} · районная мера · ${esc(m.cost)} ед. · лаг ${esc(m.lag)} кв. · реализуется ${Math.round(share * 100)}%</div></div>
+        <button data-close class="x" style="color:#8fc9d6;font-size:24px" aria-label="Закрыть">×</button>
+      </div>
+      <div class="p-4">
+        <p class="m-0 mb-3 text-[14px] text-graph">Где запускаем? Для каждого района — затронутые показатели сейчас и к IV кварталу 2028. Красное — ниже ${thr}, каждая такая ячейка отнимает балл Score.</p>
+        ${S.ds.districts.map((k) => {
+          const block = blockReason(m, k.name, decs);
+          const cells = Object.entries(m.effects).map(([c, e]) => { const now = k.values[c], after = Math.max(0, Math.min(100, now + e * share));
+            return `<span class="whitespace-nowrap">${esc(indShort(c))} <span class="${now < thr ? 'red font-semibold' : ''}">${num(now, 0)}</span>→<b class="${after < thr ? 'red' : 'peni'}">${num(after, 1)}</b></span>`; }).join(' &nbsp; ');
+          return `<button data-pick="${esc(k.name)}" ${block ? 'disabled' : ''} class="opt" style="grid-template-columns:1fr auto">
+            <span><b class="disp text-[22px] leading-none">${esc(k.name)}</b> <span class="mono text-[12px] text-graph">${Math.round(k.pop * 100)}% жителей · D ${num(districtD(k))}</span>
+              <span class="block text-[13px] text-graph">${esc(k.profile || '')}</span>
+              <span class="mono mt-1 block text-[12px]">${block ? `<span class="red">${esc(block)}</span>` : cells}</span></span>
+            <span class="mono text-[20px] text-graph" aria-hidden="true">→</span></button>`;
+        }).join('')}
+      </div>
     </div>`);
   $$('#modal [data-pick]').forEach((b) => (b.onclick = () => { closeModal(); onPick(b.dataset.pick); }));
 }
 
+let lastFocus = null;
 function openModal(html, { dismissable = true } = {}) {
   const md = $('#modal');
-  md.innerHTML = html; md.classList.remove('hidden'); md.classList.add('flex');
+  lastFocus = document.activeElement;
+  md.innerHTML = html; md.classList.add('open');
   md.onclick = (e) => { if ((dismissable && e.target === md) || e.target.closest('[data-close]')) closeModal(); };
   document.body.style.overflow = 'hidden';
+  const f = md.querySelector('button:not([disabled]),select'); if (f) f.focus({ preventScroll: true });
 }
-function closeModal() { const md = $('#modal'); md.classList.add('hidden'); md.classList.remove('flex'); md.innerHTML = ''; document.body.style.overflow = ''; }
-document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !$('#modal').classList.contains('hidden') && !$('#modal [data-lock]')) closeModal(); });
+function closeModal() { const md = $('#modal'); md.classList.remove('open'); md.innerHTML = ''; document.body.style.overflow = ''; if (lastFocus) lastFocus.focus?.({ preventScroll: true }); }
+document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && $('#modal').classList.contains('open') && !$('#modal [data-lock]')) closeModal(); });
 
 function loadPlan(decs) {
   S.slots = Array(S.ds.decisions_required).fill(null);
@@ -519,92 +586,82 @@ function loadNarrative() {
 const charts = {};
 function chart(id, cfg) { if (charts[id]) { charts[id].destroy(); delete charts[id]; } const c = document.getElementById(id); if (!c) return; charts[id] = new Chart(c, cfg); }
 function emptyState(title, text, btn = 'В кабинет', to = 'cabinet') {
-  return `<div class="card mx-auto max-w-xl p-8 text-center"><div class="text-lg font-semibold">${esc(title)}</div>
-    <p class="mt-2 text-sm text-slate-400">${esc(text)}</p>
-    <button data-go="${to}" class="mt-5 rounded-xl bg-accent px-4 py-2.5 text-sm font-bold text-base-950">${esc(btn)}</button></div>`;
+  return `<div class="plate mx-auto max-w-xl p-8 text-center"><div class="h2">${esc(title)}</div>
+    <p class="mt-2 text-graph">${esc(text)}</p><button data-go="${to}" class="btn btn-ink mt-4">${esc(btn)}</button></div>`;
 }
-const errBox = (title, e) => `<div class="text-sm"><div class="font-semibold text-red-300">${esc(title)}</div><div class="mt-1 text-slate-400">${esc(e)}</div></div>`;
+const errBox = (title, e) => `<div class="text-[14px]"><b class="red">${esc(title)}</b><div class="mt-1 text-graph">${esc(e)}</div></div>`;
 
-function gaugeSVG(value, thr) {
-  const v = Math.max(0, Math.min(100, Number(value) || 0));
-  const R = 80, cx = 100, cy = 95;
-  const pt = (p) => { const a = Math.PI * (1 - p / 100); return [cx + R * Math.cos(a), cy - R * Math.sin(a)]; };
-  const [x1, y1] = pt(v); const a = Math.PI * (1 - thr / 100);
-  const tIn = [cx + (R - 16) * Math.cos(a), cy - (R - 16) * Math.sin(a)], tOut = [cx + (R + 12) * Math.cos(a), cy - (R + 12) * Math.sin(a)];
-  const ok = v >= thr;
-  return `<svg viewBox="0 -16 200 128" class="w-full max-w-[260px]" role="img" aria-label="Рейтинг ${Math.round(v)}%">
-    <path d="M ${cx - R} ${cy} A ${R} ${R} 0 0 1 ${cx + R} ${cy}" fill="none" stroke="#1e293b" stroke-width="14" stroke-linecap="round"/>
-    ${v > 0.5 ? `<path d="M ${cx - R} ${cy} A ${R} ${R} 0 0 1 ${x1.toFixed(2)} ${y1.toFixed(2)}" fill="none" stroke="${ok ? '#19b8d8' : '#ef4444'}" stroke-width="14" stroke-linecap="round"/>` : ''}
-    <line x1="${tIn[0]}" y1="${tIn[1]}" x2="${tOut[0]}" y2="${tOut[1]}" stroke="#e2e8f0" stroke-width="2"/>
-    <text x="${tOut[0]}" y="${tOut[1] - 4}" text-anchor="middle" fill="#94a3b8" font-size="8.5">${thr}% · переизбрание</text>
-    <text x="100" y="86" text-anchor="middle" fill="#fff" font-size="28" font-weight="800">${num(v, 1)}%</text>
-  </svg>`;
+function dial(value, min, max, opts = {}) {
+  const W = 260, H = 150, cx = 130, cy = 132, R = 110;
+  const ang = (v) => Math.PI * (1 - (Math.max(min, Math.min(max, v)) - min) / (max - min));
+  const pt = (v, r) => [cx + r * Math.cos(ang(v)), cy - r * Math.sin(ang(v))];
+  let ticks = '';
+  const step = opts.step || (max - min) / 10;
+  for (let v = min; v <= max + 1e-9; v += step / 2) {
+    const major = Math.abs(((v - min) / step) % 1) < 1e-6;
+    const [x1, y1] = pt(v, R), [x2, y2] = pt(v, R - (major ? 14 : 7));
+    ticks += `<line x1="${x1.toFixed(1)}" y1="${y1.toFixed(1)}" x2="${x2.toFixed(1)}" y2="${y2.toFixed(1)}" stroke="#0d2a33" stroke-width="${major ? 1.6 : .8}"/>`;
+    if (major) { const [tx, ty] = pt(v, R - 27); ticks += `<text x="${tx.toFixed(1)}" y="${(ty + 4).toFixed(1)}" font-size="10" text-anchor="middle" fill="#56696f" font-family="JetBrains Mono">${num(v, 0)}</text>`; }
+  }
+  let zone = '';
+  if (opts.redBelow != null) { const [a1, b1] = pt(min, R + 6), [a2, b2] = pt(opts.redBelow, R + 6); zone = `<path d="M${a1},${b1} A${R + 6},${R + 6} 0 0 1 ${a2},${b2}" fill="none" stroke="#cf3a2c" stroke-width="5"/>`; }
+  const marks = (opts.marks || []).map((m) => { const [x1, y1] = pt(m.v, R + 3), [x2, y2] = pt(m.v, R - 20); return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${m.c}" stroke-width="3"/>`; }).join('');
+  const [nx, ny] = pt(value, R - 8);
+  return `<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="${esc(opts.label || '')}">${zone}${ticks}${marks}
+    <line x1="${cx}" y1="${cy}" x2="${nx.toFixed(1)}" y2="${ny.toFixed(1)}" stroke="${opts.needle || '#19b8d8'}" stroke-width="3.5" stroke-linecap="round"/>
+    <circle cx="${cx}" cy="${cy}" r="8" fill="#0d2a33"/></svg>`;
 }
 
 function renderVerdict() {
   const root = $('#tab-verdict');
-  if (!S.plan) { root.innerHTML = emptyState('Вердикта пока нет', 'Сначала примите пять решений в кабинете акима.'); return; }
+  if (!S.plan) { root.innerHTML = emptyState('Вердикта пока нет', 'Сначала примите пять решений в кабинете.'); return; }
   const sc = S.r.score;
   if (!sc || sc.loading) {
-    root.innerHTML = `<div class="mb-5 text-sm">${spinner('Движок считает два года правления…')}</div>
-      <div class="grid gap-4 lg:grid-cols-3">${skel('h-56')}${skel('h-56')}${skel('h-56')}</div>
-      <div class="mt-4 grid gap-4 lg:grid-cols-3">${skel('h-72', 'lg:col-span-2')}${skel('h-72')}</div>`;
+    root.innerHTML = `<div class="mb-4">${spinner('Движок считает два года правления…')}</div>
+      <div class="grid gap-4 lg:grid-cols-[1fr_330px]">${skel('h-80')}${skel('h-80')}</div><div class="mt-4 grid gap-4 lg:grid-cols-3">${skel('h-56')}${skel('h-56')}${skel('h-56')}</div>`;
     return;
   }
   if (sc.error) {
-    root.innerHTML = `<div class="card mx-auto max-w-xl p-8 text-center"><div class="text-lg font-semibold">Не удалось посчитать Score</div>
-      <p class="mt-2 text-sm text-slate-400">${esc(sc.error)}</p>
-      <div class="mt-5 flex justify-center gap-2"><button id="retryVerdict" class="rounded-xl bg-accent px-4 py-2.5 text-sm font-bold text-base-950">Повторить</button>
-      <button data-go="cabinet" class="rounded-xl border border-base-600 px-4 py-2.5 text-sm">В кабинет</button></div></div>`;
+    root.innerHTML = `<div class="plate mx-auto max-w-xl p-8 text-center"><div class="h2">Не удалось посчитать Score</div><p class="mt-2 text-graph">${esc(sc.error)}</p>
+      <div class="mt-4 flex justify-center gap-2"><button id="retryVerdict" class="btn btn-ink">Повторить</button><button data-go="cabinet" class="btn btn-line">В кабинет</button></div></div>`;
     $('#retryVerdict').onclick = () => { loadPlan(S.plan); submitPlan(); }; return;
   }
   const cr = S.crisis?.result;
   root.innerHTML = `
-    ${cr ? `<div class="fade-in mb-5 rounded-2xl border border-red-500/30 bg-red-500/5 px-4 py-3">
-        <div class="flex flex-wrap items-center gap-2"><span class="rounded-full bg-red-500 px-2 py-0.5 text-[11px] font-black uppercase tracking-wider text-white">После кризиса</span>
-          <b class="text-sm">${esc(S.crisis.event.title)}</b></div>
-        <div class="mt-1.5 text-sm text-slate-300">${esc(crisisComment())}</div></div>`
-      : `<button id="crisisCta" class="fade-in mb-5 flex w-full items-center gap-4 rounded-2xl border border-red-500/40 bg-red-500/10 px-4 py-3 text-left hover:bg-red-500/15">
-        <span class="pulse-ring grid h-9 w-9 shrink-0 place-items-center rounded-full bg-red-500 font-black text-white">!</span>
-        <span class="flex-1"><span class="block text-[11px] font-bold uppercase tracking-widest text-red-300">III квартал · 5-й час</span>
-        <span class="block text-sm font-semibold text-white">План утверждён — и тут в городе случается кризис. Придётся заменить одну меру.</span></span>
-        <span class="shrink-0 rounded-lg bg-red-500 px-3 py-2 text-sm font-bold text-white">Открыть кризис</span></button>`}
-    <div class="grid gap-4 lg:grid-cols-3">
-      <div id="vScore" class="card fade-in flex flex-col p-5"></div>
-      <div id="vApproval" class="card fade-in flex flex-col items-center p-5"></div>
-      <div id="vRegret" class="card fade-in flex flex-col p-5"></div>
+    ${cr ? `<div class="fade mb-5 flex flex-wrap items-center gap-3 border border-alarm bg-[#fdf1ef] px-4 py-3"><span class="btn-red mono px-2 py-1 text-[11px] font-semibold uppercase tracking-wider">после кризиса</span><b>${esc(S.crisis.event.title)}.</b><span class="text-[14px]">${esc(crisisComment())}</span></div>`
+      : `<button id="crisisCta" class="fade mb-5 flex w-full items-center gap-4 border border-alarm bg-[#fdf1ef] px-4 py-3 text-left hover:bg-[#fbe6e2]">
+        <span class="pulse grid h-9 w-9 shrink-0 place-items-center rounded-full bg-alarm font-black text-white">!</span>
+        <span class="flex-1"><b class="disp block text-[22px] leading-tight">III квартал: в городе кризис</b><span class="text-[14px] text-graph">План утверждён, но придётся заменить одну меру в пределах того же бюджета.</span></span>
+        <span class="btn btn-red shrink-0">Открыть кризис</span></button>`}
+
+    <div class="grid gap-0 lg:grid-cols-[1fr_330px]">
+      <div class="paper strip"><div class="flex flex-wrap items-baseline justify-between gap-2"><span class="lbl">Score по кварталам</span><span class="mono text-[11px] text-graph">эффект набирается линейно после лага</span></div><div class="mt-2 h-[300px]"><canvas id="chTrace" aria-label="Score по кварталам"></canvas></div></div>
+      <div id="vScore" class="inkp flex flex-col gap-4 p-6"></div>
     </div>
-    <div class="mt-4 grid gap-4 lg:grid-cols-3">
-      <div class="card p-5 lg:col-span-2">
-        <div class="flex flex-wrap items-baseline justify-between gap-2"><div class="card-h">Граница Парето · бюджет → лучший Score</div><div class="text-[11px] text-slate-500">каждая точка — лучший из 694 395 планов не дороже этой суммы</div></div>
-        <div id="vPareto" class="mt-3 h-72"><canvas id="chPareto"></canvas></div>
-      </div>
-      <div class="card p-5">
-        <div class="card-h">Score по кварталам</div>
-        <div class="mt-1 text-[11px] text-slate-500">эффект набирается линейно после лага</div>
-        <div class="mt-3 h-64"><canvas id="chTimeline"></canvas></div>
-      </div>
-    </div>
-    <div class="mt-4 card p-5">
-      <div class="flex flex-wrap items-baseline justify-between gap-2"><div class="card-h">Районы · показатели к IV кв. 2028</div><div class="text-[11px] text-slate-500">красным — ниже ${S.ds.crit_threshold}: каждая такая ячейка −1 к Score</div></div>
-      <div id="vDistricts" class="mt-3 overflow-x-auto"></div>
-    </div>
-    <div class="mt-4 grid gap-4 lg:grid-cols-3">
-      <div id="vAI" class="card p-5 lg:col-span-2"></div>
-      <div class="card p-5">
-        <div class="card-h">Вклад каждой меры</div>
-        <div class="mt-1 text-[11px] text-slate-500">насколько упадёт Score, если убрать меру</div>
-        <div class="mt-3 h-72"><canvas id="chContrib"></canvas></div>
-      </div>
-    </div>
-    <div class="mt-4 card p-5">
-      <div class="flex flex-wrap items-baseline justify-between gap-2"><div class="card-h">Совет районов</div><div class="text-[11px] text-slate-500">депутаты маслихата реагируют на ваш план</div></div>
-      <div id="vCouncil" class="mt-4"></div>
-    </div>
-    <div class="mt-6 flex flex-wrap gap-2">
-      <button data-go="paper" class="rounded-xl bg-accent px-4 py-2.5 text-sm font-bold text-base-950">Открыть «Астана Times»</button>
-      <button data-go="board" class="rounded-xl border border-base-600 px-4 py-2.5 text-sm">Сохранить в лидерборд</button>
-      <button id="editPlan" class="rounded-xl border border-base-600 px-4 py-2.5 text-sm">Изменить план</button>
+    <p id="vFinding" class="disp mb-0 mt-4 max-w-[980px] text-[30px] font-bold leading-[1.08]"></p>
+
+    <section class="mt-8"><div class="hsec"><h2 class="h2">Итоги срока</h2><p>IV квартал 2028</p></div>
+      <div class="grid gap-3 lg:grid-cols-3">
+        <div id="vDialScore" class="plate dialbox"></div>
+        <div id="vApproval" class="plate dialbox"></div>
+        <div id="vRegret" class="plate dialbox"></div>
+      </div></section>
+
+    <section class="mt-8"><div class="hsec"><h2 class="h2">Районы</h2><p>красная ячейка — показатель ниже ${S.ds.crit_threshold}, каждая отнимает балл Score; голубая рамка — ячейка вышла из красной зоны</p></div>
+      <div id="vDistricts" class="overflow-x-auto"></div>
+      <div class="mt-3 grid gap-3 lg:grid-cols-[1.35fr_1fr]">
+        <div class="paper strip"><div class="flex flex-wrap items-baseline justify-between gap-2"><span class="lbl">Граница Парето: лучший Score за каждую сумму</span><span class="mono text-[11px] text-graph">из ${int(694395)} планов</span></div><div id="vPareto" class="mt-2 h-[270px]"><canvas id="chPareto" aria-label="Граница Парето"></canvas></div></div>
+        <div id="vContrib" class="paper p-4"></div>
+      </div></section>
+
+    <section class="mt-8"><div id="vAI"></div></section>
+
+    <section class="mt-8"><div class="hsec"><h2 class="h2">Совет районов</h2><p>депутаты маслихата о вашем плане</p></div><div id="vCouncil"></div></section>
+
+    <div class="mt-8 flex flex-wrap gap-2">
+      <button data-go="paper" class="btn btn-ink">Открыть газету</button>
+      <button data-go="board" class="btn btn-line">Сохранить в лидерборд</button>
+      <button id="editPlan" class="btn btn-line">Изменить план</button>
     </div>`;
   const cta = $('#crisisCta'); if (cta) cta.onclick = openCrisis;
   $('#editPlan').onclick = () => { loadPlan(S.plan); go('cabinet'); };
@@ -612,59 +669,56 @@ function renderVerdict() {
 }
 
 function fillVerdict(key) {
-  if (key === 'score') { fillScore(); fillDistricts(); drawScoreCharts(); drawPareto(); }
-  if (key === 'opt') { fillRegret(); drawPareto(); }
+  if (key === 'score') { fillScore(); fillDistricts(); fillContrib(); drawTrace(); drawPareto(); fillFinding(); }
+  if (key === 'opt') { fillRegret(); drawTrace(); drawPareto(); fillFinding(); fillScore(); }
   if (key === 'ai') fillAI();
   if (key === 'nar') fillCouncil();
 }
 
 function fillScore() {
-  const v = S.r.score.data, el = $('#vScore'), ap = $('#vApproval'); if (!el) return;
-  const base = v.baseline ?? BASELINE();
+  const v = S.r.score.data, el = $('#vScore'); if (!el) return;
+  const base = v.baseline ?? BASELINE(), a = v.approval, o = S.r.opt?.data;
   const crisis = !!S.crisis?.result;
   el.innerHTML = `
-    <div class="card-h">Score · индекс качества жизни</div>
-    <div class="mt-3 text-7xl font-extrabold leading-none tracking-tight tabular-nums">${num(v.score)}</div>
-    <div class="mt-3 flex flex-wrap items-center gap-2 text-sm">
-      <span class="rounded-full px-2.5 py-1 font-bold tabular-nums ${v.delta >= 0 ? 'bg-emerald-400/15 text-emerald-300' : 'bg-red-500/15 text-red-300'}">${sign(v.delta)}</span>
-      <span class="text-slate-400">к ${num(base)}${crisis ? ' — база с учётом кризиса' : ' без решений'}</span>
-    </div>
-    <div class="mt-auto grid grid-cols-3 gap-2 pt-5 text-center">
-      <div class="rounded-lg bg-base-850 py-2"><div class="text-sm font-bold tabular-nums">${esc(v.cost)}</div><div class="text-[10px] text-slate-500">потрачено</div></div>
-      <div class="rounded-lg bg-base-850 py-2"><div class="text-sm font-bold tabular-nums ${v.n_crit ? 'text-red-400' : ''}">${v.n_crit_before ?? '—'}→${v.n_crit}</div><div class="text-[10px] text-slate-500">ячеек &lt;${S.ds.crit_threshold}</div></div>
-      <div class="rounded-lg bg-base-850 py-2"><div class="text-sm font-bold tabular-nums">${num(v.d_min)}</div><div class="text-[10px] text-slate-500">слабейший: ${esc(v.d_min_district || '—')}</div></div>
-    </div>`;
-  const a = v.approval;
-  if (!a) { ap.innerHTML = `<div class="card-h self-start">Рейтинг акима</div><div class="mt-6 text-sm text-slate-400">Нет данных</div>`; return; }
-  const thr = a.threshold ?? 50;
-  ap.innerHTML = `
-    <div class="card-h self-start">Рейтинг акима</div>
-    <div class="mt-2 flex w-full justify-center">${gaugeSVG(a.city, thr)}</div>
-    <div class="mt-1 rounded-full px-3 py-1 text-sm font-bold ${a.reelected ? 'bg-accent/15 text-accent' : 'bg-red-500/15 text-red-300'}">${a.reelected ? 'Переизбран на второй срок' : 'Уволен: рейтинг ниже 50%'}</div>
-    <div class="mt-auto pt-3 text-center text-[11px] leading-snug text-slate-500">Слой политического риска, не входит в Score</div>`;
+    <div><div class="lbl">Score к IV кв. 2028</div><div class="big text-white">${num(v.score)}</div></div>
+    <div class="mid">${sign(v.delta)} <span class="sm" style="color:#8fc9d6">к ${num(base)}${crisis ? ' (база с кризисом)' : ''}</span></div>
+    <div><div class="lbl">Рейтинг акима · не входит в Score</div><div class="mid ${a && !a.reelected ? 'text-[#ff8e82]' : ''}">${a ? num(a.city, 1) + '%' : '—'}</div></div>
+    <div><div class="lbl">Место среди всех планов${crisis ? ' · до кризиса' : ''}</div><div class="sm">${o ? `${int(o.rank)} из ${int(o.total_valid)} · топ ${num(o.rank / o.total_valid * 100, 2)}%` : '<span class="spin"></span>'}</div></div>
+    <div class="mono mt-auto text-[11.5px] text-[#8fc9d6]">бюджет ${esc(v.cost)}/${S.ds.budget} · ячеек ниже ${S.ds.crit_threshold}: ${v.n_crit_before ?? '—'} → ${v.n_crit}</div>`;
+  const dsEl = $('#vDialScore'), apEl = $('#vApproval');
+  const best = o?.best?.score;
+  dsEl.innerHTML = `<div class="lbl">Score (AQLS)</div>${dial(v.score, 52, 58, { step: 1, label: 'Score ' + num(v.score), marks: [{ v: base, c: '#56696f' }, ...(best ? [{ v: best, c: '#cf3a2c' }] : [])] })}
+    <div class="mid text-center">${num(v.score)}</div><div class="mt-1 text-center text-[13px] text-graph">серая риска — ${num(base)} без решений${best ? `, красная — оптимум ${num(best)}` : ''}</div>`;
+  if (!a) { apEl.innerHTML = `<div class="lbl">Рейтинг акима</div><div class="mt-6 text-graph">Нет данных</div>`; return; }
+  apEl.innerHTML = `<div class="lbl">Рейтинг акима · слой политического риска, не входит в Score</div>${dial(a.city, 0, 100, { step: 10, redBelow: a.threshold ?? 50, needle: a.reelected ? '#19b8d8' : '#cf3a2c', label: 'Рейтинг ' + num(a.city, 1) + '%' })}
+    <div class="mid text-center">${num(a.city, 1)}%</div><div class="mt-1 text-center font-bold ${a.reelected ? 'peni' : 'red'}">${a.reelected ? 'переизбран' : 'уволен'} · порог ${a.threshold ?? 50}%</div>`;
+}
+
+function fillFinding() {
+  const el = $('#vFinding'); if (!el) return;
+  const o = S.r.opt?.data;
+  if (!o) { el.innerHTML = spinner('Сверяем план со всеми 694 395 вариантами…'); return; }
+  el.innerHTML = `Движок перебрал все ${int(o.total_valid)} законных плана. Лучший даёт ${num(o.best.score)} — и <span class="${(o.best.approval ?? 0) < 50 ? 'red' : ''}">аким с этим планом ${(o.best.approval ?? 0) < 50 ? 'уволен' : 'переизбран'}: рейтинг ${num(o.best.approval, 1)}%</span>.`;
 }
 
 function fillRegret() {
   const el = $('#vRegret'); if (!el) return;
   const o = S.r.opt;
-  if (!o || o.loading) { el.innerHTML = `<div class="card-h">Счётчик сожаления</div><div class="mt-4 text-sm">${spinner('Сверяем с 694 395 планами…')}</div>${skel('h-4', 'mt-6')}`; return; }
-  if (o.error) { el.innerHTML = `<div class="card-h">Счётчик сожаления</div><div class="mt-4">${errBox('Оптимизатор недоступен', o.error)}</div>`; return; }
+  if (!o || o.loading) { el.innerHTML = `<div class="lbl">Счётчик сожаления</div><div class="mt-5">${spinner('Сверяем с 694 395 планами…')}</div>${skel('h-10', 'mt-5')}`; return; }
+  if (o.error) { el.innerHTML = `<div class="lbl">Счётчик сожаления</div><div class="mt-5">${errBox('Оптимизатор недоступен', o.error)}</div>`; return; }
   const d = o.data, max = d.best.score, base = BASELINE();
   const mine = S.crisis?.before?.score ?? S.r.score.data?.score;
-  const pos = Math.max(0, Math.min(100, ((mine - base) / (max - base)) * 100));
-  const top = (d.rank / d.total_valid) * 100;
+  const x = (v) => scale(v, base, max, 20, 280).toFixed(1);
   const bal = d.balanced;
   el.innerHTML = `
-    <div class="card-h">Счётчик сожаления${S.crisis ? ' · исходный план' : ''}</div>
-    <div data-regret class="mt-3 text-[15px] leading-relaxed text-slate-300">максимум <b class="text-white">${num(max)}</b>, ваше место <b class="text-white">${int(d.rank)}</b> из ${int(d.total_valid)}, топ <b class="text-accent">${num(top, top < 1 ? 2 : 1)}%</b></div>
-    <div class="relative mt-5 h-3 rounded-full bg-base-800">
-      <div class="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-accent/30 to-accent" style="width:${pos}%"></div>
-      <div class="absolute -top-1.5 h-6 w-1.5 -translate-x-1/2 rounded bg-white shadow" style="left:${pos}%"></div>
-    </div>
-    <div class="mt-2 flex justify-between text-[11px] text-slate-500"><span>${num(base)} · без решений</span><span>${num(max)} · оптимум</span></div>
-    <div class="mt-3 text-sm text-slate-400">На столе осталось <b class="tabular-nums text-white">${num(d.gap_to_best ?? max - mine)}</b>. Лучше вас — ${int(d.rank - 1)} ${plural(d.rank - 1, 'план', 'плана', 'планов')}.</div>
-    <div class="mt-auto pt-3 text-[12px] leading-snug text-slate-400">Оптимум: рейтинг акима <b class="${(d.best.approval ?? 0) < 50 ? 'text-red-300' : 'text-accent'}">${num(d.best.approval, 1)}%</b>${(d.best.approval ?? 0) < 50 ? ' — его увольняют' : ''}.
-      ${bal ? `<button id="loadBalanced" class="mt-1 block text-left text-accent hover:underline">Лучший план с рейтингом ≥50%: ${num(bal.score)} · ${num(bal.approval, 1)}% → загрузить</button>` : ''}</div>`;
+    <div class="lbl">Счётчик сожаления${S.crisis ? ' · исходный план' : ''}</div>
+    <div class="paper mt-4"><svg viewBox="0 0 300 70" width="100%" aria-hidden="true">
+      <line x1="20" x2="280" y1="40" y2="40" stroke="#0d2a33" stroke-width="2"/>
+      ${[base, 53.5, 54.5, 55.5, 56.5, max].map((v) => `<line x1="${x(v)}" x2="${x(v)}" y1="34" y2="46" stroke="#0d2a33"/><text x="${x(v)}" y="62" font-size="9" text-anchor="middle" fill="#56696f" font-family="JetBrains Mono">${num(v, v % 1 ? 2 : 1)}</text>`).join('')}
+      <path d="M${x(mine)},34 l-7,-14 h14 z" fill="#19b8d8"/></svg></div>
+    <p data-regret class="m-0 mt-3 text-[17px] leading-snug">максимум <b>${num(max)}</b>, ваше место <b>${int(d.rank)}</b> из ${int(d.total_valid)}, топ <b class="peni">${num(d.rank / d.total_valid * 100, 2)}%</b></p>
+    <p class="m-0 mt-2 text-[13.5px] text-graph">На столе осталось ${num(d.gap_to_best ?? max - mine)}. Оптимум: рейтинг <b class="${(d.best.approval ?? 0) < 50 ? 'red' : 'peni'}">${num(d.best.approval, 1)}%</b>.</p>
+    ${bal ? `<button id="loadBalanced" class="mono mt-2 border-0 bg-transparent p-0 text-left text-[12.5px] text-peni underline decoration-dotted underline-offset-4 hover:decoration-solid">Лучший план с рейтингом ≥50%: ${num(bal.score)} · ${num(bal.approval, 1)}% → загрузить</button>` : ''}`;
   const lb = $('#loadBalanced'); if (lb) lb.onclick = () => { loadPlan(bal.plan); go('cabinet'); toast('Сбалансированный план загружен в кабинет'); };
 }
 
@@ -673,68 +727,61 @@ function fillDistricts() {
   const v = S.r.score.data, inds = S.ds.indicators, thr = S.ds.crit_threshold;
   const ap = v.approval?.districts || {};
   const ev = S.crisis?.event;
-  const cell = (after, before, code, dname) => {
-    const red = after < thr, wasRed = before < thr;
-    const d = after - before;
-    const hit = ev && ev.district === dname && ev.effects && code in ev.effects;
-    return `<td class="px-1.5 py-2 text-center tabular-nums ${red ? 'bg-red-500/15 font-semibold text-red-300' : ''} ${hit ? 'outline outline-1 -outline-offset-2 outline-red-400/60' : ''}" title="${esc(S.ind[code]?.name || code)}: ${num(before)} → ${num(after)}">
-      ${num(after, 1)}${Math.abs(d) >= 0.05 ? `<div class="text-[10px] ${d > 0 ? 'text-emerald-400' : 'text-red-400'}">${sign(d, 1)}${wasRed && !red ? ' ✓' : ''}</div>` : ''}</td>`;
-  };
-  const rows = Object.entries(v.districts || {});
-  el.innerHTML = `<table class="w-full min-w-[860px] text-sm">
-    <thead><tr class="border-b border-base-700 text-[10.5px] uppercase tracking-wider text-slate-500">
-      <th class="py-2 pr-2 text-left font-semibold">Район</th>
-      ${inds.map((i) => `<th class="px-1.5 py-2 font-semibold" title="${esc(i.name)}">${i.code}<div class="font-normal normal-case tracking-normal text-slate-600">${esc(indShort(i.code))}</div></th>`).join('')}
-      <th class="px-2 py-2 font-semibold">D до → после</th><th class="px-2 py-2 text-right font-semibold">Δ</th><th class="py-2 pl-2 text-right font-semibold">Рейтинг</th></tr></thead>
-    <tbody>${rows.map(([name, r]) => {
-      const dd = r.D_after - r.D_before; const a = ap[name];
-      return `<tr class="border-b border-base-800 last:border-0">
-        <td class="py-2 pr-2"><div class="font-medium">${esc(name)}</div><div class="text-[10.5px] text-slate-500">${r.pop != null ? Math.round(r.pop * 100) + '% жителей' : ''}${a?.got_district_measure ? ' · <span class="text-amber-300">есть проект</span>' : ''}</div></td>
-        ${inds.map((i, k) => cell(r.after[k], r.before[k], i.code, name)).join('')}
-        <td class="px-2 py-2 text-center tabular-nums text-slate-400">${num(r.D_before)} → <b class="text-white">${num(r.D_after)}</b></td>
-        <td class="px-2 py-2 text-right font-bold tabular-nums ${dd > 0.005 ? 'text-emerald-400' : dd < -0.005 ? 'text-red-400' : 'text-slate-500'}">${sign(dd)}</td>
-        <td class="py-2 pl-2 text-right tabular-nums ${a && a.approval < 50 ? 'text-red-300' : 'text-slate-300'}">${a ? num(a.approval, 0) + '%' : '—'}</td></tr>`;
-    }).join('')}</tbody></table>
-    ${(v.resolved_crit_cells || []).length ? `<div class="mt-3 text-[12px] text-slate-400">Выведены из красной зоны: ${v.resolved_crit_cells.map((c) => `${esc(c.district)} ${c.indicator} ${num(c.before, 0)}→${num(c.after, 1)}`).join(' · ')}</div>` : ''}
-    ${(v.synergies_triggered || []).length ? `<div class="mt-1 text-[12px] text-slate-400">Синергии: ${v.synergies_triggered.map((s) => `${s.pair.join(' + ')} в ${esc(loc(s.district))} (${Object.entries(s.bonus).map(([k, b]) => k + ' +' + b).join(', ')})`).join(' · ')}</div>` : ''}`;
+  const cols = 'grid-template-columns:18px minmax(150px,1.1fr) minmax(430px,3fr) 150px 80px 80px';
+  el.innerHTML = `<div class="board" style="min-width:980px">
+    <div class="bhead" style="${cols}"><span></span><span>Район</span><span class="cells" style="gap:3px">${inds.map((i) => `<span class="text-center" title="${esc(i.name)}">${i.code}</span>`).join('')}</span><span>D до → после</span><span class="text-right">Δ</span><span class="text-right">Рейтинг</span></div>
+    ${Object.entries(v.districts || {}).map(([name, r]) => {
+      const dd = r.D_after - r.D_before, a = ap[name];
+      return `<div class="brow" style="${cols}"><span class="lamp ${a && a.approval < 50 ? 'r' : 'on'}" title="${a && a.approval < 50 ? 'район против' : 'район за'}"></span>
+        <span><b class="disp text-[21px] leading-none">${esc(name)}</b><span class="mono block text-[11px] text-[#8fb4bd]">${r.pop != null ? Math.round(r.pop * 100) + '% жителей' : ''}${a?.got_district_measure ? ' · есть проект' : ''}</span></span>
+        <span class="cells">${inds.map((ind, k) => { const b = r.before[k], x = r.after[k], d = x - b;
+          const hit = ev && ev.district === name && ev.effects && ind.code in ev.effects;
+          return `<span class="cell ${x < thr ? 'crit' : b < thr ? 'fix' : ''}" title="${esc(ind.name)}: ${num(b)} → ${num(x)}${hit ? ' · кризис' : ''}" style="${hit ? 'outline:1.5px dashed #ff8e82;outline-offset:-2px' : ''}">${num(x, 0)}<small>${Math.abs(d) >= .05 ? sign(d, 1) : '&nbsp;'}</small></span>`; }).join('')}</span>
+        <span class="bval">${num(r.D_before)} → <b class="text-white">${num(r.D_after)}</b></span>
+        <span class="bval text-right ${dd > .005 ? 'pen' : dd < -.005 ? 'red' : ''}">${sign(dd)}</span>
+        <span class="bval text-right ${a && a.approval < 50 ? 'red' : 'pen'}">${a ? num(a.approval, 0) + '%' : '—'}</span></div>`;
+    }).join('')}
+    ${(v.resolved_crit_cells || []).length || (v.synergies_triggered || []).length ? `<div class="mono px-2 pt-3 text-[11.5px] text-[#8fb4bd]">${(v.resolved_crit_cells || []).length ? 'Вышли из красной зоны: ' + v.resolved_crit_cells.map((c) => `${esc(c.district)} ${c.indicator} ${num(c.before, 0)}→${num(c.after, 1)}`).join(' · ') : ''}${(v.synergies_triggered || []).length ? '<br>Синергии: ' + v.synergies_triggered.map((s) => `${s.pair.join(' + ')} в ${esc(loc(s.district))} (${Object.entries(s.bonus).map(([k, b]) => k + ' +' + b).join(', ')})`).join(' · ') : ''}</div>` : ''}
+  </div>`;
+}
+
+function fillContrib() {
+  const el = $('#vContrib'); if (!el) return;
+  const co = (S.r.score.data.contributions || []).slice().sort((a, b) => b.marginal - a.marginal);
+  const top = Math.max(...co.map((c) => c.marginal), 0.01);
+  el.innerHTML = `<div class="lbl">Вклад каждой меры</div><div class="mb-3 text-[13px] text-graph">насколько упадёт Score, если убрать меру</div>
+    ${co.map((c, i) => `<div class="my-2 grid items-center gap-2" style="grid-template-columns:118px 1fr 56px" title="${esc(decLong(c))}: без меры ${num(c.score_without)}; на единицу бюджета ${num(c.marginal_per_cost)}">
+      <span class="mono truncate text-[12.5px]">${esc(decShort(c))}</span>
+      <span class="h-3.5" style="width:${Math.max(2, c.marginal / top * 100)}%;background:${i === co.length - 1 ? 'var(--red)' : 'var(--pen)'}"></span>
+      <b class="mono text-right text-[12.5px]">${sign(c.marginal)}</b></div>`).join('')}
+    <div class="mt-3 text-[12.5px] text-graph">Красная полоса — худшая отдача: ${co.length ? `${esc(decShort(co[co.length - 1]))}, ${num(co[co.length - 1].marginal_per_cost)} Score на единицу бюджета` : ''}.</div>`;
 }
 
 function aiBadges(x) {
   const prov = x.provider || 'offline';
-  return `<span class="rounded-full border border-base-600 px-2 py-0.5 text-[10px] text-slate-400">${prov === 'offline' ? 'офлайн-шаблон' : esc(prov)}</span>
-    ${x.grounded === false ? '<span class="rounded-full border border-amber-400/40 px-2 py-0.5 text-[10px] text-amber-300">проверка чисел не пройдена — шаблон</span>'
-      : '<span class="rounded-full border border-emerald-400/40 px-2 py-0.5 text-[10px] text-emerald-300">✓ все числа сверены с движком</span>'}`;
+  return `<span class="mono border border-rule px-2 py-0.5 text-[11px] text-graph">${prov === 'offline' ? 'офлайн-шаблон' : esc(prov)}</span>
+    ${x.grounded === false ? '<span class="mono border border-alarm px-2 py-0.5 text-[11px] text-alarm">проверка чисел не пройдена — шаблон</span>'
+      : '<span class="mono border border-peni px-2 py-0.5 text-[11px] text-peni">✓ все числа сверены с движком</span>'}`;
 }
 function fillAI() {
   const el = $('#vAI'); if (!el) return;
   const r = S.r.ai;
-  const head = (extra = '') => `<div class="flex flex-wrap items-center gap-2"><div class="card-h">ИИ-аналитик акимата${S.crisis ? ' · исходный план' : ''}</div>${extra}</div>`;
-  if (!r || r.loading) { el.innerHTML = `${head()}<div class="mt-4 text-sm">${spinner('Аналитик вызывает инструменты движка…')}</div><div class="mt-4 grid gap-3 md:grid-cols-2">${skel('h-28')}${skel('h-28')}${skel('h-28')}${skel('h-28')}</div>`; return; }
+  const head = (extra = '') => `<div class="hsec"><h2 class="h2">Аналитик</h2><p>${S.crisis ? 'разбор исходного плана · ' : ''}ИИ объясняет, движок считает</p>${extra}</div>`;
+  if (!r || r.loading) { el.innerHTML = `${head()}<div class="mb-3">${spinner('Аналитик вызывает инструменты движка…')}</div><div class="grid gap-3 md:grid-cols-4">${skel('h-40')}${skel('h-40')}${skel('h-40')}${skel('h-40')}</div>`; return; }
   if (r.error) {
-    el.innerHTML = `${head()}<div class="mt-4">${errBox('Аналитик не ответил', r.error)}</div><button id="aiRetry" class="mt-3 rounded-lg border border-base-600 px-3 py-1.5 text-sm">Повторить</button>`;
+    el.innerHTML = `${head()}<div class="notice">${errBox('Аналитик не ответил', r.error)}<button id="aiRetry" class="btn btn-line mt-3">Повторить</button></div>`;
     $('#aiRetry').onclick = () => { fetchInto('ai', () => api('POST', '/api/analyze', { plan: S.plan, lang: 'ru' }, { timeout: CONFIG.LLM_TIMEOUT_MS }), S.run); fillAI(); };
     return;
   }
-  const a = r.data;
-  const block = (title, items, dot) => `<div class="rounded-xl bg-base-850 p-4">
-    <div class="mb-2 flex items-center gap-2 text-sm font-semibold"><span class="h-2 w-2 rounded-full ${dot}"></span>${title}</div>
-    <ul class="space-y-1.5 text-[13.5px] leading-snug text-slate-300">${(items && items.length ? items : ['—']).map((x) => `<li>${esc(x)}</li>`).join('')}</ul></div>`;
-  const rec = a.recommendation || {};
-  const recPlan = planDecs(rec.plan);
-  el.innerHTML = `${head(aiBadges(a))}
-    ${a.summary ? `<p class="mt-3 text-[15px] leading-relaxed text-slate-200">${esc(a.summary)}</p>` : ''}
-    <div class="mt-4 grid gap-3 md:grid-cols-2">
-      ${block('Сильные стороны', a.strengths, 'bg-emerald-400')}
-      ${block('Риски', a.risks, 'bg-red-400')}
-      ${block('Последствия', a.consequences, 'bg-slate-300')}
-      ${block('Компромиссы', a.tradeoffs, 'bg-amber-300')}
-    </div>
-    <div class="mt-3 flex flex-col gap-3 rounded-xl border border-accent/30 bg-accent/5 p-4 sm:flex-row sm:items-center">
-      <div class="flex-1"><div class="mb-1 flex items-baseline gap-2 text-sm font-semibold text-accent">Рекомендация${rec.expected_score != null ? `<span class="text-slate-300">→ Score ${num(rec.expected_score)}</span>` : ''}</div>
-        <div class="text-[13.5px] leading-snug text-slate-200">${esc(rec.why || 'Рекомендации нет.')}</div>
-        ${recPlan.length ? `<div class="mt-2 flex flex-wrap gap-1.5">${recPlan.map((d) => `<span class="rounded-md bg-base-800 px-1.5 py-0.5 text-[11px] text-slate-300">${esc(decShort(d))}</span>`).join('')}</div>` : ''}</div>
-      ${recPlan.length ? '<button id="applyRec" class="shrink-0 rounded-xl bg-accent px-4 py-2.5 text-sm font-bold text-base-950">Применить рекомендацию</button>' : ''}
-    </div>`;
+  const a = r.data, rec = a.recommendation || {}, recPlan = planDecs(rec.plan);
+  const block = (t, xs) => `<div class="notice"><h3>${t}</h3><ul>${(xs && xs.length ? xs : ['—']).map((x) => `<li>${esc(x)}</li>`).join('')}</ul></div>`;
+  el.innerHTML = `${head(`<span class="flex flex-wrap gap-1.5">${aiBadges(a)}</span>`)}
+    ${a.summary ? `<p class="m-0 mb-3 max-w-[980px] text-[17px] leading-snug">${esc(a.summary)}</p>` : ''}
+    <div class="grid gap-3 md:grid-cols-2 xl:grid-cols-4">${block('Сильные стороны', a.strengths)}${block('Риски', a.risks)}${block('Последствия', a.consequences)}${block('Компромиссы', a.tradeoffs)}</div>
+    <div class="notice mt-3 flex flex-col gap-3 sm:flex-row sm:items-center" style="border-top:4px solid var(--pen)">
+      <div class="flex-1"><h3>Рекомендация${rec.expected_score != null ? ` → Score ${num(rec.expected_score)}` : ''}</h3><div class="text-[14.5px]">${esc(rec.why || 'Рекомендации нет.')}</div>
+        ${recPlan.length ? `<div class="mono mt-2 flex flex-wrap gap-1.5 text-[11.5px]">${recPlan.map((d) => `<span class="border border-rule bg-paper px-1.5 py-0.5">${esc(decShort(d))}</span>`).join('')}</div>` : ''}</div>
+      ${recPlan.length ? '<button id="applyRec" class="btn btn-pen shrink-0">Применить рекомендацию</button>' : ''}</div>`;
   const ab = $('#applyRec'); if (ab) ab.onclick = () => { loadPlan(recPlan); go('cabinet'); toast('Рекомендация загружена в кабинет'); };
 }
 
@@ -742,155 +789,142 @@ function fillCouncil() {
   const el = $('#vCouncil'); if (!el) return;
   const r = S.r.nar;
   if (!r || r.loading) { el.innerHTML = `<div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">${Array(5).fill(skel('h-44')).join('')}</div>`; return; }
-  if (r.error) { el.innerHTML = errBox('Совет не собрался', r.error); return; }
-  const c = r.data.council || [];
-  const mood = { positive: ['bg-accent text-base-950', 'text-accent', 'За'], neutral: ['bg-slate-600 text-white', 'text-slate-300', 'Воздержался'], negative: ['bg-red-500 text-white', 'text-red-300', 'Против'] };
-  el.innerHTML = `<div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">${c.map((d) => {
-    const mc = mood[d.mood] || mood.neutral;
-    return `<div class="fade-in flex flex-col rounded-xl border border-base-700 bg-base-850 p-4">
-      <div class="flex items-center gap-3"><div class="grid h-11 w-11 shrink-0 place-items-center rounded-full text-sm font-extrabold ${mc[0]}">${esc((d.district || '?').slice(0, 2).toUpperCase())}</div>
-        <div class="min-w-0"><div class="truncate text-sm font-semibold">${esc(d.district)}</div><div class="truncate text-[11px] text-slate-400">${esc(d.deputy || 'Депутат')}</div></div></div>
-      <div class="mt-3 flex-1 text-[13px] italic leading-snug text-slate-300">«${esc(String(d.quote || '').replace(/^«|»$/g, ''))}»</div>
-      <div class="mt-3 flex items-center justify-between text-[11px]"><span class="font-bold uppercase tracking-wider ${mc[1]}">${mc[2]}</span>
-        <span class="tabular-nums text-slate-500">ΔD ${sign(d.delta_D)} · ${num(d.approval, 0)}%</span></div></div>`;
-  }).join('')}</div>`;
+  if (r.error) { el.innerHTML = `<div class="notice">${errBox('Совет не собрался', r.error)}</div>`; return; }
+  const mood = { positive: ['ЗА', 'peni'], neutral: ['ВОЗДЕРЖ.', 'mut'], negative: ['ПРОТИВ', 'red'] };
+  el.innerHTML = `<div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">${(r.data.council || []).map((d) => { const m = mood[d.mood] || mood.neutral; return `
+    <div class="council-card fade"><div class="head"><b class="disp text-[23px] leading-none">${esc(d.district)}</b><span class="mood ${m[1]}">${m[0]}</span></div>
+      <div class="mono mb-2 text-[11.5px] text-graph">ΔD ${sign(d.delta_D)} · рейтинг ${num(d.approval, 0)}%</div>
+      <p class="m-0 flex-1 text-[14px] leading-snug">«${esc(unq(d.quote))}»</p>
+      <div class="mt-2 text-[12px] text-graph">${esc(d.deputy || 'Депутат')}</div></div>`; }).join('')}</div>`;
 }
 
-function chartDefaults() {
-  Chart.defaults.color = '#94a3b8';
-  Chart.defaults.font.family = 'Inter, system-ui, sans-serif';
-  Chart.defaults.borderColor = 'rgba(51,65,85,.45)';
+/* ---- charts (Chart.js on millimetre paper) ---- */
+const refLines = {
+  id: 'refLines',
+  afterDatasetsDraw(c) {
+    const { ctx } = c;
+    c.data.datasets.forEach((ds, i) => {
+      if (!ds.refLabel || !c.isDatasetVisible(i)) return;
+      const meta = c.getDatasetMeta(i), pt = meta.data[meta.data.length - 1]; if (!pt) return;
+      ctx.save(); ctx.font = '500 11px "JetBrains Mono"'; ctx.fillStyle = ds.borderColor; ctx.textAlign = 'right';
+      ctx.fillText(ds.refLabel, c.chartArea.right, pt.y - 6); ctx.restore();
+    });
+  },
+};
+function chartBase() {
+  Chart.defaults.font.family = '"JetBrains Mono", ui-monospace, monospace';
+  Chart.defaults.font.size = 10.5;
+  Chart.defaults.color = '#56696f';
 }
-const ACC = '#19b8d8';
-function drawScoreCharts() {
-  const v = S.r.score.data; if (!$('#chTimeline')) return;
-  chartDefaults();
-  const base = v.baseline ?? BASELINE();
-  const QL = ['старт', 'I·27', 'II·27', 'III·27', 'IV·27', 'I·28', 'II·28', 'III·28', 'IV·28'];
+function drawTrace() {
+  if (!$('#chTrace') || !S.r.score?.data) return;
+  chartBase();
+  const v = S.r.score.data, o = S.r.opt?.data, base = v.baseline ?? BASELINE();
   const tl = v.timeline || [];
-  chart('chTimeline', {
-    type: 'line',
-    data: { labels: tl.map((t) => QL[t.q] ?? 'Q' + t.q), datasets: [
-      { label: 'Score', data: tl.map((t) => t.score), borderColor: ACC, backgroundColor: 'rgba(25,184,216,.12)', fill: true, tension: .25, pointRadius: 3 },
-      { label: 'База', data: tl.map(() => base), borderColor: '#475569', borderDash: [5, 5], pointRadius: 0, borderWidth: 1.5 },
-    ] },
-    options: { maintainAspectRatio: false, plugins: { legend: { display: false }, tooltip: { callbacks: { label: (c) => `${c.dataset.label}: ${num(c.parsed.y)}` } } },
-      scales: { x: { ticks: { maxRotation: 0, autoSkip: true, maxTicksLimit: 5 } }, y: { suggestedMin: base - 0.3 } } },
-  });
-  const co = (v.contributions || []).slice().sort((a, b) => b.marginal - a.marginal);
-  chart('chContrib', {
-    type: 'bar',
-    data: { labels: co.map((c) => decShort(c)), datasets: [{ data: co.map((c) => c.marginal), backgroundColor: co.map((c, i) => (i === co.length - 1 ? 'rgba(239,68,68,.6)' : i === 0 ? ACC : 'rgba(25,184,216,.45)')), borderRadius: 6 }] },
-    options: { indexAxis: 'y', maintainAspectRatio: false, plugins: { legend: { display: false },
-      tooltip: { callbacks: { title: (c) => decLong(co[c[0].dataIndex]), label: (c) => { const x = co[c.dataIndex]; return [`вклад ${sign(x.marginal)} Score`, `без меры: ${num(x.score_without)}`, `на единицу бюджета: ${num(x.marginal_per_cost)}`]; } } } },
-      scales: { x: { title: { display: true, text: 'Δ Score' } }, y: { ticks: { font: { size: 11 } } } } },
+  const vals = tl.map((t) => t.score);
+  const flat = (y, color, label, dash) => ({ data: tl.map(() => y), borderColor: color, borderWidth: 1.5, borderDash: dash, pointRadius: 0, refLabel: label, fill: false });
+  const ds = [{ data: vals, borderColor: '#19b8d8', borderWidth: 4, pointRadius: 3.5, pointBackgroundColor: '#0d2a33', pointBorderWidth: 0, tension: .25, fill: false }];
+  ds.push(flat(base, '#56696f', `${S.crisis ? 'база с кризисом' : 'без решений'} ${num(base)}`, [6, 5]));
+  if (o) ds.push(flat(o.best.score, '#cf3a2c', `оптимум ${num(o.best.score)} — рейтинг ${num(o.best.approval, 1)}%`, [6, 5]));
+  const lo = Math.min(...vals, base) - .4, hi = Math.max(...vals, o?.best?.score ?? 0) + .4;
+  chart('chTrace', {
+    type: 'line', data: { labels: tl.map((t) => QL[t.q] ?? 'Q' + t.q), datasets: ds }, plugins: [refLines],
+    options: { maintainAspectRatio: false, animation: { duration: 900, easing: 'easeOutQuart' }, layout: { padding: { top: 16 } },
+      plugins: { legend: { display: false }, tooltip: { backgroundColor: '#0d2a33', titleFont: { family: 'JetBrains Mono' }, bodyFont: { family: 'JetBrains Mono' }, filter: (i) => i.datasetIndex === 0, callbacks: { label: (c) => `Score ${num(c.parsed.y)}` } } },
+      scales: { x: { grid: { display: false }, border: { color: '#0d2a33' }, ticks: { maxRotation: 0, autoSkip: true } }, y: { min: Math.floor(lo * 2) / 2, max: Math.ceil(hi * 2) / 2, grid: { display: false }, border: { color: '#0d2a33' }, ticks: { stepSize: .5, callback: (x) => num(x, 1) } } } },
   });
 }
 function drawPareto() {
   if (!$('#chPareto') || !S.r.score?.data) return;
-  const o = S.r.opt?.data; const v = S.r.score.data;
-  chartDefaults();
+  const o = S.r.opt?.data;
+  if (!o) { $('#vPareto').innerHTML = S.r.opt?.error ? errBox('Оптимизатор недоступен', S.r.opt.error) : `<div class="pt-8">${spinner('Строим границу Парето…')}</div><canvas id="chPareto" hidden></canvas>`; return; }
+  if (!$('#chPareto') || $('#chPareto').hidden) $('#vPareto').innerHTML = '<canvas id="chPareto" aria-label="Граница Парето"></canvas>';
+  chartBase();
+  const v = S.r.score.data;
   const me = S.crisis?.before ? { x: S.crisis.before.cost, y: S.crisis.before.score } : { x: v.cost, y: v.score };
-  const ds = [{ label: 'Ваш план', data: [me], pointRadius: 9, pointHoverRadius: 11, backgroundColor: '#fff', borderColor: ACC, borderWidth: 4, order: 0 }];
-  if (o) {
-    ds.push({ label: 'Лучший план не дороже', data: (o.pareto || []).map((p) => ({ x: p.cost, y: p.score, plan: p.plan })), showLine: true, stepped: 'before', borderColor: ACC, backgroundColor: 'rgba(25,184,216,.35)', pointRadius: 3, borderWidth: 2, order: 2 });
-    ds.push({ label: `Оптимум · рейтинг ${num(o.best.approval, 1)}%`, data: [{ x: o.best.cost, y: o.best.score, plan: o.best.plan }], pointStyle: 'rectRot', pointRadius: 9, backgroundColor: '#ef4444', borderColor: '#fff', borderWidth: 1.5, order: 1 });
-    if (o.balanced) ds.push({ label: `Баланс · рейтинг ${num(o.balanced.approval, 1)}%`, data: [{ x: o.balanced.cost, y: o.balanced.score, plan: o.balanced.plan }], pointStyle: 'triangle', pointRadius: 9, backgroundColor: '#fbbf24', borderColor: '#fff', borderWidth: 1.5, order: 1 });
-  }
+  const ds = [
+    { label: 'Ваш план', data: [me], pointRadius: 8, pointHoverRadius: 10, backgroundColor: '#fff', borderColor: '#19b8d8', borderWidth: 4, order: 0 },
+    { label: `Оптимум · рейтинг ${num(o.best.approval, 1)}%`, data: [{ x: o.best.cost, y: o.best.score, plan: o.best.plan }], pointStyle: 'rectRot', pointRadius: 8, backgroundColor: '#cf3a2c', borderColor: '#cf3a2c', order: 1 },
+    { label: 'Лучший план не дороже', data: (o.pareto || []).map((p) => ({ x: p.cost, y: p.score, plan: p.plan })), showLine: true, stepped: 'before', borderColor: '#0d2a33', backgroundColor: '#0d2a33', borderWidth: 2, pointRadius: 2.5, order: 2 },
+  ];
+  if (o.balanced) ds.splice(2, 0, { label: `Баланс · рейтинг ${num(o.balanced.approval, 1)}%`, data: [{ x: o.balanced.cost, y: o.balanced.score, plan: o.balanced.plan }], pointStyle: 'triangle', pointRadius: 8, backgroundColor: '#19b8d8', borderColor: '#0d2a33', borderWidth: 1.5, order: 1 });
   chart('chPareto', {
     type: 'scatter', data: { datasets: ds },
-    options: { maintainAspectRatio: false, animation: { duration: 400 },
-      plugins: { legend: { labels: { boxWidth: 9, usePointStyle: true, font: { size: 11 } } },
-        tooltip: { callbacks: { label: (c) => `${c.dataset.label}: ${c.parsed.x} ед. → ${num(c.parsed.y)}`, afterLabel: (c) => { const p = c.raw.plan; return p ? planDecs(p).map(decShort).join(', ') : ''; } } } },
-      scales: { x: { title: { display: true, text: 'Потрачено, ед.' }, suggestedMin: 55, suggestedMax: 100 }, y: { title: { display: true, text: 'Score' }, suggestedMin: 55, suggestedMax: 57.4 } } },
+    options: { maintainAspectRatio: false, animation: { duration: 600 },
+      plugins: { legend: { labels: { usePointStyle: true, boxWidth: 8, boxHeight: 8, font: { size: 10.5 } } },
+        tooltip: { backgroundColor: '#0d2a33', callbacks: { label: (c) => `${c.dataset.label}: ${c.parsed.x} ед. → ${num(c.parsed.y)}`, afterLabel: (c) => (c.raw.plan ? planDecs(c.raw.plan).map(decShort).join(', ') : '') } } },
+      scales: { x: { title: { display: true, text: 'потрачено, ед.' }, suggestedMin: 58, suggestedMax: 100, grid: { display: false }, border: { color: '#0d2a33' } },
+        y: { title: { display: true, text: 'Score' }, suggestedMin: 55.4, suggestedMax: 57.4, grid: { display: false }, border: { color: '#0d2a33' }, ticks: { callback: (x) => num(x, 1) } } } },
   });
 }
 
 /* =====================================================================
-   КРИЗИС (5-й час)
+   КРИЗИС — событие слева, ваш ответ справа
    ===================================================================== */
 const CR = { ev: null, outM: null, inn: null, val: null, validating: false, submitting: false, result: null, error: null, seq: 0 };
 async function openCrisis() {
   Object.assign(CR, { ev: null, outM: null, inn: null, val: null, validating: false, submitting: false, result: null, error: null });
-  openModal(`<div data-lock class="card fade-in w-full max-w-4xl rounded-b-none p-6 sm:rounded-2xl">${spinner('III квартал. Звонок из штаба…')}</div>`, { dismissable: false });
+  openModal(`<div data-lock class="fade plate w-full max-w-md p-6">${spinner('III квартал. Звонок из штаба…')}</div>`, { dismissable: false });
   const seed = CONFIG.SEED ?? Math.floor(Math.random() * 1000);
   try { CR.ev = await api('POST', '/api/shock', { plan: S.plan, seed }); }
   catch (e) { CR.error = e.message; }
   renderCrisis();
 }
 function crisisNext() { return CR.outM && CR.inn && (S.mi[CR.inn.measure]?.type !== 'district' || CR.inn.district) ? applySwap(S.plan, { out: CR.outM, in: CR.inn }) : null; }
+function eventCard(E, compact) {
+  const ev = E.event;
+  const effs = Object.entries(ev.effects || {}).map(([k, v]) => `${k} ${indShort(k)} ${v > 0 ? '+' : '−'}${Math.abs(v)} в ${loc(ev.district)}`);
+  return `<div class="opp flex flex-col">
+    <div class="flex items-center gap-2"><span class="grid h-7 w-7 place-items-center rounded-full bg-alarm text-[15px] font-black text-white">!</span><span class="mono text-[12px] text-[#8fc9d6]">${ev.quarter ? ['', 'I', 'II', 'III', 'IV'][ev.quarter] + ' квартал' : 'III квартал'} · ${esc(ev.district || '')}</span></div>
+    <h3 class="mt-3">${esc(ev.title)}</h3>
+    <p class="mb-0 mt-3 text-[15px] leading-snug text-[#cfe3e7]">${esc(ev.description || '')}</p>
+    <div class="mt-3">${effs.map((e) => `<span class="chip">${esc(e)}</span>`).join('')}</div>
+    ${E.score_before != null ? `<div class="mt-auto pt-5"><div class="lbl">Без замены</div><div class="mid">${num(E.score_before)} → <span class="text-[#ff8e82]">${num(E.new_baseline_score)}</span></div><div class="mono text-[12px] text-[#8fc9d6]">${sign(E.new_baseline_score - E.score_before)} Score · бюджет прежний, ${S.ds.budget} ед.</div></div>` : ''}
+    ${!compact && ev.hint ? `<details class="mt-4 text-[13.5px] text-[#cfe3e7]"><summary class="cursor-pointer text-[#8fc9d6]">Подсказка штаба</summary><div class="mt-1">${esc(ev.hint)}</div></details>` : ''}
+  </div>`;
+}
 function renderCrisis() {
-  const md = $('#modal'); if (md.classList.contains('hidden')) return;
-  const keep = [md.querySelector('[data-lock]')?.scrollTop || 0, md.querySelector('[data-addlist]')?.scrollTop || 0];
-  const restore = () => { const a = md.querySelector('[data-lock]'), b = md.querySelector('[data-addlist]'); if (a) a.scrollTop = keep[0]; if (b) b.scrollTop = keep[1]; };
+  const md = $('#modal'); if (!md.classList.contains('open')) return;
+  const keep = [md.querySelector('[data-scroll]')?.scrollTop || 0, md.querySelector('[data-addlist]')?.scrollTop || 0];
+  const restore = () => { const a = md.querySelector('[data-scroll]'), b = md.querySelector('[data-addlist]'); if (a) a.scrollTop = keep[0]; if (b) b.scrollTop = keep[1]; };
   if (CR.error || !CR.ev) {
-    md.innerHTML = `<div data-lock class="card w-full max-w-xl p-6 text-center"><div class="font-semibold">Кризис не загрузился</div>
-      <p class="mt-2 text-sm text-slate-400">${esc(CR.error || 'Нет данных')}</p>
-      <div class="mt-4 flex justify-center gap-2"><button id="crRetry" class="rounded-xl bg-accent px-4 py-2 text-sm font-bold text-base-950">Повторить</button>
-      <button data-close class="rounded-xl border border-base-600 px-4 py-2 text-sm">Закрыть</button></div></div>`;
+    md.innerHTML = `<div data-lock class="plate w-full max-w-md p-6 text-center"><div class="h2">Кризис не загрузился</div><p class="text-graph">${esc(CR.error || 'Нет данных')}</p>
+      <div class="flex justify-center gap-2"><button id="crRetry" class="btn btn-ink">Повторить</button><button data-close class="btn btn-line">Закрыть</button></div></div>`;
     $('#crRetry').onclick = openCrisis; return;
   }
   if (CR.result) { renderCrisisResult(); return; }
-  const E = CR.ev, ev = E.event;
   const decs = planDecs(S.plan);
   const remaining = decs.filter((d) => d.measure !== CR.outM);
   const next = crisisNext();
-  const cost = (next ? planDecs(next) : remaining).reduce((s, d) => s + (S.mi[d.measure]?.cost || 0), 0) + (!next && CR.inn ? S.mi[CR.inn.measure].cost : 0);
+  const cost = remaining.reduce((s, d) => s + (S.mi[d.measure]?.cost || 0), 0) + (CR.inn ? S.mi[CR.inn.measure].cost : 0);
   const over = cost > S.ds.budget;
   const canGo = next && CR.val?.valid && !CR.validating && !CR.submitting;
-  const effs = Object.entries(ev.effects || {}).map(([k, v]) => `${k} ${indShort(k)} ${v > 0 ? '+' : '−'}${Math.abs(v)} в ${loc(ev.district)}`);
   let status;
   if (!CR.outM) status = 'Шаг 1: выберите меру, от которой откажетесь.';
   else if (!CR.inn) status = 'Шаг 2: выберите, что добавить взамен.';
   else if (!next) status = 'Укажите район для районной меры.';
   else if (CR.validating) status = null;
-  else status = CR.val ? (CR.val.valid ? `Замена допустима. Бюджет ${CR.val.cost} из ${S.ds.budget}.` : CR.val.reason) : '';
-
-  md.innerHTML = `<div data-lock class="card fade-in max-h-[94vh] w-full max-w-5xl overflow-y-auto rounded-b-none sm:rounded-2xl">
-    <div class="border-b border-red-500/30 bg-gradient-to-br from-red-500/15 to-transparent p-5 sm:p-6">
-      <div class="flex flex-wrap items-center gap-2"><span class="rounded-full bg-red-500 px-2.5 py-0.5 text-[11px] font-black uppercase tracking-widest text-white">Кризис</span>
-        <span class="text-[12px] font-semibold uppercase tracking-wider text-red-300">${ev.quarter ? ['', 'I', 'II', 'III', 'IV'][ev.quarter] + ' квартал' : 'III квартал'} · 5-й час · ${esc(ev.district || '')}</span></div>
-      <h3 class="mt-2 text-2xl font-extrabold tracking-tight sm:text-3xl">${esc(ev.title)}</h3>
-      <p class="mt-2 max-w-3xl text-sm leading-relaxed text-slate-300">${esc(ev.description || '')}</p>
-      <div class="mt-3 flex flex-wrap gap-2">
-        ${effs.map((e) => `<span class="rounded-lg border border-red-400/30 bg-base-950/40 px-2.5 py-1 text-[12px] text-red-100">${esc(e)}</span>`).join('')}
-        ${E.score_before != null ? `<span class="rounded-lg border border-red-400/30 bg-base-950/40 px-2.5 py-1 text-[12px] text-red-100">Без замены: Score ${num(E.score_before)} → <b>${num(E.new_baseline_score)}</b> (${sign(E.new_baseline_score - E.score_before)})</span>` : ''}
-        <span class="rounded-lg border border-red-400/30 bg-base-950/40 px-2.5 py-1 text-[12px] text-red-100">Заменить ровно одну меру, бюджет тот же — ${S.ds.budget}</span>
-      </div>
-      ${ev.hint ? `<details class="mt-3 text-[13px] text-slate-400"><summary class="cursor-pointer text-slate-300">Подсказка штаба</summary><div class="mt-1">${esc(ev.hint)}</div></details>` : ''}
-    </div>
-    <div class="grid gap-5 p-5 sm:p-6 lg:grid-cols-[1fr_1.35fr]">
-      <div>
-        <div class="card-h mb-2">1 · Отказаться от</div>
-        <div class="space-y-2">${decs.map((d) => { const m = S.mi[d.measure]; const on = CR.outM === d.measure; return `
-          <button data-rm="${esc(d.measure)}" class="flex w-full items-center gap-3 rounded-xl border px-3 py-2.5 text-left ${on ? 'border-red-400 bg-red-500/10' : 'border-base-700 bg-base-850 hover:border-base-600'}">
-            <span class="grid h-5 w-5 shrink-0 place-items-center rounded-full border ${on ? 'border-red-400 bg-red-500 text-white' : 'border-base-600'} text-[11px]">${on ? '×' : ''}</span>
-            <span class="min-w-0 flex-1"><span class="block truncate text-sm font-medium ${on ? 'text-slate-400 line-through' : ''}"><span class="text-slate-400">${esc(d.measure)}</span> ${esc(m?.name)}</span>
-            <span class="text-[11px] text-slate-400">${esc(m?.cost)} ед. · ${esc(dirName(m?.direction))}${d.district ? ' · ' + esc(d.district) : ''}</span></span></button>`; }).join('')}</div>
-      </div>
-      <div>
-        <div class="card-h mb-2">2 · Добавить взамен</div>
-        ${!CR.outM ? '<div class="rounded-xl border border-dashed border-base-600 p-4 text-sm text-slate-500">Сначала выберите, от чего отказаться.</div>' : `
-        <div data-addlist class="grid max-h-[360px] gap-2 overflow-y-auto pr-1 sm:grid-cols-2">${S.ds.measures.filter((m) => !remaining.some((d) => d.measure === m.id)).map((m) => {
-          const block = blockReason(m, null, remaining);
-          const on = CR.inn?.measure === m.id;
-          return `<div class="rounded-xl border px-3 py-2.5 ${on ? 'border-accent bg-accent/10' : 'border-base-700 bg-base-850'} ${block ? 'opacity-40' : ''}">
-            <button data-add="${esc(m.id)}" ${block ? `disabled title="${esc(block)}"` : ''} class="w-full text-left">
-              <div class="flex items-start justify-between gap-2"><span class="text-sm font-medium leading-snug"><span class="text-slate-400">${esc(m.id)}</span> ${esc(m.name)}</span><span class="shrink-0 text-sm font-bold tabular-nums">${esc(m.cost)}</span></div>
-              <div class="text-[11px] text-slate-400">${Object.entries(m.effects).map(([k, v]) => `${v > 0 ? '+' : '−'}${Math.abs(v)} ${indShort(k)}`).join(', ')} · ${m.type === 'district' ? 'район' : 'город'} · лаг ${esc(m.lag)}${block ? ' · ' + esc(block) : ''}</div></button>
-            ${on && m.type === 'district' ? `<select data-dist class="mt-2 w-full rounded-lg border border-base-600 bg-base-900 px-2 py-1.5 text-sm">
-              <option value="">— выберите район —</option>${S.ds.districts.map((k) => { const b = blockReason(m, k.name, remaining); return `<option value="${esc(k.name)}" ${CR.inn.district === k.name ? 'selected' : ''} ${b ? 'disabled' : ''}>${esc(k.name)}${k.name === ev.district ? ' — зона кризиса' : ''}${b ? ' (нельзя)' : ''}</option>`; }).join('')}</select>` : ''}
-          </div>`; }).join('')}</div>`}
-      </div>
-    </div>
-    <div class="sticky bottom-0 border-t border-base-700 bg-base-900/95 p-4 backdrop-blur sm:px-6">
-      <div class="flex flex-col gap-3 sm:flex-row sm:items-center">
-        <div class="min-w-0 flex-1">
-          <div class="flex items-baseline gap-2 text-sm"><span class="text-slate-400">Бюджет после замены</span><b class="tabular-nums ${over ? 'text-red-400' : ''}">${cost} / ${S.ds.budget}</b></div>
-          <div class="mt-1.5 h-2 overflow-hidden rounded-full bg-base-800"><div class="h-full ${over ? 'bg-red-500' : 'bg-accent'}" style="width:${Math.min(100, cost)}%"></div></div>
-          <div class="mt-1.5 text-[12px] ${CR.val?.valid ? 'text-emerald-300' : next && CR.val ? 'text-red-300' : 'text-slate-400'}">${status == null ? spinner('Проверяем…') : esc(status)}</div>
+  else status = CR.val ? (CR.val.valid ? `Замена допустима · бюджет ${CR.val.cost} из ${S.ds.budget}` : CR.val.reason) : '';
+  md.innerHTML = `<div data-lock data-scroll class="fade grid max-h-[94vh] w-full max-w-[1100px] overflow-y-auto lg:grid-cols-[.9fr_1.1fr]" style="border:1px solid #061a20">
+    ${eventCard(CR.ev)}
+    <div class="bg-paper p-5">
+      <div class="flex items-baseline justify-between gap-2"><h3 class="h2 text-[34px]">Ваш ответ</h3><span class="mono text-[12px] text-graph">заменить ровно одну меру</span></div>
+      <div class="mt-3 grid gap-4 md:grid-cols-2">
+        <div><div class="lbl">1 · Отказаться от</div>${decs.map((d) => { const m = S.mi[d.measure]; const on = CR.outM === d.measure; return `
+          <button data-rm="${esc(d.measure)}" class="opt ${on ? 'out' : ''}"><span class="rd"></span><span class="t min-w-0"><b class="mono text-[12px]">${esc(d.measure)}</b> ${esc(m?.name)}<span class="block text-[12px] text-graph">${esc(m?.cost)} ед. · ${d.district ? esc(d.district) : 'город'}</span></span><span></span></button>`; }).join('')}</div>
+        <div><div class="lbl">2 · Добавить взамен</div>
+          ${!CR.outM ? '<div class="mt-1.5 border border-dashed border-rule p-4 text-[14px] text-graph">Сначала выберите, от чего отказаться.</div>' : `
+          <div data-addlist class="max-h-[330px] overflow-y-auto pr-1">${S.ds.measures.filter((m) => !remaining.some((d) => d.measure === m.id)).map((m) => {
+            const block = blockReason(m, null, remaining), on = CR.inn?.measure === m.id;
+            return `<div><button data-add="${esc(m.id)}" ${block ? `disabled title="${esc(block)}"` : ''} class="opt ${on ? 'in' : ''}"><span class="rd"></span><span class="min-w-0"><b class="mono text-[12px]">${esc(m.id)}</b> ${esc(m.name)}<span class="block text-[12px] text-graph">${Object.entries(m.effects).map(([k, v]) => `${v > 0 ? '+' : '−'}${Math.abs(v)} ${indShort(k)}`).join(', ')} · лаг ${m.lag}${block ? ' · ' + esc(block) : ''}</span></span><b class="cost text-[20px]">${m.cost}</b></button>
+              ${on && m.type === 'district' ? `<select data-dist aria-label="Район"><option value="">— выберите район —</option>${S.ds.districts.map((k) => { const b = blockReason(m, k.name, remaining); return `<option value="${esc(k.name)}" ${CR.inn.district === k.name ? 'selected' : ''} ${b ? 'disabled' : ''}>${esc(k.name)}${k.name === CR.ev.event.district ? ' — зона кризиса' : ''}${b ? ' (нельзя)' : ''}</option>`; }).join('')}</select>` : ''}</div>`; }).join('')}</div>`}
         </div>
-        <button id="crGo" class="shrink-0 rounded-xl px-5 py-3 text-sm font-bold ${canGo ? 'bg-red-500 text-white hover:brightness-110' : 'cursor-not-allowed bg-base-800 text-slate-500'}" ${canGo ? '' : 'disabled'}>${CR.submitting ? '<span class="spin"></span> Пересчитываем…' : 'Утвердить замену'}</button>
+      </div>
+      <div class="mt-4 flex flex-col gap-3 border-t border-rule pt-3 sm:flex-row sm:items-center">
+        <div class="min-w-0 flex-1"><div class="mono text-[13px]">бюджет после замены <b style="color:${over ? 'var(--red)' : 'var(--ink)'}">${cost}/${S.ds.budget}</b></div>
+          <div class="mt-1 h-1.5 bg-[#c9d3d5]"><div class="h-full" style="width:${Math.min(100, cost)}%;background:${over ? 'var(--red)' : 'var(--pen)'}"></div></div>
+          <div class="mt-1.5 text-[13px]" style="color:${CR.val?.valid ? 'var(--pen-ink)' : next && CR.val ? 'var(--red)' : 'var(--graph)'}">${status == null ? spinner('Проверяем…') : esc(status)}</div></div>
+        <button id="crGo" class="btn btn-red shrink-0" ${canGo ? '' : 'disabled'}>${CR.submitting ? '<span class="spin"></span> Пересчёт…' : 'Утвердить замену'}</button>
       </div>
     </div></div>`;
   $$('#modal [data-rm]').forEach((b) => (b.onclick = () => { CR.outM = b.dataset.rm; CR.inn = null; CR.val = null; renderCrisis(); }));
@@ -914,16 +948,14 @@ async function crisisValidate() {
 }
 async function crisisSubmit() {
   CR.submitting = true; renderCrisis();
-  try {
-    CR.result = await api('POST', '/api/shock/resolve', { plan: S.plan, event_id: CR.ev.event.id, swap: { out: CR.outM, in: CR.inn } });
-  } catch (e) { CR.val = { valid: false, reason: e.message }; }
+  try { CR.result = await api('POST', '/api/shock/resolve', { plan: S.plan, event_id: CR.ev.event.id, swap: { out: CR.outM, in: CR.inn } }); }
+  catch (e) { CR.val = { valid: false, reason: e.message }; }
   CR.submitting = false; renderCrisis();
 }
-function crisisComment() {
-  const c = S.crisis; if (!c) return '';
+function crisisComment(c = S.crisis) {
+  if (!c) return '';
   const r = c.result, ev = c.event, bp = r.best_possible_swap;
-  const swapTxt = `${c.swap.out} → ${decShort(c.swap.in)}`;
-  const parts = [`«${ev.title}» стоил ${num(r.crisis_cost)} Score.`, `Замена ${swapTxt} вернула ${sign(r.recovered)}.`];
+  const parts = [`Кризис стоил ${num(r.crisis_cost)} Score, замена ${c.swap.out} → ${decShort(c.swap.in)} вернула ${sign(r.recovered)}.`];
   if (r.swap_was_optimal) parts.push('Это лучшая из возможных замен.');
   else if (bp) parts.push(`Лучшей была бы ${bp.out} → ${decShort(bp.in)}: ${sign(bp.gain)}, Score ${num(bp.score)}.`);
   const a = r.approval;
@@ -933,131 +965,84 @@ function crisisComment() {
 function renderCrisisResult() {
   const r = CR.result, ev = CR.ev.event;
   const prevAp = S.r.score.data?.approval?.city;
-  S.crisisDraft = { event: ev, swap: { out: CR.outM, in: CR.inn }, result: r, before: S.r.score.data };
-  const tmp = S.crisis; S.crisis = S.crisisDraft; const comment = crisisComment(); S.crisis = tmp;
-  const step = (label, val, cls = '') => `<div class="flex-1 rounded-xl bg-base-850 p-3 text-center"><div class="text-[10.5px] uppercase tracking-wider text-slate-500">${label}</div><div class="mt-1 text-2xl font-extrabold tabular-nums ${cls}">${val}</div></div>`;
-  $('#modal').innerHTML = `<div data-lock class="card fade-in max-h-[94vh] w-full max-w-3xl overflow-y-auto rounded-b-none p-5 sm:rounded-2xl sm:p-6">
-    <div class="flex flex-wrap items-center gap-2"><span class="rounded-full bg-red-500 px-2.5 py-0.5 text-[11px] font-black uppercase tracking-widest text-white">Кризис пройден</span>
-      <span class="text-[13px] text-slate-400">${esc(ev.title)}</span></div>
-    <div class="mt-4 flex flex-col gap-2 sm:flex-row sm:items-stretch">
-      ${step('До кризиса', num(r.score_before_crisis))}
-      ${step('Кризис, без замены', num(r.score_after_crisis_no_swap), 'text-red-300')}
-      ${step('После замены', num(r.score), 'text-accent')}
-    </div>
-    <div class="mt-2 grid grid-cols-2 gap-2 text-center text-sm sm:grid-cols-4">
-      <div class="rounded-lg bg-base-850 py-2"><div class="font-bold tabular-nums text-red-300">−${num(r.crisis_cost)}</div><div class="text-[10.5px] text-slate-500">цена кризиса</div></div>
-      <div class="rounded-lg bg-base-850 py-2"><div class="font-bold tabular-nums text-emerald-300">${sign(r.recovered)}</div><div class="text-[10.5px] text-slate-500">вернула замена</div></div>
-      <div class="rounded-lg bg-base-850 py-2"><div class="font-bold ${r.swap_was_optimal ? 'text-emerald-300' : 'text-amber-300'}">${r.swap_was_optimal ? 'да' : 'нет'}</div><div class="text-[10.5px] text-slate-500">лучшая замена</div></div>
-      <div class="rounded-lg bg-base-850 py-2"><div class="font-bold tabular-nums ${r.approval?.reelected ? 'text-accent' : 'text-red-300'}">${num(prevAp, 1)}→${num(r.approval?.city, 1)}%</div><div class="text-[10.5px] text-slate-500">рейтинг акима</div></div>
-    </div>
-    <div class="mt-3 rounded-xl border border-accent/30 bg-accent/5 p-4">
-      <div class="mb-1 text-sm font-semibold text-accent">Разбор замены · числа из движка</div>
-      <p class="text-[14px] leading-relaxed text-slate-200">${esc(comment)}</p></div>
-    <div class="mt-5 flex flex-wrap gap-2">
-      <button id="crVerdict" class="rounded-xl bg-accent px-4 py-2.5 text-sm font-bold text-base-950">Вердикт после кризиса</button>
-      <button id="crPaper" class="rounded-xl border border-base-600 px-4 py-2.5 text-sm">Открыть газету</button></div></div>`;
+  const draft = { event: ev, swap: { out: CR.outM, in: CR.inn }, result: r, before: S.r.score.data };
+  const inM = S.mi[CR.inn.measure];
+  $('#modal').innerHTML = `<div data-lock data-scroll class="fade grid max-h-[94vh] w-full max-w-[1100px] overflow-y-auto lg:grid-cols-[.9fr_1.1fr]" style="border:1px solid #061a20">
+    ${eventCard(CR.ev, true)}
+    <div class="bg-paper p-5">
+      <div class="lbl">Ваш ответ</div>
+      <div class="disp mt-1 text-[46px] font-black leading-[.95]">${esc(CR.outM)} → ${esc(CR.inn.measure)}${CR.inn.district ? ' ' + esc(CR.inn.district) : ''} ${r.swap_was_optimal ? '<span class="peni">!</span>' : ''}</div>
+      <div class="mt-1 text-[14px] text-graph">вместо «${esc(S.mi[CR.outM]?.name)}» — «${esc(inM?.name)}»</div>
+      <div class="mt-4 grid grid-cols-3 gap-px border border-rule bg-rule text-center">
+        <div class="bg-white p-3"><div class="lbl">до кризиса</div><div class="mid mt-1">${num(r.score_before_crisis)}</div></div>
+        <div class="bg-white p-3"><div class="lbl">без замены</div><div class="mid red mt-1">${num(r.score_after_crisis_no_swap)}</div></div>
+        <div class="bg-white p-3"><div class="lbl">после замены</div><div class="mid peni mt-1">${num(r.score)}</div></div>
+      </div>
+      <div class="mono mt-3 text-[13px]">кризис −${num(r.crisis_cost)} · замена ${sign(r.recovered)} · ${r.swap_was_optimal ? '<span class="peni">лучшая из возможных</span>' : `лучше было ${esc(r.best_possible_swap?.out)} → ${esc(decShort(r.best_possible_swap?.in || {}))} (${sign(r.best_possible_swap?.gain)})`}</div>
+      <div class="mt-4 p-3 ${r.approval?.reelected ? 'border border-peni bg-[#effafd]' : 'border border-alarm bg-[#fdf1ef]'}">
+        <b class="disp text-[24px] leading-none ${r.approval?.reelected ? 'peni' : 'red'}">Рейтинг ${num(prevAp, 1)}% → ${num(r.approval?.city, 1)}%: ${r.approval?.reelected ? 'аким удерживает кресло' : 'аким уволен'}</b>
+        <p data-comment class="m-0 mt-2 text-[14px]">${esc(crisisComment(draft))}</p><div class="mono mt-1 text-[11px] text-graph">все числа — из движка</div></div>
+      <div class="mt-5 flex flex-wrap gap-2"><button id="crVerdict" class="btn btn-ink">Вердикт после кризиса</button><button id="crPaper" class="btn btn-line">Открыть газету</button></div>
+    </div></div>`;
   const apply = () => {
-    const d = S.crisisDraft;
-    S.crisis = d;
+    S.crisis = draft;
     S.r.score = { data: r };
-    S.narBody = { plan: S.plan, lang: 'ru', event_id: ev.id, swap: d.swap };
+    S.narBody = { plan: S.plan, lang: 'ru', event_id: ev.id, swap: draft.swap };
     loadNarrative();
-    S.plan = r.new_plan || applySwap(S.plan, d.swap);
+    S.plan = r.new_plan || applySwap(S.plan, draft.swap);
     loadPlan(S.plan);
     closeModal();
   };
   $('#crVerdict').onclick = () => { apply(); go('verdict'); };
   $('#crPaper').onclick = () => { apply(); go('paper'); };
+  $('#crVerdict').focus({ preventScroll: true });
 }
 
 /* =====================================================================
-   АСТАНА TIMES
+   ГАЗЕТА «Астана Times»
    ===================================================================== */
 function renderPaper() {
   const root = $('#tab-paper');
-  if (!S.plan) { root.innerHTML = emptyState('Газета ещё не вышла', 'Тираж печатается после того, как аким примет решения.'); return; }
+  if (!S.plan) { root.innerHTML = emptyState('Газета ещё не вышла', 'Номер печатается после того, как аким примет решения.'); return; }
   const r = S.r.nar;
-  if (!r || r.loading) {
-    root.innerHTML = `<div class="paper mx-auto max-w-5xl rounded-sm p-6 sm:p-10"><div class="masthead text-center text-5xl opacity-30 sm:text-7xl">Астана Times</div>
-      <div class="mt-6 text-center text-sm text-stone-600"><span class="spin" style="border-top-color:#1c1917"></span> Редакция верстает номер…</div>
-      <div class="mt-6 space-y-3 opacity-40">${Array(6).fill('<div class="h-3 rounded bg-stone-400/60"></div>').join('')}</div></div>`;
-    return;
-  }
+  if (!r || r.loading) { root.innerHTML = `<div class="tele"><div class="mast" style="opacity:.25">Астана Times</div><div class="mt-6 text-center">${spinner('Редакция верстает номер…')}</div>${skel('h-6', 'mt-6')}${skel('h-6', 'mt-2')}${skel('h-6', 'mt-2')}</div>`; return; }
   if (r.error) {
-    root.innerHTML = `<div class="card mx-auto max-w-xl p-8 text-center"><div class="font-semibold">Редакция не ответила</div>
-      <p class="mt-2 text-sm text-slate-400">${esc(r.error)}</p>
-      <button id="paperRetry" class="mt-4 rounded-xl bg-accent px-4 py-2.5 text-sm font-bold text-base-950">Повторить</button></div>`;
-    $('#paperRetry').onclick = () => { loadNarrative(); renderPaper(); };
-    return;
+    root.innerHTML = `<div class="plate mx-auto max-w-xl p-8 text-center"><div class="h2">Редакция не ответила</div><p class="text-graph">${esc(r.error)}</p><button id="paperRetry" class="btn btn-ink">Повторить</button></div>`;
+    $('#paperRetry').onclick = () => { loadNarrative(); renderPaper(); }; return;
   }
   const n = r.data.newspaper || {}, council = r.data.council || [];
   const sc = S.r.score?.data, opt = S.r.opt?.data;
-  const hs = n.headlines || [];
-  const lead = hs[0] || { title: 'Итоги двух лет', lead: '' };
-  const rest = hs.slice(1);
+  const hs = n.headlines || [], lead = hs[0] || { title: 'Итоги двух лет', lead: '' };
   const crit = n.crit_sidebar || [];
-  const quotes = council.slice().sort((a, b) => (a.approval ?? 0) - (b.approval ?? 0));
-  const qPick = quotes.length > 2 ? [quotes[quotes.length - 1], quotes[0]] : quotes;
-  const stats = [
-    sc && { label: 'Score', value: num(sc.score) },
-    sc?.approval && { label: 'Рейтинг акима', value: num(sc.approval.city, 1) + '%' },
-    sc && { label: 'Бюджет', value: `${sc.cost}/${S.ds.budget}` },
-    opt && { label: S.crisis ? 'Место до кризиса' : 'Место из 694 395', value: int(opt.rank) },
-  ].filter(Boolean);
   const decs = planDecs(S.plan);
+  const qs = council.slice().sort((a, b) => (a.approval ?? 0) - (b.approval ?? 0));
+  const pick = qs.length > 1 ? [qs[qs.length - 1], qs[0]] : qs;
   const provider = r.data.provider || 'offline';
   root.innerHTML = `
-    <article id="newspaper" class="paper fade-in mx-auto max-w-5xl rounded-sm px-5 py-6 sm:px-10 sm:py-9">
-      <div class="kicker flex items-center justify-between text-stone-600"><span>Ежеквартальная газета столицы</span><span class="hidden sm:inline">Специальный выпуск: итоги срока</span><span>Цена 150 ₸</span></div>
-      <div class="rule-2 mt-2"></div>
-      <h1 class="masthead py-3 text-center text-[13vw] sm:text-7xl md:text-8xl">${esc(n.masthead || 'Астана Times')}</h1>
-      <div class="rule"></div>
-      <div class="kicker flex items-center justify-between py-1.5 text-stone-700"><span>${esc(n.date || 'IV квартал 2028')}</span><span class="hidden sm:inline">Выпуск № 208</span><span>Астана</span></div>
-      <div class="rule-2"></div>
-      ${S.crisis ? `<div class="kicker red mt-5 text-center">Кризис III квартала: ${esc(S.crisis.event.title)}</div>` : ''}
-      <h2 class="hl ${S.crisis ? 'mt-2' : 'mt-6'} text-center text-3xl sm:text-5xl">${esc(lead.title)}</h2>
-      ${lead.lead ? `<p class="mx-auto mt-3 max-w-3xl font-serif text-lg italic text-stone-700" style="text-align:center">${esc(lead.lead)}</p>` : ''}
-      <div class="mt-6 grid gap-6 border-t border-stone-800 pt-5 md:grid-cols-12">
-        <div class="md:col-span-8">
-          <div class="cols-2 text-[15.5px] leading-relaxed">
-            ${rest.map((h, i) => `<div style="break-inside:avoid-column" class="mb-4"><h3 class="hl text-xl">${esc(h.title)}</h3><p class="${i === 0 ? 'dropcap' : ''} mt-1">${esc(h.lead || '')}</p></div>`).join('')}
-            <div style="break-inside:avoid-column" class="mb-4"><h3 class="hl text-xl">Что утвердил аким</h3>
-              <ol class="mt-1 list-decimal pl-5 text-[14.5px]">${decs.map((d) => `<li>${esc(S.mi[d.measure]?.name || d.measure)}${d.district ? ` — ${esc(d.district)}` : ' — весь город'}</li>`).join('')}</ol></div>
-          </div>
-          ${n.editorial ? `<div class="mt-4 border-t-2 border-stone-900 pt-4">
-            <div class="kicker text-stone-600">Мнение редакции</div>
-            <h3 class="hl mt-1 text-xl italic">Колонка редактора</h3>
-            <p class="mt-2 text-[15.5px] italic leading-relaxed">${esc(typeof n.editorial === 'string' ? n.editorial : n.editorial.body || '')}</p></div>` : ''}
-          ${sc ? `<div class="mt-5 border-t-2 border-stone-900 pt-3">
-            <div class="kicker mb-2 text-stone-600">Индекс районов · до → после</div>
-            <table class="w-full text-[14px]"><tbody>${Object.entries(sc.districts).map(([name, d]) => `<tr class="border-b border-stone-400/50 last:border-0">
-              <td class="py-1 font-bold">${esc(name)}</td><td class="py-1 text-right tabular-nums">${num(d.D_before)} → ${num(d.D_after)}</td>
-              <td class="w-20 py-1 text-right font-bold tabular-nums">${sign(d.D_after - d.D_before)}</td></tr>`).join('')}</tbody></table></div>` : ''}
-        </div>
-        <aside class="space-y-5 md:col-span-4 md:border-l md:border-stone-800 md:pl-6">
-          <div class="redbox">
-            <div class="redbar kicker px-3 py-1.5">Критические зоны</div>
-            <div class="divide-y divide-red-900/20 px-3">
-              ${crit.length ? crit.map((z) => `<div class="py-2.5"><div class="flex items-baseline justify-between gap-2"><b class="font-serif text-[16px]">${esc(z.district)}</b>
-                <span class="red font-display text-xl font-black">${num(z.value, 1)}</span></div><div class="text-[13px] text-stone-700">${esc(z.indicator)} · ${esc(S.ind[z.indicator]?.name || '')} — ниже ${S.ds.crit_threshold}</div></div>`).join('')
-                : `<div class="py-3 text-[14px] text-stone-800">Ни одной ячейки ниже ${S.ds.crit_threshold}.${sc ? ` Но слабейший район — <b>${esc(sc.d_min_district)}</b>: индекс ${num(sc.d_min)}.` : ''}</div>`}
-            </div>
-          </div>
-          <div class="border-y-2 border-stone-900 py-3">
-            <div class="kicker mb-2 text-stone-600">Цифры срока</div>
-            <div class="grid grid-cols-2 gap-3 text-center">${stats.map((s) => `<div><div class="font-display text-2xl font-black leading-none">${esc(s.value)}</div><div class="mt-1 text-[11px] text-stone-600">${esc(s.label)}</div></div>`).join('')}</div>
-          </div>
-          ${qPick.length ? `<div><div class="kicker mb-2 text-stone-600">Говорят депутаты</div>${qPick.map((q) => `
-            <blockquote class="mb-3 border-l-2 border-stone-800 pl-3"><p class="text-[14px] italic leading-snug" style="text-align:left">«${esc(String(q.quote || '').replace(/^«|»$/g, ''))}»</p>
-            <div class="mt-1 text-[12px] text-stone-600">— ${esc(q.deputy)}</div></blockquote>`).join('')}</div>` : ''}
-        </aside>
+    <article id="newspaper" class="tele fade">
+      <div class="mono flex justify-between text-[11.5px] text-graph"><span>${esc(n.date || 'IV квартал 2028')}</span><span>выпуск № 208</span><span>Астана</span></div>
+      <div class="mast">${esc(n.masthead || 'Астана Times')}</div>
+      <div class="border-y-2 border-ink py-1 text-center font-mono text-[11.5px] uppercase tracking-[.2em]">специальный выпуск · итоги срока акима</div>
+      ${S.crisis ? `<div class="mono mt-4 text-center text-[12px] uppercase tracking-widest red">кризис III квартала: ${esc(S.crisis.event.title)}</div>` : ''}
+      <div class="hl">${esc(lead.title)}</div>
+      <p class="body m-0">${esc(lead.lead || '')}</p>
+      ${hs.slice(1).map((h) => `<div class="item"><b>■ ${esc(h.title)}</b><div class="body">${esc(h.lead || '')}</div></div>`).join('')}
+      ${n.editorial ? `<div class="item mt-6 border-t border-dashed border-rule pt-4"><b>— от редакции —</b><div class="body italic">${esc(typeof n.editorial === 'string' ? n.editorial : n.editorial.body || '')}</div></div>` : ''}
+      <div class="mt-6 grid gap-5 border-t-2 border-ink pt-4 sm:grid-cols-2">
+        <div><div class="lbl mb-1">Что утвердил аким</div><ol class="body m-0 pl-5 text-[13.5px]">${decs.map((d) => `<li>${esc(S.mi[d.measure]?.name || d.measure)} — ${d.district ? esc(d.district) : 'весь город'}</li>`).join('')}</ol></div>
+        <div><div class="lbl mb-1">Цифры срока</div><div class="grid grid-cols-2 gap-2">
+          ${sc ? `<div><div class="mid">${num(sc.score)}</div><div class="text-[12px] text-graph">Score</div></div>` : ''}
+          ${sc?.approval ? `<div><div class="mid ${sc.approval.reelected ? '' : 'red'}">${num(sc.approval.city, 1)}%</div><div class="text-[12px] text-graph">рейтинг акима</div></div>` : ''}
+          ${sc ? `<div><div class="mid">${sc.cost}/${S.ds.budget}</div><div class="text-[12px] text-graph">бюджет</div></div>` : ''}
+          ${opt ? `<div><div class="mid">${int(opt.rank)}</div><div class="text-[12px] text-graph">${S.crisis ? 'место до кризиса' : 'место из 694 395'}</div></div>` : ''}</div></div>
       </div>
-      <div class="rule mt-6"></div>
-      <div class="flex justify-between pt-1.5 text-[11px] text-stone-600"><span>Все цифры — движок AQLS; ИИ пишет текст, но не считает</span><span>${provider === 'offline' ? 'Текст: офлайн-шаблон' : 'Текст: ИИ-редакция (' + esc(provider) + ')'}</span></div>
+      ${sc ? `<div class="mt-5"><div class="lbl mb-1">Индекс районов · до → после</div><table class="log"><tbody>${Object.entries(sc.districts).map(([name, d]) => `<tr><td style="text-align:left">${esc(name)}</td><td>${num(d.D_before)} → ${num(d.D_after)}</td><td style="width:80px"><b class="${d.D_after - d.D_before > .005 ? 'peni' : ''}">${sign(d.D_after - d.D_before)}</b></td></tr>`).join('')}</tbody></table></div>` : ''}
+      <div class="mt-5 border border-alarm p-3"><div class="mono text-[12px] font-semibold uppercase tracking-widest red">Критические зоны</div>
+        ${crit.length ? crit.map((z) => `<div class="body">${esc(z.district)} · ${esc(z.indicator)} ${esc(indShort(z.indicator))} — ${num(z.value, 1)}</div>`).join('') : `<div class="body">Ячеек ниже ${S.ds.crit_threshold} нет.${sc ? ` Слабейший район — ${esc(sc.d_min_district)}: ${num(sc.d_min)}.` : ''}</div>`}</div>
+      ${pick.length ? `<div class="mt-5 grid gap-4 sm:grid-cols-2">${pick.map((q) => `<blockquote class="m-0 border-l-2 border-ink pl-3"><p class="m-0 text-[14.5px] italic leading-snug">«${esc(unq(q.quote))}»</p><div class="mt-1 text-[12px] text-graph">— ${esc(q.deputy)}</div></blockquote>`).join('')}</div>` : ''}
+      <div class="mono mt-6 flex justify-between border-t border-dashed border-rule pt-2 text-[11px] text-graph"><span>цифры — движок AQLS · ИИ пишет текст, но не считает</span><span>${provider === 'offline' ? 'текст: офлайн-шаблон' : 'текст: ИИ-редакция (' + esc(provider) + ')'}</span></div>
     </article>
-    <div class="mx-auto mt-6 flex max-w-5xl flex-wrap justify-center gap-2">
-      <button data-go="verdict" class="rounded-xl border border-base-600 px-4 py-2.5 text-sm">← К вердикту</button>
-      <button data-go="board" class="rounded-xl bg-accent px-4 py-2.5 text-sm font-bold text-base-950">В лидерборд</button></div>`;
+    <div class="mx-auto mt-6 flex max-w-[900px] flex-wrap justify-center gap-2"><button data-go="verdict" class="btn btn-line">← К вердикту</button><button data-go="board" class="btn btn-ink">В лидерборд</button></div>`;
 }
 
 /* =====================================================================
@@ -1087,29 +1072,23 @@ async function revealOptimum() {
   renderBoard();
 }
 function renderBoard() {
-  const sc = S.r.score?.data;
-  const has = !!(sc && S.plan);
+  const sc = S.r.score?.data, has = !!(sc && S.plan);
   $('#tab-board').innerHTML = `
     <div class="mb-6 flex flex-wrap items-end justify-between gap-4">
-      <div><div class="card-h mb-1">Лидерборд${CONFIG.SESSION ? ' · комната ' + esc(CONFIG.SESSION) : ''}</div>
-        <h1 class="text-2xl font-bold tracking-tight sm:text-3xl">Кто лучше управляет Астаной</h1>
-        <p class="mt-1.5 text-sm text-slate-400">Сортировка по Score. Но смотрите на рейтинг: лучший индекс не всегда переизбирают.</p></div>
-      <button id="btnReveal" class="rounded-xl border ${B.reveal ? 'border-red-400/60 text-red-200' : 'border-base-600'} px-4 py-2.5 text-sm font-semibold">${B.reveal ? 'Скрыть оптимум машины' : 'Показать оптимум машины'}</button>
+      <div><h1 class="disp m-0 text-[44px] font-black leading-[.95]">Лидерборд${CONFIG.SESSION ? ' · комната ' + esc(CONFIG.SESSION) : ''}</h1>
+        <p class="mt-2 text-graph">Сортировка по Score. Смотрите на рейтинг: лучший индекс не всегда переизбирают.</p></div>
+      <button id="btnReveal" class="btn ${B.reveal ? 'btn-red' : 'btn-line'}">${B.reveal ? 'Скрыть оптимум движка' : 'Показать оптимум движка'}</button>
     </div>
-    <div class="grid gap-4 lg:grid-cols-[340px_1fr]">
-      <form id="lbForm" class="card h-fit p-5">
-        <div class="card-h mb-3">Сохранить результат</div>
-        ${has ? `<div class="mb-3 rounded-xl bg-base-850 p-3 text-sm">Ваш Score <b class="tabular-nums">${num(sc.score)}</b> · рейтинг <b class="tabular-nums">${num(sc.approval?.city, 1)}%</b>${S.crisis ? '<div class="mt-1 text-[11px] text-slate-500">Сервер пересчитает Score по плану без кризиса.</div>' : ''}</div>`
-          : '<div class="mb-3 rounded-xl border border-dashed border-base-600 p-3 text-sm text-slate-400">Сначала получите вердикт в кабинете.</div>'}
-        <label class="text-[12px] text-slate-400" for="team">Название команды</label>
-        <input id="team" maxlength="${40 - TAG.length}" required autocomplete="off" placeholder="Например, «Сарыарка вперёд»" class="mt-1 w-full rounded-xl border border-base-600 bg-base-900 px-3 py-2.5 text-sm outline-none focus:border-accent" ${has ? '' : 'disabled'}>
-        <button class="mt-3 w-full rounded-xl px-4 py-2.5 text-sm font-bold ${has ? 'bg-accent text-base-950' : 'cursor-not-allowed bg-base-800 text-slate-500'}" ${has ? '' : 'disabled'}>Отправить</button>
-        <div id="lbMsg" class="mt-2 min-h-[18px] text-[12px] text-slate-400"></div>
+    <div class="grid gap-4 lg:grid-cols-[320px_1fr]">
+      <form id="lbForm" class="plate h-fit p-4">
+        <div class="lbl mb-2">Сохранить результат</div>
+        ${has ? `<div class="tape mb-3">Score ${num(sc.score)} · рейтинг ${num(sc.approval?.city, 1)}%${S.crisis ? '<br><span class="text-graph">сервер пересчитает Score по плану без кризиса</span>' : ''}</div>` : '<div class="tape mb-3 text-graph">Сначала получите вердикт в кабинете.</div>'}
+        <label class="lbl" for="team">Название команды</label>
+        <input id="team" maxlength="${40 - TAG.length}" required autocomplete="off" placeholder="Например, «Сарыарка вперёд»" class="mt-1 w-full border-[1.5px] border-ink bg-white px-3 py-2.5 text-[15px] outline-none focus:border-pen" ${has ? '' : 'disabled'}>
+        <button class="btn btn-ink mt-3 w-full" ${has ? '' : 'disabled'}>Отправить</button>
+        <div id="lbMsg" class="mt-2 min-h-[18px] text-[13px] text-graph" aria-live="polite"></div>
       </form>
-      <div class="card overflow-hidden">
-        <div class="flex items-center justify-between border-b border-base-700 px-5 py-3"><div class="card-h">Таблица</div><div id="lbStatus" class="text-[11px] text-slate-500"></div></div>
-        <div id="lbTable" class="overflow-x-auto"></div>
-      </div>
+      <div class="paper p-4"><div class="mb-2 flex items-center justify-between"><span class="lbl">Таблица</span><span id="lbStatus" class="mono text-[11px] text-graph"></span></div><div id="lbTable" class="overflow-x-auto"></div></div>
     </div>`;
   $('#btnReveal').onclick = revealOptimum;
   $('#lbForm').onsubmit = async (e) => {
@@ -1127,32 +1106,22 @@ function renderBoard() {
 }
 function renderBoardTable() {
   const t = $('#lbTable'), st = $('#lbStatus'); if (!t) return;
-  st.innerHTML = B.loading && !B.rows ? '<span class="spin"></span>' : B.error ? '<span class="text-red-400">нет связи — повторяем</span>' : B.updated ? `обновлено ${new Date(B.updated).toLocaleTimeString('ru-RU')} · каждые 5 с` : '';
-  if (!B.rows) { t.innerHTML = B.error ? `<div class="p-5 text-sm text-slate-400">Лидерборд недоступен: ${esc(B.error)}</div>` : `<div class="space-y-2 p-5">${Array(4).fill(skel('h-10')).join('')}</div>`; return; }
+  st.innerHTML = B.loading && !B.rows ? '<span class="spin"></span>' : B.error ? '<span class="red">нет связи — повторяем</span>' : B.updated ? `обновлено ${new Date(B.updated).toLocaleTimeString('ru-RU')} · каждые 5 с` : '';
+  if (!B.rows) { t.innerHTML = B.error ? `<div class="text-[14px] text-graph">Лидерборд недоступен: ${esc(B.error)}</div>` : `${skel('h-10')}${skel('h-10', 'mt-2')}${skel('h-10', 'mt-2')}`; return; }
   const pinned = [];
   if (B.reveal && B.opt) {
-    pinned.push({ team: 'Машинный оптимум · перебор 694 395 планов', score: B.opt.best.score, approval: B.opt.best.approval, cost: B.opt.best.cost, plan: B.opt.best.plan, pin: 'opt' });
-    if (B.opt.balanced) pinned.push({ team: 'Баланс ИИ · лучший план с рейтингом ≥50%', score: B.opt.balanced.score, approval: B.opt.balanced.approval, cost: B.opt.balanced.cost, plan: B.opt.balanced.plan, pin: 'bal' });
+    pinned.push({ team: 'Оптимум движка · перебор 694 395 планов', score: B.opt.best.score, approval: B.opt.best.approval, cost: B.opt.best.cost, plan: B.opt.best.plan, pin: 'opt' });
+    if (B.opt.balanced) pinned.push({ team: 'Баланс · лучший план с рейтингом ≥50%', score: B.opt.balanced.score, approval: B.opt.balanced.approval, cost: B.opt.balanced.cost, plan: B.opt.balanced.plan, pin: 'bal' });
   }
   const rows = [...pinned, ...B.rows].sort((a, b) => (b.score ?? 0) - (a.score ?? 0));
-  if (!rows.length) { t.innerHTML = '<div class="p-6 text-center text-sm text-slate-400">Пока пусто. Будьте первыми.</div>'; return; }
+  if (!rows.length) { t.innerHTML = '<div class="py-6 text-center text-graph">Пока пусто. Будьте первыми.</div>'; return; }
   let place = 0;
-  t.innerHTML = `<table class="w-full min-w-[560px] text-sm"><thead><tr class="text-[11px] uppercase tracking-wider text-slate-500">
-    <th class="px-5 py-2.5 text-left font-semibold">#</th><th class="py-2.5 text-left font-semibold">Команда</th><th class="px-3 py-2.5 text-right font-semibold">Score</th>
-    <th class="px-3 py-2.5 text-right font-semibold">Рейтинг</th><th class="px-3 py-2.5 text-left font-semibold">Итог</th><th class="px-5 py-2.5 text-right font-semibold">Бюджет</th></tr></thead>
-    <tbody>${rows.map((r) => {
-      const re = (r.approval ?? 0) >= 50; const mine = B.mine && r.team === B.mine;
-      if (!r.pin) place++;
-      const name = String(r.team).replace(/\s\[[^\]]+\]$/, '');
-      const pinCls = r.pin === 'opt' ? 'bg-red-500/10' : r.pin === 'bal' ? 'bg-amber-400/5' : mine ? 'bg-accent/10' : '';
-      return `<tr data-pin="${r.pin || ''}" class="border-t border-base-800 ${pinCls}" ${r.plan ? `title="${esc(planDecs(r.plan).map(decShort).join(', '))}"` : ''}>
-        <td class="px-5 py-3 font-bold tabular-nums ${r.pin ? 'text-slate-500' : place === 1 ? 'text-accent' : 'text-slate-400'}">${r.pin ? (r.pin === 'opt' ? '◆' : '▲') : place}</td>
-        <td class="py-3 font-medium ${r.pin === 'opt' ? 'text-red-200' : r.pin === 'bal' ? 'text-amber-200' : ''}">${esc(name)}</td>
-        <td class="px-3 py-3 text-right font-bold tabular-nums">${num(r.score)}</td>
-        <td class="px-3 py-3 text-right tabular-nums ${re ? '' : 'text-red-400'}">${r.approval != null ? num(r.approval, 1) + '%' : '—'}</td>
-        <td class="px-3 py-3"><span class="rounded-full px-2 py-0.5 text-[11px] font-bold ${re ? 'bg-accent/15 text-accent' : 'bg-red-500/15 text-red-300'}">${re ? 'Переизбран' : 'Уволен'}</span></td>
-        <td class="px-5 py-3 text-right tabular-nums text-slate-400">${r.cost ?? '—'}</td></tr>`;
-    }).join('')}</tbody></table>`;
+  t.innerHTML = `<table class="log" style="min-width:560px"><thead><tr><th>#</th><th>Команда</th><th>Score</th><th>Рейтинг</th><th>Итог</th><th>Бюджет</th></tr></thead><tbody>
+    ${rows.map((r) => { const re = (r.approval ?? 0) >= 50, mine = B.mine && r.team === B.mine; if (!r.pin) place++;
+      return `<tr data-pin="${r.pin || ''}" class="${r.pin === 'opt' ? 'pin-opt' : r.pin === 'bal' ? 'pin-bal' : mine ? 'me' : ''}" ${r.plan ? `title="${esc(planDecs(r.plan).map(decShort).join(', '))}"` : ''}>
+        <td>${r.pin ? (r.pin === 'opt' ? '◆' : '▲') : place}</td><td style="font-family:'Sofia Sans';font-weight:600">${esc(String(r.team).replace(/\s\[[^\]]+\]$/, ''))}</td>
+        <td><b>${num(r.score)}</b></td><td class="${re ? '' : 'red'}">${r.approval != null ? num(r.approval, 1) + '%' : '—'}</td>
+        <td class="${re ? 'peni' : 'red'}"><b>${re ? 'переизбран' : 'уволен'}</b></td><td>${r.cost ?? '—'}</td></tr>`; }).join('')}</tbody></table>`;
 }
 
 /* =====================================================================
@@ -1169,13 +1138,12 @@ async function boot() {
   if (!raw) {
     SOURCE = 'mock';
     try { raw = await mockCall('GET', '/api/dataset'); }
-    catch (e) { $('#measures').innerHTML = `<div class="card p-6 text-sm text-red-300">Не удалось загрузить данные: ${esc(e.message)}. Запустите сервер: <code>uvicorn api.main:app</code></div>`; return; }
+    catch (e) { $('#measures').innerHTML = `<div class="plate p-6 text-[14px] red">Не удалось загрузить данные: ${esc(e.message)}. Запустите сервер: uvicorn api.main:app</div>`; return; }
   }
   indexDataset(raw);
   S.slots = Array(S.ds.decisions_required).fill(null);
   const mb = $('#modeBadge');
   mb.textContent = SOURCE === 'api' ? 'движок · API' : 'демо-запись';
-  mb.classList.remove('hidden');
   if (SOURCE === 'api') api('GET', '/api/health').then((h) => { mb.textContent = `движок · ИИ: ${h.provider === 'offline' ? 'офлайн' : h.provider}`; }).catch(() => {});
   onPlanChange();
   const h = location.hash.replace('#', '');
