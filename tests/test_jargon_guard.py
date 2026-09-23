@@ -150,3 +150,9 @@ def test_offline_templates_are_jargon_free(doc, kind, score, cost):
             resolved = resolve(plan, event["id"], swap)
             assert agent.jargon(agent.swap_comment(resolved)) == []
             assert agent.jargon(agent.narrative(plan, event_id=event["id"], swap=swap)) == []
+
+
+def test_public_words_may_use_equals_sign():
+    from api.agent import jargon
+    assert jargon({"t": "Лучший план: Score = 57.0, S1 = 48, M7 = школа."}) == []
+    assert jargon({"t": "approval = 39,75"}) != []

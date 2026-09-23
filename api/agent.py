@@ -33,7 +33,8 @@ _GROUP = re.compile(r"(?<!\d)\d{1,3}(?:[ \u00a0\u202f]\d{3})+(?!\d)")
 # Only internal names, not a blanket ban on Latin words (Safe City, AQI, openai).
 # Underscored field/tool names are covered regardless of case or digits.
 _JARGON = re.compile(
-    r"\b[A-Za-z_]\w*\s*=\s*[^\s;]+"
+    # Public words and codes may be written as "Score = 57.0" or "S1 = 48"; internal names may not.
+    r"\b(?!(?:Score|AQI|D|[TESBC][12]|M\d{1,2})\b)[A-Za-z_]\w*\s*=\s*[^\s;]+"
     r"|(?<!\w)[A-Za-z_][A-Za-z0-9_]*_[A-Za-z0-9_]+(?!\w)"
     r"|\b(?i:approval|balanced|marginal|validate|optimize)\b"
     r"|\bscore\b"  # The public label Score is allowed; the tool name score is not.
