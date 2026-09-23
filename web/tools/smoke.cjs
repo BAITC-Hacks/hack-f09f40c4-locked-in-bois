@@ -5,6 +5,7 @@
 const path = require('path');
 const os = require('os');
 const fs = require('fs');
+const assert = require('node:assert/strict');
 function loadPlaywright() {
   const tries = [process.env.PLAYWRIGHT_PATH, 'playwright', path.join(os.homedir(), '.claude/skills/gstack/node_modules/playwright')].filter(Boolean);
   for (const t of tries) { try { return require(t); } catch (e) {} }
@@ -16,8 +17,44 @@ const SUBMIT = process.env.SUBMIT === '1' || URL.includes('mock=1'); // never wr
 const OUT = process.argv[3] || path.join(__dirname, '..', '..', 'docs', 'screenshots');
 const SHOTS = process.env.SHOTS === '1';
 
+async function checkPanels(page, tag) {
+  await page.waitForSelector('#vGrade .grade-move', { timeout: 20000 });
+  await page.waitForSelector('#vStress .stress-row', { timeout: 20000 });
+  await page.waitForSelector('#vPromise .promise-hero .big', { timeout: 20000 });
+  const expected = await page.evaluate(async () => {
+    if (SOURCE === 'mock') {
+      const [grade, stress, promise] = await Promise.all([fx('grade'), fx('stress'), fx('promise')]);
+      return { grade, stress, promise: promise.price };
+    }
+    const catalog = await api('GET', '/api/promise/catalog');
+    const promises = catalog.filter((row) => row.type === 'min_approval').flatMap((row) => row.promises);
+    const [grade, stress, promise] = await Promise.all([
+      api('POST', '/api/grade', S.plan), api('POST', '/api/stress', S.plan),
+      api('POST', '/api/promise', { plan: S.plan, promises }),
+    ]);
+    return { grade, stress, promise };
+  });
+  const decimal = (n) => n.toFixed(2).replace('.', ',');
+  assert.equal(await page.locator('#vGrade .grade-move').count(), expected.grade.moves.length);
+  assert.equal(await page.locator('#vGrade .grade-accuracy .mid').textContent(), decimal(expected.grade.score));
+  const symbols = await page.locator('#vGrade .grade-move [role="img"]').allTextContents();
+  assert.deepEqual(symbols, expected.grade.moves.filter((move) => move.symbol).map((move) => move.symbol));
+  assert.equal(await page.locator('#vStress .stress-row').count(), expected.stress.scenarios.length);
+  for (const [index, scenario] of expected.stress.scenarios.entries()) {
+    const row = await page.locator('#vStress .stress-row').nth(index).innerText();
+    assert.ok(row.includes(scenario.title) && row.includes(decimal(scenario.score)), 'crisis title and engine score');
+  }
+  assert.equal(await page.locator('#vPromise .promise-hero .big').textContent(), decimal(expected.promise.price));
+  assert.ok((await page.locator('#vPromise .notice').innerText()).includes(decimal(expected.promise.your_plan.score)));
+  const overflow = await page.evaluate(() => document.documentElement.scrollWidth - innerWidth);
+  assert.ok(overflow <= 1, `verdict horizontal overflow: ${overflow}px`);
+  console.log(tag, 'panels: grade', decimal(expected.grade.score), 'accuracy', decimal(expected.grade.accuracy),
+    '| worst crisis', decimal(expected.stress.worst_score), '| promise price', decimal(expected.promise.price));
+  return expected;
+}
+
 (async () => {
-  fs.mkdirSync(OUT, { recursive: true });
+  if (SHOTS) fs.mkdirSync(OUT, { recursive: true });
   const browser = await chromium.launch();
   const errors = [];
   const run = async (viewport, tag) => {
@@ -37,6 +74,7 @@ const SHOTS = process.env.SHOTS === '1';
     await page.waitForSelector('#vRegret [data-regret]', { timeout: 20000 });
     await page.waitForSelector('#vCouncil .council-card', { timeout: 120000 });
     await page.waitForSelector('#vAI #applyRec, #vAI li', { timeout: 120000 });
+    await checkPanels(page, tag);
     await page.waitForTimeout(900);
     console.log(tag, 'score:', (await page.textContent('#vScore .big')).trim(), '| regret:', (await page.textContent('#vRegret [data-regret]')).trim());
     if (SHOTS && tag === 'desktop') await page.screenshot({ path: path.join(OUT, 'verdict.png'), fullPage: true });
@@ -77,10 +115,25 @@ const SHOTS = process.env.SHOTS === '1';
     // horizontal overflow check
     const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
     console.log(tag, 'horizontal overflow px:', overflow);
+    // Exercise both panel callbacks and remounts after applying a different plan.
+    if (tag === 'desktop') {
+      await page.click('[data-go="verdict"]');
+      let panels = await checkPanels(page, tag + ' after crisis');
+      for (const kind of ['promise', 'stress']) {
+        const plan = kind === 'promise' ? panels.promise.best.plan : panels.stress.crisis_proof_plan.plan;
+        await page.click(kind === 'promise' ? '#vPromise [data-apply]' : '#vStress [data-stress-apply]');
+        await page.waitForSelector('#tab-cabinet:not([hidden])');
+        assert.deepEqual(await page.evaluate(() => planOf()), plan, kind + ' loads cabinet plan');
+        await page.waitForFunction(() => !document.querySelector('#btnSubmit').disabled);
+        await page.click('#btnSubmit');
+        panels = await checkPanels(page, tag + ' applied ' + kind);
+      }
+    }
     await page.close();
   };
   await run({ width: 1440, height: 900 }, 'desktop');
   await run({ width: 390, height: 844 }, 'phone');
   await browser.close();
   console.log(errors.length ? 'ERRORS:\n' + errors.join('\n') : 'no browser errors');
+  assert.equal(errors.length, 0, 'browser errors');
 })().catch((e) => { console.error('FAIL', e); process.exit(1); });

@@ -205,6 +205,9 @@
 <div id="modal" role="dialog" aria-modal="true"></div>
 <div id="toast" aria-live="polite"></div>
 
+<script src="panels/grade.js"></script>
+<script src="panels/stress.js"></script>
+<script src="panels/promise.js"></script>
 <script>
 'use strict';
 /* =====================================================================
@@ -566,6 +569,12 @@ function loadPlan(decs) {
   planDecs(decs).slice(0, S.ds.decisions_required).forEach((d, i) => (S.slots[i] = { measure: d.measure, district: d.district ?? null }));
   onPlanChange();
 }
+function applyRecommendedPlan(plan) {
+  disposeVerdictPanels();
+  loadPlan(plan);
+  go('cabinet');
+  toast('Рекомендация загружена в кабинет');
+}
 let valTimer = null;
 function onPlanChange() {
   renderMeasures();
@@ -674,7 +683,26 @@ function dial(value, min, max, opts = {}) {
     <circle cx="${cx}" cy="${cy}" r="8" fill="#0d2a33"/><circle cx="${cx}" cy="${cy}" r="2.5" fill="${nc}"/></svg>`;
 }
 
+let verdictPanelDisposers = [];
+function disposeVerdictPanels() {
+  verdictPanelDisposers.forEach((dispose) => dispose());
+  verdictPanelDisposers = [];
+}
+function mountVerdictPanels() {
+  const ctx = {
+    plan: S.plan,
+    api: (path, body) => api(body === undefined ? 'GET' : 'POST', path, body),
+    mock: SOURCE === 'mock',
+    onApplyPlan: applyRecommendedPlan,
+  };
+  for (const [name, id] of [['grade', 'vGrade'], ['stress', 'vStress'], ['promise', 'vPromise']]) {
+    const mounted = window.AkimPanels[name].mount(document.getElementById(id), ctx);
+    if (typeof mounted === 'function') verdictPanelDisposers.push(mounted);
+    else if (typeof mounted?.destroy === 'function') verdictPanelDisposers.push(() => mounted.destroy());
+  }
+}
 function renderVerdict() {
+  disposeVerdictPanels();
   const root = $('#tab-verdict');
   if (!S.plan) { root.innerHTML = emptyState('Вердикта пока нет', 'Сначала примите пять решений в кабинете.'); return; }
   const sc = S.r.score;
@@ -718,6 +746,10 @@ function renderVerdict() {
 
     <section class="mt-8"><div id="vAI"></div></section>
 
+    <section id="vGrade" class="mt-8" aria-label="Разбор партии"></section>
+    <section id="vStress" class="mt-8" aria-label="Стресс-тест кризисами"></section>
+    <section id="vPromise" class="mt-8" aria-label="Цена обещания"></section>
+
     <section class="mt-8"><div class="hsec"><h2 class="h2">Совет районов</h2><p>депутаты маслихата о вашем плане</p></div><div id="vCouncil"></div></section>
 
     <div class="mt-8 flex flex-wrap gap-2">
@@ -747,6 +779,7 @@ function renderVerdict() {
     b.disabled = false; b.textContent = t;
   };
   ['score', 'opt', 'ai', 'nar'].forEach(fillVerdict);
+  mountVerdictPanels();
 }
 
 function fillVerdict(key) {
@@ -865,7 +898,7 @@ function fillAI() {
       <div class="flex-1"><h3>Рекомендация${rec.expected_score != null ? ` → Score ${num(rec.expected_score)}` : ''}</h3><div class="text-[14.5px]">${esc(rec.why || 'Рекомендации нет.')}</div>
         ${recPlan.length ? `<div class="mono mt-2 flex flex-wrap gap-1.5 text-[11.5px]">${recPlan.map((d) => `<span class="border border-rule bg-paper px-1.5 py-0.5">${esc(decShort(d))}</span>`).join('')}</div>` : ''}</div>
       ${recPlan.length ? '<button id="applyRec" class="btn btn-pen shrink-0">Применить рекомендацию</button>' : ''}</div>`;
-  const ab = $('#applyRec'); if (ab) ab.onclick = () => { loadPlan(recPlan); go('cabinet'); toast('Рекомендация загружена в кабинет'); };
+  const ab = $('#applyRec'); if (ab) ab.onclick = () => applyRecommendedPlan(recPlan);
 }
 
 function fillCouncil() {

@@ -1,0 +1,183 @@
+{
+  "catalog": [
+    {
+      "type": "min_districts",
+      "value": 5,
+      "label": "Каждому району — свой проект",
+      "feasible_alone": true,
+      "price_alone": 2.42,
+      "promises": [
+        {
+          "type": "min_districts",
+          "value": 5
+        }
+      ],
+      "price": 2.42,
+      "feasible": true,
+      "best_score": 54.82
+    },
+    {
+      "type": "min_approval",
+      "value": 50,
+      "label": "Рейтинг ≥ 50",
+      "feasible_alone": true,
+      "price_alone": 0.24,
+      "promises": [
+        {
+          "type": "min_approval",
+          "value": 50
+        }
+      ],
+      "price": 0.24,
+      "feasible": true,
+      "best_score": 57.0
+    },
+    {
+      "type": "include",
+      "measure": "M7",
+      "district": "Есиль",
+      "label": "Школа + детсад в Есиле",
+      "feasible_alone": true,
+      "price_alone": 1.2,
+      "promises": [
+        {
+          "type": "include",
+          "measure": "M7",
+          "district": "Есиль"
+        }
+      ],
+      "price": 1.2,
+      "feasible": true,
+      "best_score": 56.04
+    },
+    {
+      "type": "exclude",
+      "measure": "M3",
+      "label": "Без ЛРТ",
+      "feasible_alone": true,
+      "price_alone": 0.17,
+      "promises": [
+        {
+          "type": "exclude",
+          "measure": "M3"
+        }
+      ],
+      "price": 0.17,
+      "feasible": true,
+      "best_score": 57.07
+    },
+    {
+      "type": "max_cost",
+      "value": 80,
+      "label": "Бюджет — не больше 80",
+      "feasible_alone": true,
+      "price_alone": 0.37,
+      "promises": [
+        {
+          "type": "max_cost",
+          "value": 80
+        }
+      ],
+      "price": 0.37,
+      "feasible": true,
+      "best_score": 56.87
+    },
+    {
+      "type": "no_critical",
+      "label": "Без красных зон",
+      "feasible_alone": true,
+      "price_alone": 0.0,
+      "promises": [
+        {
+          "type": "no_critical"
+        }
+      ],
+      "price": 0.0,
+      "feasible": true,
+      "best_score": 57.24
+    },
+    {
+      "type": "district_project",
+      "district": "Алматы",
+      "label": "Проект в Алматы",
+      "feasible_alone": true,
+      "price_alone": 0.31,
+      "promises": [
+        {
+          "type": "district_project",
+          "district": "Алматы"
+        }
+      ],
+      "price": 0.31,
+      "feasible": true,
+      "best_score": 56.93
+    },
+    {
+      "type": "district_project",
+      "district": "Есиль",
+      "label": "Проект в Есиле",
+      "feasible_alone": true,
+      "price_alone": 0.24,
+      "promises": [
+        {
+          "type": "district_project",
+          "district": "Есиль"
+        }
+      ],
+      "price": 0.24,
+      "feasible": true,
+      "best_score": 57.0
+    }
+  ],
+  "price": {
+    "promises": [
+      {
+        "type": "min_approval",
+        "value": 50,
+        "label": "Рейтинг ≥ 50",
+        "feasible_alone": true,
+        "price_alone": 0.24
+      }
+    ],
+    "feasible": true,
+    "count_feasible": 657031,
+    "total_valid": 694395,
+    "best": {
+      "plan": {
+        "decisions": [
+          {
+            "measure": "M11",
+            "district": "Есиль"
+          },
+          {
+            "measure": "M14",
+            "district": null
+          },
+          {
+            "measure": "M3",
+            "district": "Нура"
+          },
+          {
+            "measure": "M7",
+            "district": "Нура"
+          },
+          {
+            "measure": "M8",
+            "district": "Нура"
+          }
+        ]
+      },
+      "score": 57.0,
+      "cost": 100.0,
+      "approval": 53.35
+    },
+    "unconstrained_best": 57.24,
+    "price": 0.24,
+    "verdict": "Обещание выполнимо. Цена в баллах Score — 0.24: лучший план даёт 57.00 вместо 57.24.",
+    "your_plan": {
+      "score": 56.54,
+      "keeps_promises": true,
+      "broken": []
+    }
+  }
+}

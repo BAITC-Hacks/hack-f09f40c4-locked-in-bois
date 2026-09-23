@@ -42,7 +42,9 @@ def _checked(promise):
     if not isinstance(promise, dict):
         raise ValueError("Обещание должно быть объектом")
     kind = promise.get("type")
-    if not isinstance(kind, str) or kind not in _FIELDS:
+    if not isinstance(kind, str):
+        raise ValueError("Тип обещания должен быть строкой")
+    if kind not in _FIELDS:
         raise ValueError(f"Неизвестный тип обещания: {kind}")
     required, optional = _FIELDS[kind]
     if required - promise.keys():
@@ -51,10 +53,14 @@ def _checked(promise):
         raise ValueError("Неизвестные поля обещания: " + ", ".join(map(str, promise.keys() - required - optional)))
     mid, district, value = (promise.get(k) for k in ("measure", "district", "value"))
     if "measure" in required:
-        if not isinstance(mid, str) or mid not in measures_by_id():
+        if not isinstance(mid, str):
+            raise ValueError("Идентификатор меры должен быть строкой")
+        if mid not in measures_by_id():
             raise ValueError(f"Неизвестная мера: {mid}")
     if "district" in required or district is not None:
-        if not isinstance(district, str) or district not in district_names():
+        if not isinstance(district, str):
+            raise ValueError("Название района должно быть строкой")
+        if district not in district_names():
             raise ValueError(f"Неизвестный район: {district}")
     if kind == "include" and measures_by_id()[mid]["type"] == "city" and district is not None:
         raise ValueError(f"Для городской меры {mid} район должен быть null")
@@ -349,8 +355,23 @@ def _examples():
 
 
 def promise_catalog() -> list:
-    """Ready-made promises and their precomputed standalone prices."""
-    return [dict(promise) for promise in _load_table()[0]["catalog"]]
+    """UI cards with a ready-to-submit payload and precomputed exact prices.
+
+    Keep the original flat promise and standalone aliases for existing clients.
+    The stored price is the difference of displayed scores, so subtracting it
+    recovers the displayed best score without new filtering or a table rebuild.
+    """
+    metadata, columns = _load_table()
+    optimum = columns["score"][_best_index(None)]
+    catalog = []
+    for row in metadata["catalog"]:
+        required, optional = _FIELDS[row["type"]]
+        promise = {key: row[key] for key in required | optional if key in row}
+        catalog.append({**row, "promises": [promise],
+                        "price": row["price_alone"], "feasible": row["feasible_alone"],
+                        "best_score": diff2(optimum, row["price_alone"])
+                        if row["feasible_alone"] else None})
+    return catalog
 
 
 def main():

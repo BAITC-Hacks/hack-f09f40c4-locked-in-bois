@@ -14,6 +14,7 @@ from time import monotonic
 
 from openai import OpenAI
 
+from engine import grading, promise, stress
 from engine.approval import approval
 from engine.model import load_dataset, load_events, measures_by_id, normalize_plan, plan_cost
 from engine.optimize import optimize_info, what_if
@@ -21,7 +22,7 @@ from engine.score import evaluate
 from engine.shock import resolve, shock, shocked_base
 from engine.validate import validate
 from .narrative import template
-from .prompts import ANALYST_SYSTEM, NARRATOR_SYSTEM
+from .prompts import ANALYST_SYSTEM, NARRATOR_SYSTEM, SWAP_SYSTEM
 
 LOG = logging.getLogger(__name__)
 _CACHE = OrderedDict()
@@ -118,12 +119,28 @@ def _optimize(plan):
     return {k: v for k, v in optimize_info(plan).items() if k != "pareto"}
 
 
+def _stress(plan):
+    result = stress.stress_test(plan)
+    return {"scenarios": [{k: row[k] for k in (
+                "event_id", "title", "score", "loss", "insurance")}
+                for row in result["scenarios"]],
+            "worst_event": result["worst_event"], "crisis_proof_plan": result["crisis_proof_plan"]}
+
+
+def _grade(plan):
+    result = grading.grade(plan)
+    return {"moves": [{k: move[k] for k in (
+                "measure", "district", "grade", "label", "loss", "best_alternative")}
+                for move in result["moves"]], "accuracy": result["accuracy"]}
+
+
 def _context(plan):
     score, political, opt = _compact_score(plan), approval(plan), _optimize(plan)
     best_approval = approval(opt["best"]["plan"])
     missed = [d for d in load_dataset()["districts"]
               if not best_approval["districts"][d["name"]]["got_district_measure"]]
     return {"score": score, "approval": political, "optimizer": opt,
+            "stress": _stress(plan), "grading": _grade(plan),
             "best_approval": best_approval,
             "best_unserved_percent": round(sum(d["pop"] for d in missed) * 100, 2)}
 
@@ -171,6 +188,31 @@ def _offline_analyze(plan, facts):
         risks.append("Районные проекты не предусмотрены: " + "; ".join(
             f"в {d['cases']['loc']} — {d['pop'] * 100:g}% горожан" for d in missed)
             + ". Эти районы получают только общегородские меры.")
+    worst = next(row for row in facts["stress"]["scenarios"]
+                 if row["event_id"] == facts["stress"]["worst_event"])
+    risk = f"Худший отдельный кризис — «{worst['title']}»: потеря {worst['loss']:.2f} балла."
+    insurance = worst["insurance"]
+    if insurance:
+        risk += (f" Страхующая замена: {insurance['out']} на {insurance['in']['measure']} "
+                 f"{location(insurance['in']['district'])}; изменение после кризиса — "
+                 f"{insurance['recovered']:+.2f} балла.")
+    else:
+        risk += " Допустимой страхующей замены нет."
+    risks.append(risk)
+    review = facts["grading"]
+    if all(move["grade"] == "best" for move in review["moves"]):
+        strengths.append(f"Все ходы лучшие при остальных фиксированных решениях; точность — {review['accuracy']:.2f}%.")
+    else:
+        candidates = [move for move in review["moves"] if move["grade"] not in ("best", "sacrifice")]
+        move = max(candidates or review["moves"], key=lambda m: m["loss"])
+        alternative = move["best_alternative"]
+        line = (f"Разбор ходов: {move['label']} — {move['measure']} {location(move['district'])}; "
+                f"упущено {move['loss']:.2f} балла, точность — {review['accuracy']:.2f}%.")
+        if alternative:
+            line += f" Альтернатива: {alternative['measure']} {location(alternative['district'])}."
+        if move["grade"] == "sacrifice":
+            line += " Потеря сохраняет переизбрание; более сильной замены с переизбранием нет."
+        risks.append(line)
     movers = sorted(a["districts"], key=lambda name: a["districts"][name]["delta_D"], reverse=True)[:2]
     consequences = [f"Индекс {district_case(name, 'gen')}: {s['districts'][name]['D_before']:.2f} → "
                     f"{s['districts'][name]['D_after']:.2f}." for name in movers]
@@ -214,6 +256,21 @@ _PLAN_SCHEMA = {"type": "object", "properties": {"decisions": {"type": "array", 
                 "required": ["decisions"], "additionalProperties": False}
 _SWAP_SCHEMA = {"type": "object", "properties": {"out": {"type": "string"}, "in": _DECISION_SCHEMA},
                 "required": ["out", "in"], "additionalProperties": False}
+_PROMISE_SCHEMA = {"anyOf": [
+    {"type": "object", "properties": {"type": {"type": "string", "enum": [kind]}, **fields},
+     "required": ["type", *required], "additionalProperties": False}
+    for kind, fields, required in [
+        ("include", _DECISION_SCHEMA["properties"], ["measure"]),
+        ("exclude", {"measure": _DECISION_SCHEMA["properties"]["measure"]}, ["measure"]),
+        ("district_project", {"district": {"type": "string", "enum": [d["name"] for d in load_dataset()["districts"]]}}, ["district"]),
+        ("min_districts", {"value": {"type": "integer", "minimum": 0}}, ["value"]),
+        ("max_cost", {"value": {"type": "number", "minimum": 0}}, ["value"]),
+        ("min_approval", {"value": {"type": "number"}}, ["value"]),
+        ("no_critical", {}, []),
+        ("min_district_delta", {"district": {"type": "string", "enum": [d["name"] for d in load_dataset()["districts"]]},
+                                "value": {"type": "number"}}, ["district", "value"]),
+    ]
+]}
 TOOLS = [{"type": "function", "function": {"name": name, "description": desc,
           "parameters": {"type": "object", "properties": {"plan": _PLAN_SCHEMA, **({"swap": _SWAP_SCHEMA} if name == "what_if" else {})},
                          "required": ["plan", "swap"] if name == "what_if" else ["plan"], "additionalProperties": False}}}
@@ -221,11 +278,24 @@ TOOLS = [{"type": "function", "function": {"name": name, "description": desc,
                             ("validate", "Проверка правил и стоимости плана."),
                             ("optimize_same_budget", "Оптимумы, ранг и политически сбалансированный план."),
                             ("what_if", "Результат замены ровно одной меры."),
-                            ("remove_one", "Вклад каждой меры при её удалении.")]]
+                            ("remove_one", "Вклад каждой меры при её удалении."),
+                            ("stress_test", "Уязвимость к кризисам, страхующие замены и устойчивый план."),
+                            ("grade_plan", "Оценки ходов, потери, лучшие альтернативы и точность плана.")]]
+TOOLS.append({"type": "function", "function": {
+    "name": "price_of_promise", "description": "Цена обещаний и справедливости в баллах Score; лучший план, выполняющий обещания.",
+    "parameters": {"type": "object", "properties": {
+        "promises": {"type": "array", "items": _PROMISE_SCHEMA}},
+        "required": ["promises"], "additionalProperties": False}}})
 
 
 def _tool(name, args):
+    if name == "price_of_promise":
+        return promise.price(args["promises"])
     plan = args["plan"]
+    if name == "stress_test":
+        return _stress(plan)
+    if name == "grade_plan":
+        return _grade(plan)
     if name == "score":
         return _compact_score(plan)
     if name == "validate":
@@ -517,6 +587,40 @@ def analyze(plan: dict, lang: str = "ru") -> dict:
     result = _explain_chain(chain, messages, [context], fallback,
                             lambda payload: _analyst_answer(payload, fallback), agent=True)
     return result if "fallback_reason" in result else _save(key, result)
+
+
+def swap_comment(result: dict) -> dict:
+    """Explain an engine-resolved swap; all numerical facts come from resolve."""
+    from .narrative import district_case
+
+    facts = {k: result[k] for k in (
+        "crisis_cost", "recovered", "swap_was_optimal", "best_possible_swap")}
+    recovered = facts["recovered"]
+    comment = f"Кризис стоил {facts['crisis_cost']:.2f} балла. "
+    if recovered > 0:
+        comment += f"Ваша замена вернула {recovered:.2f} балла"
+    elif recovered < 0:
+        comment += f"Ваша замена дополнительно снизила оценку на {abs(recovered):.2f} балла"
+    else:
+        comment += f"Ваша замена не изменила оценку: {recovered:.2f} балла"
+    if facts["swap_was_optimal"]:
+        comment += " — это лучший возможный ход при обязательной замене."
+    else:
+        best = facts["best_possible_swap"]
+        target = best["in"]["district"]
+        where = f"в {district_case(target, 'loc')}" if target else "по всему городу"
+        comment += (f"; лучше было заменить {best['out']} на {best['in']['measure']} {where}: "
+                    f"{best['gain']:+.2f} балла относительно оценки после кризиса.")
+
+    def finalize(payload):
+        if not isinstance(payload.get("comment"), str) or not payload["comment"].strip():
+            raise ValueError("Отсутствует комментарий к замене")
+        return {"comment": payload["comment"]}
+
+    messages = [{"role": "system", "content": SWAP_SYSTEM},
+                {"role": "user", "content": _json(facts)}]
+    answer = _explain_chain(_providers(), messages, [facts], {"comment": comment}, finalize)
+    return {k: answer[k] for k in ("comment", "provider", "grounded")}
 
 
 def _narrative_facts(plan, event_id=None, swap=None):

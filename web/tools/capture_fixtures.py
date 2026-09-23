@@ -32,6 +32,14 @@ plan = {"decisions": plan["decisions"]}
 body = {"plan": plan, "lang": "ru"}
 save("score", call("POST", "/api/score", body))
 save("optimize", call("POST", "/api/optimize", body))
+save("stress", call("POST", "/api/stress", body))
+save("grade", call("POST", "/api/grade", body))
+catalog = call("GET", "/api/promise/catalog")
+# Match the panel's initial selection and its {catalog, price} fixture format.
+promises = [promise for row in catalog if row["type"] == "min_approval"
+            for promise in row["promises"]]
+save("promise", {"catalog": catalog,
+                 "price": call("POST", "/api/promise", {"promises": promises, "plan": plan})})
 save("analyze", call("POST", "/api/analyze", body))
 save("narrative", call("POST", "/api/narrative", body))
 shock = call("POST", "/api/shock", {"plan": plan, "seed": 1})

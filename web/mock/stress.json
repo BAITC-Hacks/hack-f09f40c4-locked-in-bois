@@ -1,0 +1,166 @@
+{
+  "score": 56.54,
+  "scenarios": [
+    {
+      "event_id": "heating_almaty",
+      "title": "Прорыв теплотрассы в Алматы",
+      "district": "Алматы",
+      "effects": {
+        "C1": -12
+      },
+      "score": 55.34,
+      "loss": 1.2,
+      "new_crit_cells": [
+        {
+          "district": "Алматы",
+          "indicator": "C1",
+          "value": 38
+        }
+      ],
+      "insurance": {
+        "out": "M5",
+        "in": {
+          "measure": "M14",
+          "district": null
+        },
+        "score": 56.78,
+        "recovered": 1.44
+      }
+    },
+    {
+      "event_id": "smog_saryarka",
+      "title": "Смоговая зима в Сарыарке",
+      "district": "Сарыарка",
+      "effects": {
+        "E2": -10
+      },
+      "score": 55.39,
+      "loss": 1.15,
+      "new_crit_cells": [
+        {
+          "district": "Сарыарка",
+          "indicator": "E2",
+          "value": 38.75
+        }
+      ],
+      "insurance": {
+        "out": "M12",
+        "in": {
+          "measure": "M4",
+          "district": "Сарыарка"
+        },
+        "score": 56.04,
+        "recovered": 0.65
+      }
+    },
+    {
+      "event_id": "schools_esil",
+      "title": "Переполнение школ в Есиле",
+      "district": "Есиль",
+      "effects": {
+        "S1": -8
+      },
+      "score": 56.38,
+      "loss": 0.16,
+      "new_crit_cells": [],
+      "insurance": {
+        "out": "M5",
+        "in": {
+          "measure": "M3",
+          "district": "Нура"
+        },
+        "score": 57.04,
+        "recovered": 0.66
+      }
+    },
+    {
+      "event_id": "all",
+      "title": "Чёрная зима: все три кризиса сразу",
+      "district": null,
+      "effects": {
+        "Алматы": {
+          "C1": -12
+        },
+        "Сарыарка": {
+          "E2": -10
+        },
+        "Есиль": {
+          "S1": -8
+        }
+      },
+      "score": 54.02,
+      "loss": 2.52,
+      "new_crit_cells": [
+        {
+          "district": "Алматы",
+          "indicator": "C1",
+          "value": 38
+        },
+        {
+          "district": "Сарыарка",
+          "indicator": "E2",
+          "value": 38.75
+        }
+      ],
+      "insurance": {
+        "out": "M5",
+        "in": {
+          "measure": "M14",
+          "district": null
+        },
+        "score": 55.46,
+        "recovered": 1.44
+      }
+    }
+  ],
+  "worst_event": "heating_almaty",
+  "worst_score": 55.34,
+  "max_loss": 1.2,
+  "worst_score_all": 54.02,
+  "max_loss_all": 2.52,
+  "robust_rank": 623,
+  "robust_total": 694395,
+  "robust_percentile": 99.91,
+  "crisis_proof_plan": {
+    "plan": {
+      "decisions": [
+        {
+          "measure": "M14",
+          "district": null
+        },
+        {
+          "measure": "M5",
+          "district": "Сарыарка"
+        },
+        {
+          "measure": "M6",
+          "district": null
+        },
+        {
+          "measure": "M8",
+          "district": "Нура"
+        },
+        {
+          "measure": "M9",
+          "district": "Нура"
+        }
+      ]
+    },
+    "score": 56.49,
+    "cost": 91,
+    "approval": 52.21,
+    "worst_event": "heating_almaty",
+    "worst_score": 56.29,
+    "max_loss": 0.2,
+    "worst_score_all": 55.97,
+    "max_loss_all": 0.52,
+    "all_score": 55.97,
+    "event_scores": {
+      "heating_almaty": 56.29,
+      "smog_saryarka": 56.34,
+      "schools_esil": 56.33,
+      "all": 55.97
+    }
+  },
+  "verdict": "Худший отдельный кризис — «Прорыв теплотрассы в Алматы»: оценка 55.34, снижение на 1.20; «чёрная зима» — 54.02."
+}

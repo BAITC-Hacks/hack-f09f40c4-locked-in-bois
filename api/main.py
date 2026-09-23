@@ -36,6 +36,14 @@ def _engine_call(function, *args, **kwargs):
         raise HTTPException(status_code=422, detail=str(exc)) from exc
 
 
+def _text(body: dict, field: str, default):
+    """Optional string field; anything else is a 422, never a 500 (found by tests/test_api_fuzz.py)."""
+    value = body.get(field, default)
+    if value is not None and not isinstance(value, str):
+        raise HTTPException(status_code=422, detail=f"Поле {field} должно быть строкой")
+    return value
+
+
 def _valid_plan(body: dict):
     plan = _plan(body)
     valid, reason = validate.validate(plan)
@@ -104,7 +112,7 @@ def analyze_plan(body: dict = Body(...)):
     plan = _valid_plan(body)
     from api import agent
 
-    return _engine_call(agent.analyze, plan, lang=body.get("lang", "ru"))
+    return _engine_call(agent.analyze, plan, lang=_text(body, "lang", "ru"))
 
 
 @app.post("/api/narrative")
@@ -112,8 +120,8 @@ def narrative_plan(body: dict = Body(...)):
     plan = _valid_plan(body)
     from api import agent
 
-    return _engine_call(agent.narrative, plan, lang=body.get("lang", "ru"),
-                        event_id=body.get("event_id"), swap=body.get("swap"))
+    return _engine_call(agent.narrative, plan, lang=_text(body, "lang", "ru"),
+                        event_id=_text(body, "event_id", None), swap=body.get("swap"))
 
 
 @app.post("/api/shock")
@@ -127,6 +135,8 @@ def shock_plan(body: dict = Body(...)):
 
 @app.post("/api/shock/resolve")
 def resolve_shock(body: dict = Body(...)):
+    from api import agent
+
     plan = _valid_plan(body)
     event_id = body.get("event_id")
     result = _engine_call(shock.resolve, plan, event_id, body.get("swap"))
@@ -134,6 +144,7 @@ def resolve_shock(body: dict = Body(...)):
     result["approval"] = _engine_call(
         approval.approval, result["new_plan"], base_values=shock.shocked_base(event)
     )
+    result["comment"] = agent.swap_comment(result)["comment"]
     return result
 
 

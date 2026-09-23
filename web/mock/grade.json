@@ -1,0 +1,223 @@
+{
+  "score": 56.54,
+  "accuracy": 91.94,
+  "moves": [
+    {
+      "index": 1,
+      "measure": "M7",
+      "district": "Нура",
+      "name": "Школа + детсад (модульное строительство)",
+      "grade": "best",
+      "symbol": "!!",
+      "label": "Лучший ход",
+      "loss": 0.0,
+      "best_alternative": null,
+      "comment": "Это уже лучший ход по Score при остальных фиксированных решениях. Снят критический штраф в Нуре: S1 растёт с 38.00 до 48.00.",
+      "traps": [
+        {
+          "kind": "critical_rescue",
+          "district": "Нура",
+          "indicator": "S1",
+          "before": 38,
+          "after": 48.0
+        }
+      ],
+      "contribution": 1.45,
+      "score_best_alternative": null,
+      "score_best_alternative_approval": null,
+      "approval": 50.78,
+      "best_alternative_approval": null
+    },
+    {
+      "index": 2,
+      "measure": "M8",
+      "district": "Нура",
+      "name": "Центр семейного здоровья / поликлиника",
+      "grade": "best",
+      "symbol": "!!",
+      "label": "Лучший ход",
+      "loss": 0.0,
+      "best_alternative": null,
+      "comment": "Это уже лучший ход по Score при остальных фиксированных решениях. Снят критический штраф в Нуре: S2 растёт с 35.00 до 43.75.",
+      "traps": [
+        {
+          "kind": "critical_rescue",
+          "district": "Нура",
+          "indicator": "S2",
+          "before": 35,
+          "after": 43.75
+        }
+      ],
+      "contribution": 1.39,
+      "score_best_alternative": null,
+      "score_best_alternative_approval": null,
+      "approval": 50.78,
+      "best_alternative_approval": null
+    },
+    {
+      "index": 3,
+      "measure": "M10",
+      "district": "Нура",
+      "name": "Освещение и камеры (расширение Safe City)",
+      "grade": "excellent",
+      "symbol": "!",
+      "label": "Отличный ход",
+      "loss": 0.09,
+      "best_alternative": {
+        "measure": "M14",
+        "district": null,
+        "name": "Аварийные бригады ЖКХ + раннее оповещение",
+        "score": 56.63
+      },
+      "comment": "При остальных решениях сильнее M14 «Аварийные бригады ЖКХ + раннее оповещение» по всему городу: Score 56.63 вместо 56.54; потеря — 0.09. Замена поднимает средний индекс города с 58.08 до 58.48. Работает связка M10 + M12: сам бонус добавляет 0.07 к Score.",
+      "traps": [
+        {
+          "kind": "synergy",
+          "pair": [
+            "M10",
+            "M12"
+          ],
+          "gain": 0.07
+        }
+      ],
+      "contribution": 0.53,
+      "score_best_alternative": {
+        "measure": "M14",
+        "district": null,
+        "name": "Аварийные бригады ЖКХ + раннее оповещение",
+        "score": 56.63
+      },
+      "score_best_alternative_approval": 52.41,
+      "approval": 50.78,
+      "best_alternative_approval": 52.41
+    },
+    {
+      "index": 4,
+      "measure": "M12",
+      "district": null,
+      "name": "Единая цифровая платформа обращений",
+      "grade": "excellent",
+      "symbol": "!",
+      "label": "Отличный ход",
+      "loss": 0.1,
+      "best_alternative": {
+        "measure": "M14",
+        "district": null,
+        "name": "Аварийные бригады ЖКХ + раннее оповещение",
+        "score": 56.64
+      },
+      "comment": "При остальных решениях сильнее M14 «Аварийные бригады ЖКХ + раннее оповещение» по всему городу: Score 56.64 вместо 56.54; потеря — 0.10. Замена поднимает средний индекс города с 58.08 до 58.22. Работает связка M10 + M12: сам бонус добавляет 0.07 к Score.",
+      "traps": [
+        {
+          "kind": "synergy",
+          "pair": [
+            "M10",
+            "M12"
+          ],
+          "gain": 0.07
+        }
+      ],
+      "contribution": 0.51,
+      "score_best_alternative": {
+        "measure": "M14",
+        "district": null,
+        "name": "Аварийные бригады ЖКХ + раннее оповещение",
+        "score": 56.64
+      },
+      "score_best_alternative_approval": 51.37,
+      "approval": 50.78,
+      "best_alternative_approval": 51.37
+    },
+    {
+      "index": 5,
+      "measure": "M5",
+      "district": "Сарыарка",
+      "name": "Перевод частного сектора на чистое топливо",
+      "grade": "good",
+      "symbol": "",
+      "label": "Хороший ход",
+      "loss": 0.22,
+      "best_alternative": {
+        "measure": "M3",
+        "district": "Есиль",
+        "name": "Линия ЛРТ / расширение",
+        "score": 56.76
+      },
+      "comment": "При остальных решениях сильнее M3 «Линия ЛРТ / расширение» в Есиле: Score 56.76 вместо 56.54; потеря — 0.22. Замена поднимает средний индекс города с 58.08 до 58.38. Замена сохраняет переизбрание: рейтинг 53.53.",
+      "traps": [],
+      "contribution": 0.17,
+      "score_best_alternative": {
+        "measure": "M3",
+        "district": "Нура",
+        "name": "Линия ЛРТ / расширение",
+        "score": 57.21
+      },
+      "score_best_alternative_approval": 46.7,
+      "approval": 50.78,
+      "best_alternative_approval": 53.53
+    }
+  ],
+  "eval_bar": [
+    {
+      "step": 0,
+      "ceiling": 57.24
+    },
+    {
+      "step": 1,
+      "ceiling": 57.21,
+      "dead_end": false,
+      "decision": {
+        "measure": "M7",
+        "district": "Нура",
+        "name": "Школа + детсад (модульное строительство)"
+      },
+      "drop": 0.03
+    },
+    {
+      "step": 2,
+      "ceiling": 57.21,
+      "dead_end": false,
+      "decision": {
+        "measure": "M8",
+        "district": "Нура",
+        "name": "Центр семейного здоровья / поликлиника"
+      },
+      "drop": 0.0
+    },
+    {
+      "step": 3,
+      "ceiling": 57.21,
+      "dead_end": false,
+      "decision": {
+        "measure": "M10",
+        "district": "Нура",
+        "name": "Освещение и камеры (расширение Safe City)"
+      },
+      "drop": 0.0
+    },
+    {
+      "step": 4,
+      "ceiling": 57.21,
+      "dead_end": false,
+      "decision": {
+        "measure": "M12",
+        "district": null,
+        "name": "Единая цифровая платформа обращений"
+      },
+      "drop": 0.0
+    },
+    {
+      "step": 5,
+      "ceiling": 56.54,
+      "dead_end": false,
+      "decision": {
+        "measure": "M5",
+        "district": "Сарыарка",
+        "name": "Перевод частного сектора на чистое топливо"
+      },
+      "drop": 0.67
+    }
+  ],
+  "biggest_blunder": null,
+  "summary": "Score 56.54 из достижимых 57.24: потеря потолка 0.70; точность 91.94%. Наибольшая цена одиночного выбора — 0.22 у M5 в Сарыарке."
+}
