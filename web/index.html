@@ -1066,7 +1066,6 @@ async function openReceipt() {
   let r;
   try { r = SOURCE === 'mock' ? await fx('receipt') : await api('POST', '/api/receipt', { plan: S.plan }); }
   catch (e) { $('#modal').innerHTML = `<div class="rcpt">${errBox('Чек не напечатан', e.message)}<button data-close class="btn btn-line mt-4 w-full">Закрыть</button></div>`; return; }
-  const pen = r.critical_penalties || [];
   const lines = (r.lines || []).filter((l) => l.kind !== 'total');
   $('#modal').innerHTML = `<div class="rcpt" aria-label="Чек расчёта Score">
     <div class="text-center text-[11px] uppercase tracking-[.2em] text-graph">Кабинет акима · движок AQLS</div>
@@ -1077,10 +1076,10 @@ async function openReceipt() {
         const w = r.score_weights || { avg: 0.7, min: 0.3 };
         const how = l.kind === 'district' && l.pop != null ? `${num(w.avg, 1)} × ${num(l.pop * 100, 0)}% жителей × индекс ${num(l.D_after)}`
           : l.kind === 'minimum' ? `${num(w.min, 1)} × индекс слабейшего района ${num(r.d_min)}` : '';
+        if (l.kind === 'critical') return `<div class="ln red"><span>${esc(l.label)}</span><b>${sign(l.amount)}</b></div><div class="sub">${esc(indShort(l.indicator))} ${num(l.value)} — ниже порога ${l.threshold ?? S.ds.crit_threshold}</div>`;
         return l.additive ? `<div class="ln"><span>${esc(l.label)}</span><b>${sign(l.amount)}</b></div>${how ? `<div class="sub">${how}</div>` : ''}`
           : l.kind === 'average' ? `<div class="sub mt-1 mb-2">подытог: ${num(w.avg, 1)} × средний индекс города ${num(r.d_avg)} = ${num(l.amount)}</div>` : '';
       }).join('')}
-      ${pen.map((c) => `<div class="ln red"><span>Штраф: ${esc(c.district || '')} ${esc(c.indicator || '')} ниже ${S.ds.crit_threshold}</span><b>${sign(c.amount ?? -1)}</b></div>`).join('')}
       ${(r.synergy_lines || []).map((x) => `<div class="sub">учтена синергия ${esc((x.pair || []).join(' + '))}: ${esc(x.indicator)} +${num(x.applied_value, 0)} в ${esc(loc(x.district))}</div>`).join('')}
     </div>
     <div class="ln tot"><span>ИТОГО Score</span><b class="disp text-[30px] leading-none">${num(r.score)}</b></div>
