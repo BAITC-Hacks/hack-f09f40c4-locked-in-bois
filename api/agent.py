@@ -30,6 +30,14 @@ _CACHE_LOCK = RLock()
 _CACHE_LIMIT = 256
 _NUMBER = re.compile(r"-?\d+(?:\.\d+)?")
 _GROUP = re.compile(r"(?<!\d)\d{1,3}(?:[ \u00a0\u202f]\d{3})+(?!\d)")
+# Only internal names, not a blanket ban on Latin words (Safe City, AQI, openai).
+# Underscored field/tool names are covered regardless of case or digits.
+_JARGON = re.compile(
+    r"\b[A-Za-z_]\w*\s*=\s*[^\s;]+"
+    r"|(?<!\w)[A-Za-z_][A-Za-z0-9_]*_[A-Za-z0-9_]+(?!\w)"
+    r"|\b(?i:approval|balanced|marginal|validate|optimize)\b"
+    r"|\bscore\b"  # The public label Score is allowed; the tool name score is not.
+)
 
 
 def _leaves(value):
@@ -52,6 +60,18 @@ def _percentages(value):
     elif isinstance(value, (list, tuple)):
         for child in value:
             yield from _percentages(child)
+
+
+def jargon(payload) -> list[str]:
+    """Find internal identifiers/assignments in string values, never JSON keys.
+
+    Ordinary Latin words, measure IDs and indicator codes remain valid. Return
+    distinct fragments in encounter order, as the number guard does.
+    """
+    return list(dict.fromkeys(
+        match[0] for value in _leaves(payload) if isinstance(value, str)
+        for match in _JARGON.finditer(value)
+    ))
 
 
 def guard(payload: dict, facts: list) -> list[str]:
@@ -534,7 +554,9 @@ def _explain(config, messages, facts, fallback, finalize, agent=False, deadline=
                 messages.append({"role": "user", "content": "Лимит инструментов исчерпан. Верни финальный JSON."})
         for attempts in (1, 2):
             payload = _parse(content)
-            offenders = guard(payload, facts)
+            number_offenders = guard(payload, facts)
+            jargon_offenders = jargon(payload)
+            offenders = number_offenders + jargon_offenders
             if not offenders:
                 answer = finalize(payload)
                 answer.update(provider=provider, grounded=True, guard={"attempts": attempts, "rejected": rejected})
@@ -543,11 +565,21 @@ def _explain(config, messages, facts, fallback, finalize, agent=False, deadline=
                 return answer
             rejected = list(dict.fromkeys(rejected + offenders))
             if attempts == 2:
-                LOG.warning("Number guard rejected %s after two attempts: %s", provider, rejected)
+                LOG.warning("Number/jargon guard rejected %s after two attempts: %s", provider, rejected)
                 offline.update(grounded=False, guard={"attempts": 2, "rejected": rejected})
                 return offline
-            messages.extend([{"role": "assistant", "content": content}, {"role": "user", "content":
-                f"Ты использовал числа, которых нет в результатах инструментов: {offenders}. Перепиши ответ, используя только числа из инструментов."}])
+            corrections = []
+            if number_offenders:
+                corrections.append(
+                    f"Ты использовал числа, которых нет в результатах инструментов: {number_offenders}. "
+                    "Перепиши ответ, используя только числа из инструментов.")
+            if jargon_offenders:
+                corrections.append(
+                    f"Не используй внутренние названия полей и инструментов: {jargon_offenders} "
+                    "— пиши обычным русским языком: «рейтинг акима», «самый слабый район», «вклад меры». "
+                    "Убери записи вида ключ = значение из текста; сохрани структуру JSON и числа из фактов.")
+            messages.extend([{"role": "assistant", "content": content},
+                             {"role": "user", "content": "\n".join(corrections)}])
             message = _complete(client, model, messages, deadline)
             content = _get(message, "content")
     except Exception as exc:
