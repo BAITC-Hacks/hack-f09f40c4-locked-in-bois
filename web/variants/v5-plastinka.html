@@ -1,0 +1,126 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>5 · Пластинка</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@500;700;800;900&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+<style>
+  :root{--sky:#19b8d8;--sky-d:#0f93ae;--tan:#f26a2e;--ink:#0c2630;--w:#fff}
+  *{box-sizing:border-box} body{margin:0;background:#fff;color:var(--ink);font:16px/1.5 Nunito,system-ui,sans-serif}
+  ::selection{background:var(--ink);color:#fff}
+  .rnd{font-family:"M PLUS Rounded 1c",Nunito,sans-serif}
+  section{position:relative;overflow:hidden}
+  .sleeve{background:var(--sky);min-height:100vh;padding:48px 56px;display:grid;grid-template-rows:auto 1fr auto}
+  .logo{font:900 74px/.9 "M PLUS Rounded 1c";letter-spacing:-.02em;color:var(--w)}
+  .logo small{display:block;font:800 22px/1.2 "M PLUS Rounded 1c";color:var(--ink);letter-spacing:0;margin-top:8px}
+  .face{position:absolute;right:-40px;bottom:-120px;font:900 440px/.8 "M PLUS Rounded 1c";color:var(--ink);letter-spacing:-.05em;white-space:nowrap}
+  .tracks{position:relative;z-index:2;justify-self:start;align-self:end;color:var(--w);font:700 17px/1.55 "M PLUS Rounded 1c";max-width:520px}
+  .tracks li{list-style:none} .tracks ol{margin:10px 0 0;padding:0}
+  .tracks span{opacity:.75;font-weight:500}
+  .sub{position:relative;z-index:2;font:800 30px/1.15 "M PLUS Rounded 1c";color:var(--ink);max-width:640px;margin-top:22px}
+  .sub em{font-style:normal;color:var(--w)}
+  .back{background:var(--w);padding:56px}
+  .h{font:900 52px/1 "M PLUS Rounded 1c";letter-spacing:-.02em;margin:0 0 6px}
+  .lede{font-size:18px;color:#3b5560;margin:0 0 26px}
+  .tl{display:grid;grid-template-columns:repeat(5,1fr);gap:26px}
+  .tl h3{font:900 22px "M PLUS Rounded 1c";margin:0 0 8px;color:var(--sky-d)}
+  .tr{display:grid;grid-template-columns:36px 1fr auto;gap:6px;padding:7px 8px;border-radius:12px;align-items:start}
+  .tr.on{background:var(--sky);color:var(--w)}
+  .tr b{font:800 14px "M PLUS Rounded 1c"} .tr .t{font-weight:700;line-height:1.25;font-size:15px} .tr .t small{display:block;font-weight:600;opacity:.75;font-size:12px}
+  .tr .d{font:800 15px "M PLUS Rounded 1c"}
+  .play{display:flex;gap:24px;align-items:center;margin-top:30px;flex-wrap:wrap}
+  .pill{background:var(--ink);color:var(--w);border-radius:999px;padding:16px 28px;font:800 20px "M PLUS Rounded 1c"}
+  .groove{flex:1;min-width:260px;height:14px;background:#e3f4f8;border-radius:999px;position:relative}
+  .groove i{position:absolute;left:0;top:0;bottom:0;border-radius:999px;background:var(--sky)}
+  .singles{display:grid;grid-template-columns:repeat(3,1fr);gap:0}
+  .sq{aspect-ratio:1/1;padding:30px;display:flex;flex-direction:column;justify-content:space-between;position:relative;overflow:hidden}
+  .sq .n{font:900 120px/.85 "M PLUS Rounded 1c";letter-spacing:-.04em}
+  .sq .l{font:800 20px/1.2 "M PLUS Rounded 1c"}
+  .liner{display:grid;grid-template-columns:1.2fr 1fr;gap:40px}
+  table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums}
+  td,th{padding:8px 6px;border-bottom:2px solid #e3f4f8;text-align:right} th{font:800 13px "M PLUS Rounded 1c";color:var(--sky-d);text-align:right} td:first-child,th:first-child{text-align:left}
+  .notes p{margin:0 0 10px;font-size:15.5px} .notes h4{font:900 17px "M PLUS Rounded 1c";margin:14px 0 4px;color:var(--sky-d)}
+  .council{display:grid;grid-template-columns:repeat(5,1fr)}
+  .council .sq{padding:22px}
+  .crisis{background:var(--tan);color:var(--ink);padding:56px;min-height:80vh;display:grid;grid-template-columns:1.1fr 1fr;gap:40px;align-items:end}
+  .insert{background:#fff;padding:56px;display:grid;grid-template-columns:1.3fr 1fr;gap:40px}
+  .chart .row{display:grid;grid-template-columns:70px 1fr 120px 120px 140px;align-items:center;padding:14px 0;border-bottom:2px solid rgba(255,255,255,.35);color:var(--w);font:800 22px "M PLUS Rounded 1c"}
+  .chart .row .pos{font-size:44px}
+  @media(max-width:900px){.sleeve,.back,.crisis,.insert{padding:28px}.logo{font-size:44px}.face{font-size:200px;bottom:-40px}.tl,.singles,.liner,.council,.crisis,.insert{grid-template-columns:1fr}.chart .row{grid-template-columns:40px 1fr 80px;font-size:16px}.chart .row span:nth-child(n+4){display:none}.h{font-size:34px}.sq .n{font-size:80px}}
+</style>
+</head>
+<body>
+<main id="app">Кладём пластинку…</main>
+<script src="_kit.js"></script>
+<script>
+const { num, int, sign, esc, unq, SHORT, QL, scale, path } = KIT;
+function render(D) {
+  const inPlan = Object.fromEntries(D.decs.map((d) => [d.measure, d]));
+  const tl = D.timeline.map((t) => [t.q, t.score]);
+  document.getElementById('app').innerHTML = `
+  <section data-sec="A Первый экран" class="sleeve">
+    <div class="logo">кабинет акима<small>Астана · 2027–2028 · ${int(D.total)} вариантов записи</small></div>
+    <div class="face" aria-hidden="true">${num(D.sc)}</div>
+    <div>
+      <p class="sub">Лучшая запись из ${int(D.total)} звучит на ${num(D.best.score)}. <em>Её автора увольняют: рейтинг ${num(D.best.approval, 1)}%.</em></p>
+      <div class="tracks"><div style="font-size:14px;opacity:.85">План из ТЗ · Score ${num(D.sc)} · место ${int(D.rank)}</div><ol>${D.decs.map((d, i) => `<li>${i + 1}. ${esc(d.m.name)} <span>· ${d.district || 'город'} · ${d.m.cost}</span></li>`).join('')}</ol></div>
+    </div>
+  </section>
+
+  <section data-sec="B Кабинет" class="back">
+    <h2 class="h">Сторона А: выберите пять</h2><p class="lede">Четырнадцать треков, пять направлений, не больше двух на направление. Сто единиц на всю пластинку.</p>
+    <div class="tl">${D.directions.map((dir) => `<div><h3>${esc(dir.name)}</h3>${D.measures.filter((m) => m.direction === dir.id).map((m) => { const on = inPlan[m.id]; return `<div class="tr ${on ? 'on' : ''}"><b>${m.id}</b><span class="t">${esc(m.name)}<small>${Object.entries(m.effects).map(([k, v]) => `${v > 0 ? '+' : '−'}${Math.abs(v)} ${SHORT[k]}`).join(', ')} · лаг ${m.lag}${on && on.district ? ' · ' + on.district : ''}</small></span><span class="d">${m.cost}</span></div>`; }).join('')}</div>`).join('')}</div>
+    <div class="play"><div class="groove"><i style="width:${D.cost}%"></i></div><div class="rnd" style="font-weight:800;font-size:20px">${D.cost} / 100 <span style="font-weight:600;font-size:14px;color:#3b5560">остаток не сгорает и не даёт бонуса</span></div><span class="pill">Принять решения</span></div>
+  </section>
+
+  <section data-sec="C Вердикт">
+    <div class="singles">
+      <div class="sq" style="background:var(--ink);color:#fff"><div class="l">Score (AQLS)<br><span style="font-weight:600;font-size:15px;opacity:.75">IV кв. 2028 · ${sign(D.delta)} к ${num(D.base)}</span></div><div class="n">${num(D.sc)}</div></div>
+      <div class="sq" style="background:var(--sky);color:var(--ink)"><div class="l">Рейтинг акима<br><span style="font-weight:600;font-size:15px">слой политического риска, не входит в Score</span></div><div><div class="n" style="color:#fff">${num(D.appr, 0)}%</div><div class="l">переизбран · порог 50%</div></div></div>
+      <div class="sq" style="background:#fff;color:var(--ink)"><div class="l">Счётчик сожаления</div><div><div class="n" style="font-size:96px">${int(D.rank)}</div><div class="l" style="font-size:18px">максимум ${num(D.best.score)}, ваше место ${int(D.rank)} из ${int(D.total)}, топ ${num(D.top, 2)}%</div></div></div>
+    </div>
+  </section>
+
+  <section data-sec="D Анализ" class="back">
+    <h2 class="h">Вкладыш: как это звучит по районам</h2><p class="lede">D района до и после, рейтинг депутатов. Все цифры — движок.</p>
+    <div class="liner">
+      <div><table><tr><th>Район</th><th>Жители</th><th>D до</th><th>D после</th><th>Δ</th><th>Рейтинг</th></tr>${D.districts.map((d) => `<tr><td><b class="rnd">${esc(d.name)}</b></td><td>${Math.round(d.pop * 100)}%</td><td>${num(d.Db)}</td><td><b>${num(d.Da)}</b></td><td style="color:var(--sky-d)"><b>${sign(d.dD)}</b></td><td style="color:${d.approval < 50 ? 'var(--tan)' : 'var(--sky-d)'}"><b>${num(d.approval, 0)}%</b></td></tr>`).join('')}</table>
+        <svg viewBox="0 0 520 170" width="100%" style="margin-top:22px">${(() => { const sx = (q) => scale(q, 0, 8, 10, 510), sy = (v) => scale(v, 52, 57.4, 150, 10);
+          return `<path d="${path(tl, sx, sy)} L${sx(8)},160 L${sx(0)},160 Z" fill="#19b8d8"/><line x1="10" x2="510" y1="${sy(D.best.score)}" y2="${sy(D.best.score)}" stroke="#f26a2e" stroke-width="3" stroke-dasharray="2 8" stroke-linecap="round"/>
+            <text x="510" y="${sy(D.best.score) - 8}" text-anchor="end" font-family="M PLUS Rounded 1c" font-weight="800" font-size="14" fill="#f26a2e">оптимум ${num(D.best.score)}</text><text x="10" y="168" font-family="Nunito" font-size="12" fill="#3b5560">старт</text><text x="510" y="168" text-anchor="end" font-family="Nunito" font-size="12" fill="#3b5560">IV кв. 2028 · ${num(D.sc)}</text>`; })()}</svg>
+        <div style="margin-top:16px">${D.contrib.map((c) => `<div style="display:grid;grid-template-columns:130px 1fr 60px;gap:10px;align-items:center;margin:7px 0"><b class="rnd" style="font-size:14px">${c.measure} ${c.district || ''}</b><div class="groove" style="min-width:0"><i style="width:${c.marginal / D.contrib[0].marginal * 100}%"></i></div><b class="rnd">+${num(c.marginal)}</b></div>`).join('')}</div></div>
+      <div class="notes"><h4>От аналитика · ✓ числа сверены с движком</h4><p>${esc(D.ai.summary)}</p>${D.ai.strengths.slice(0, 2).map((x) => `<p>${esc(x)}</p>`).join('')}<h4>Риски</h4>${D.ai.risks.map((x) => `<p>${esc(x)}</p>`).join('')}<h4>Компромиссы</h4>${D.ai.tradeoffs.slice(0, 2).map((x) => `<p>${esc(x)}</p>`).join('')}
+        <div style="background:#e3f4f8;border-radius:22px;padding:18px 20px;margin-top:14px"><h4 style="margin-top:0">Бонус-трек → ${num(D.ai.recommendation.expected_score)}</h4><p>${esc(D.ai.recommendation.why)}</p><span class="pill" style="display:inline-block;font-size:16px;padding:10px 18px">Применить рекомендацию</span></div></div>
+    </div>
+  </section>
+
+  <section data-sec="E Совет районов">
+    <div class="council">${D.councilPre.map((c) => { const bg = c.mood === 'positive' ? 'var(--sky)' : c.mood === 'negative' ? 'var(--tan)' : '#fff'; return `<div class="sq" style="background:${bg}"><div class="rnd" style="font:900 40px/1 'M PLUS Rounded 1c';color:${c.mood === 'positive' ? '#fff' : 'var(--ink)'}">${esc(c.district)}</div>
+      <div><p style="margin:0 0 10px;font-weight:700;font-size:15px;line-height:1.35">«${esc(unq(c.quote))}»</p><div class="l" style="font-size:15px">${c.mood === 'positive' ? 'за' : c.mood === 'negative' ? 'против' : 'воздержался'} · ${sign(c.delta_D)} · ${num(c.approval, 0)}%</div></div></div>`; }).join('')}</div>
+  </section>
+
+  <section data-sec="F Кризис" class="crisis">
+    <div><div class="rnd" style="font-weight:800;font-size:18px">III квартал · ${esc(D.event.district)} · E2 воздух −10</div><div style="font:900 96px/.9 'M PLUS Rounded 1c';letter-spacing:-.03em;margin:10px 0 18px;color:#fff">${esc(D.event.title)}</div><p style="font-size:19px;font-weight:600;max-width:560px;margin:0">${esc(D.event.description)} Одну меру нужно заменить.</p></div>
+    <div style="background:#fff;border-radius:28px;padding:28px">
+      <div class="rnd" style="font-weight:800">Замена трека</div><div style="font:900 44px/1.05 'M PLUS Rounded 1c';margin:6px 0 14px">M12 → M4 Сарыарка</div>
+      <div style="display:flex;gap:18px;font:900 34px 'M PLUS Rounded 1c'"><span>${num(D.res.score_before_crisis)}</span><span style="color:var(--tan)">${num(D.res.score_after_crisis_no_swap)}</span><span style="color:var(--sky-d)">${num(D.res.score)}</span></div>
+      <div style="font-size:14px;color:#3b5560">до · кризис · после лучшей замены (${sign(D.res.recovered)})</div>
+      <p style="font:800 20px/1.3 'M PLUS Rounded 1c';margin:16px 0 0">Рейтинг ${num(D.appr, 1)}% → <span style="color:var(--tan)">${num(D.res.approval.city, 1)}%</span>. Аким уволен.</p></div>
+  </section>
+
+  <section data-sec="G Газета" class="insert">
+    <div><div class="rnd" style="font-weight:800;color:var(--sky-d)">Астана Times · ${esc(D.paper.date)}</div><h2 class="h" style="font-size:60px;margin:10px 0 14px">${esc(D.paper.headlines[0].title)}</h2><p style="font-size:19px">${esc(D.paper.headlines[0].lead)}</p><p style="font-size:17px;font-style:italic;border-top:4px solid var(--sky);padding-top:14px">${esc(D.paper.editorial)}</p></div>
+    <div>${D.paper.headlines.slice(1).map((h) => `<div style="padding:12px 0;border-bottom:3px solid #e3f4f8"><b class="rnd" style="font-size:21px">${esc(h.title)}</b><div>${esc(h.lead)}</div></div>`).join('')}</div>
+  </section>
+
+  <section data-sec="H Лидерборд" class="back" style="background:var(--sky)">
+    <h2 class="h" style="color:#fff">Хит-парад команд</h2><p class="lede" style="color:var(--ink)">По Score. Но смотрите, кто остался на сцене.</p>
+    <div class="chart">${D.board.map((r, i) => `<div class="row"><span class="pos">${i + 1}</span><span>${esc(r.team)}${r.demo ? ' <span style="font-size:14px;opacity:.8">(пример)</span>' : ''}</span><span>${num(r.score)}</span><span style="color:${r.approval < 50 ? 'var(--ink)' : '#fff'}">${num(r.approval, 1)}%</span><span style="color:var(--ink)">${r.approval < 50 ? '<span style="background:var(--ink);color:#fff;border-radius:999px;padding:2px 12px">уволен</span>' : 'на сцене'}</span></div>`).join('')}</div>
+  </section>`;
+}
+KIT.load().then((D) => { render(D); KIT.tags(5); }).catch((e) => { document.getElementById('app').textContent = 'Нет данных: ' + e.message; });
+</script>
+</body>
+</html>

@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>2 · Анализ партии</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700;800;900&family=Noto+Serif:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#eceff1;--panel:#ffffff;--ink:#15191c;--mut:#5d6870;--light:#e3f3f8;--dark:#7cc7da;--acc:#19b8d8;--acc-ink:#0b7c93;--black:#23282c;--red:#c8372d;--line:#d5dade}
+  *{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 Onest,system-ui,sans-serif}
+  ::selection{background:var(--acc);color:#fff}
+  .wrap{max-width:1320px;margin:0 auto;padding:24px 24px 90px}
+  section{margin-top:34px} h1,h2,h3{margin:0}
+  .top{display:flex;align-items:center;gap:16px;padding:10px 0 18px;border-bottom:1px solid var(--line)}
+  .logo{width:34px;height:34px;display:grid;grid-template-columns:1fr 1fr;border:2px solid var(--ink)}
+  .logo i:nth-child(1),.logo i:nth-child(4){background:var(--ink)} .logo i:nth-child(2),.logo i:nth-child(3){background:var(--acc)}
+  .nav{margin-left:auto;display:flex;gap:4px} .nav span{padding:8px 12px;border-radius:6px;color:var(--mut);font-weight:600} .nav span.on{background:var(--ink);color:#fff}
+  h2.sec{font:800 30px/1.1 Onest;letter-spacing:-.01em;margin-bottom:6px} .sub{color:var(--mut);margin-bottom:14px}
+  /* analysis layout */
+  .an{display:grid;grid-template-columns:56px minmax(0,1fr) 360px;gap:18px;align-items:start}
+  .evalbar{height:560px;background:var(--black);position:relative;border-radius:4px;overflow:hidden}
+  .evalbar .fill{position:absolute;left:0;right:0;bottom:0;background:#fff}
+  .evalbar .tick{position:absolute;left:0;right:0;border-top:2px dashed var(--red)}
+  .evalbar b{position:absolute;left:0;right:0;text-align:center;font:800 13px Onest}
+  .board{display:grid;grid-template-columns:110px repeat(5,1fr);border:3px solid var(--ink);background:var(--panel)}
+  .board .hd{background:var(--ink);color:#fff;text-align:center;font:700 14px Onest;padding:8px 4px}
+  .board .hd small{display:block;font-weight:500;opacity:.7;font-size:11px}
+  .board .rk{background:var(--ink);color:#fff;padding:0 10px;display:flex;flex-direction:column;justify-content:center;font:700 13px Onest}
+  .board .rk small{font-weight:500;opacity:.7;font-size:10.5px}
+  .sq{height:50px;display:flex;align-items:center;justify-content:center;position:relative;font:600 15px Onest;font-variant-numeric:tabular-nums}
+  .sq.l{background:var(--light)} .sq.d{background:var(--dark)}
+  .sq.crit{box-shadow:inset 0 0 0 3px var(--red)}
+  .sq .pc{position:absolute;top:3px;right:3px;width:22px;height:22px;border-radius:50%;background:var(--ink);color:#fff;font:700 9px/22px Onest;text-align:center;box-shadow:0 2px 3px rgba(0,0,0,.35)}
+  .sq .dv{font-size:10px;color:#0d4f5f;margin-left:4px}
+  .moves{background:var(--panel);border:1px solid var(--line);border-radius:6px;overflow:hidden}
+  .moves .h{background:var(--ink);color:#fff;padding:10px 14px;font-weight:700;display:flex;justify-content:space-between}
+  .mv{display:grid;grid-template-columns:34px 1fr 64px;align-items:center;padding:9px 14px;border-bottom:1px solid var(--line)}
+  .mv:nth-child(odd){background:#f6f8f9}
+  .mv .n{color:var(--mut);font-weight:600} .mv b{font-weight:700} .mv .ann{font-weight:800;color:var(--acc-ink)} .mv .ann.bad{color:#b8860b}
+  .mv .sc{text-align:right;font-variant-numeric:tabular-nums;font-weight:700}
+  .line{padding:12px 14px;background:#fff6f5;border-top:2px solid var(--red);font-size:14px}
+  .hero-h{font:900 52px/1 Onest;letter-spacing:-.03em;margin:22px 0 10px;max-width:1100px}
+  .hero-h em{font-style:normal;color:var(--red)}
+  .note{font:italic 17px/1.5 "Noto Serif",Georgia,serif;color:#2c3338;max-width:900px}
+  /* tray */
+  .tray{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}
+  .col{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:12px}
+  .col h3{font:800 16px Onest;margin-bottom:2px} .col .lim{color:var(--mut);font-size:12px;margin-bottom:10px}
+  .pz{border:1px solid var(--line);border-radius:6px;padding:10px;margin-bottom:8px;background:#fafbfc}
+  .pz.on{background:var(--ink);color:#fff;border-color:var(--ink)}
+  .pz .r{display:flex;justify-content:space-between;align-items:center}
+  .tok{width:30px;height:30px;border-radius:50%;background:var(--acc);color:#04232b;font:800 11px/30px Onest;text-align:center}
+  .pz.on .tok{background:#fff;color:var(--ink)}
+  .pz .nm{font-weight:600;line-height:1.25;margin:6px 0 4px;font-size:14px}
+  .pz .ef{font-size:12px;color:var(--mut)} .pz.on .ef{color:#b9c4ca}
+  .clock{display:grid;grid-template-columns:1fr 1fr;gap:0;margin-top:14px;border:3px solid var(--ink);border-radius:8px;overflow:hidden}
+  .clock div{padding:14px 18px} .clock .a{background:var(--ink);color:#fff} .clock .v{font:900 54px/1 Onest;font-variant-numeric:tabular-nums}
+  .btn{background:var(--acc);color:#04232b;border:0;border-radius:8px;padding:14px 22px;font:800 16px Onest}
+  /* verdict */
+  .vd{display:grid;grid-template-columns:1.1fr 1fr 1fr;gap:14px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:18px}
+  .cap{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--mut)}
+  .num{font:900 84px/1 Onest;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+  .hbar{height:26px;background:var(--black);border-radius:4px;position:relative;overflow:hidden;margin-top:10px}
+  .hbar i{position:absolute;left:0;top:0;bottom:0;background:#fff;border-right:3px solid var(--acc)}
+  .res{font:900 44px/1 Onest}
+  table{width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums}
+  th{font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--mut);text-align:left;padding:8px;border-bottom:2px solid var(--ink)}
+  td{padding:9px 8px;border-bottom:1px solid var(--line)}
+  .gm{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .coach{font:17px/1.55 "Noto Serif",Georgia,serif} .coach h3{font:800 15px Onest;margin:10px 0 4px;text-transform:uppercase;letter-spacing:.06em;color:var(--mut)}
+  .coach p{margin:0 0 6px}
+  .players{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}
+  .pl{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:14px}
+  .av{width:44px;height:44px;border-radius:6px;display:grid;place-items:center;font:800 15px Onest;color:#fff;background:var(--black)}
+  .av.pos{background:var(--acc);color:#04232b} .av.neg{background:var(--red)}
+  .crisis{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .opp{background:var(--black);color:#fff;border-radius:8px;padding:20px}
+  .opp h3{font:900 36px/1.05 Onest;margin:6px 0 10px}
+  .bul{background:#fbfaf7;border:1px solid var(--line);padding:26px 30px;display:grid;grid-template-columns:1.4fr 1fr;gap:26px;font-family:"Noto Serif",Georgia,serif}
+  .bul h3{font:900 40px/1.05 Onest;letter-spacing:-.02em;margin-bottom:10px}
+  .up{color:var(--acc-ink)} .red{color:var(--red)}
+  @media(max-width:900px){.nav{display:none}.top{flex-wrap:wrap}.an,.vd,.gm,.crisis,.bul{grid-template-columns:1fr}.evalbar{height:40px}.tray,.players{grid-template-columns:1fr 1fr}.hero-h{font-size:34px}.board{font-size:12px;grid-template-columns:70px repeat(5,1fr)}}
+</style>
+</head>
+<body>
+<main class="wrap" id="app">Загрузка анализа…</main>
+<script src="_kit.js"></script>
+<script>
+const { num, int, sign, esc, unq, SHORT, QL, scale, path, stepPath } = KIT;
+function render(D) {
+  const cur = D.decs;
+  const ann = (m) => { const c = D.contrib.findIndex((x) => x.measure === m); return c === 0 ? ['!!', ''] : c === 1 ? ['!', ''] : c === D.contrib.length - 1 ? ['?!', 'bad'] : ['', '']; };
+  const pieceAt = (dist, code) => cur.filter((d) => d.m.effects[code] && (d.district === dist || !d.district)).map((d) => d.measure);
+  const evalPct = (v) => ((v - 52) / (58 - 52)) * 100;
+  const counts = {}; cur.forEach((d) => (counts[d.m.direction] = (counts[d.m.direction] || 0) + 1));
+  const inPlan = Object.fromEntries(cur.map((d) => [d.measure, d]));
+  const tl = D.timeline.map((t) => [t.q, t.score]);
+  document.getElementById('app').innerHTML = `
+  <div class="top"><div class="logo"><i></i><i></i><i></i><i></i></div><b style="font-size:18px">Кабинет акима</b><span style="color:var(--mut)">анализ партии · Астана 2027–2028</span>
+    <div class="nav"><span class="on">Анализ</span><span>Ходы</span><span>Кризис</span><span>Газета</span><span>Турнир</span></div></div>
+
+  <section data-sec="A Первый экран" style="margin-top:18px">
+    <h1 class="hero-h">Движок просчитал все ${int(D.total)} партий. <em>Лучшая проигрывает выборы.</em></h1>
+    <p class="note">Партия из ТЗ: пять ходов, 95 единиц. Оценка ${num(D.sc)} — ${int(D.rank)}-я из ${int(D.total)}. Лучшая линия движка даёт ${num(D.best.score)}, но отдаёт акиму лишь ${num(D.best.approval, 1)}% поддержки.</p>
+    <div class="an" style="margin-top:18px">
+      <div class="evalbar" title="Оценка">
+        <div class="fill" style="height:${evalPct(D.sc)}%"></div>
+        <div class="tick" style="bottom:${evalPct(D.best.score)}%"></div>
+        <b style="bottom:${evalPct(D.sc) - 5}%;color:var(--ink)">${num(D.sc, 1)}</b>
+        <b style="top:6px;color:#fff;font-size:11px">58</b><b style="bottom:6px;color:var(--ink);font-size:11px">52</b>
+      </div>
+      <div style="overflow-x:auto"><div class="board" style="min-width:640px">
+        <div class="hd" style="text-align:left">Показатель</div>${D.districts.map((d) => `<div class="hd">${esc(d.name)}<small>${Math.round(d.pop * 100)}% · D ${num(d.Da, 1)}</small></div>`).join('')}
+        ${D.inds.map((ind, r) => `<div class="rk">${ind.code}<small>${SHORT[ind.code]}</small></div>${D.districts.map((d, c) => {
+          const k = D.inds.indexOf(ind), v = d.after[k], b = d.before[k], p = pieceAt(d.name, ind.code);
+          return `<div class="sq ${(r + c) % 2 ? 'd' : 'l'} ${b < 40 ? 'crit' : ''}" title="${esc(d.name)} ${ind.code}: ${num(b)} → ${num(v)}">${num(v, 1)}${v - b > .05 ? `<span class="dv">+${num(v - b, 1)}</span>` : ''}${p.length ? `<span class="pc">${p[0]}</span>` : ''}</div>`;
+        }).join('')}`).join('')}
+      </div></div>
+      <div class="moves">
+        <div class="h"><span>Ходы акима</span><span>вклад</span></div>
+        ${cur.map((d, i) => { const [a, cls] = ann(d.measure); const c = D.contrib.find((x) => x.measure === d.measure); return `<div class="mv"><span class="n">${i + 1}.</span><span><b>${d.measure}</b> ${d.district ? esc(d.district) : 'город'} <span class="ann ${cls}">${a}</span><br><span style="color:var(--mut);font-size:12px">${esc(d.m.name)}</span></span><span class="sc up">+${num(c.marginal)}</span></div>`; }).join('')}
+        <div class="mv"><span class="n"></span><span><b>Итог</b> · бюджет ${D.cost}/100</span><span class="sc">${num(D.sc)}</span></div>
+        <div class="line"><b>Линия движка:</b> ${D.best.plan.decisions.map((d) => d.measure + (d.district ? ' ' + d.district : '')).join(' · ')} = <b>${num(D.best.score)}</b><br><span class="red">Рейтинг ${num(D.best.approval, 1)}% — политический мат.</span></div>
+        <div class="line" style="background:#eef9fc;border-top-color:var(--acc)"><b>Баланс:</b> ${num(D.balanced.score)} при рейтинге ${num(D.balanced.approval, 1)}% — лучшая линия, после которой аким остаётся.</div>
+      </div>
+    </div>
+  </section>
+
+  <section data-sec="B Кабинет">
+    <h2 class="sec">Выбор ходов</h2><div class="sub">Ровно пять ходов, не больше двух фигур одного направления, сто единиц на часах.</div>
+    <div class="tray">${D.directions.map((dir) => `<div class="col"><h3>${esc(dir.name)}</h3><div class="lim">${dir.indicators.map((c) => c + ' ' + SHORT[c]).join(' · ')} · ${counts[dir.id] || 0}/2</div>
+      ${D.measures.filter((m) => m.direction === dir.id).map((m) => { const on = inPlan[m.id]; return `<div class="pz ${on ? 'on' : ''}"><div class="r"><span class="tok">${m.id}</span><b style="font-size:20px">${m.cost}</b></div>
+        <div class="nm">${esc(m.name)}</div><div class="ef">${Object.entries(m.effects).map(([k, v]) => `${v > 0 ? '+' : '−'}${Math.abs(v)} ${SHORT[k]}`).join(', ')} · лаг ${m.lag} · ${m.type === 'district' ? 'район' : 'город'}${on && on.district ? ` · <b style="color:#fff">${esc(on.district)}</b>` : ''}</div></div>`; }).join('')}</div>`).join('')}</div>
+    <div style="display:flex;gap:18px;align-items:end;flex-wrap:wrap">
+      <div class="clock" style="min-width:420px"><div class="a"><div class="cap" style="color:#9fb0b8">Потрачено</div><div class="v">${D.cost}</div></div><div><div class="cap">Осталось</div><div class="v">${100 - D.cost}</div><div style="font-size:12px;color:var(--mut)">не сгорает и не даёт бонуса</div></div></div>
+      <div style="padding-bottom:6px"><div style="color:#1a7f3c;font-weight:700;margin-bottom:10px">✓ Позиция допустима: 5 ходов, правила соблюдены</div><button class="btn">Принять решения</button></div>
+    </div>
+  </section>
+
+  <section data-sec="C Вердикт">
+    <h2 class="sec">Оценка партии</h2><div class="sub">IV квартал 2028. Рейтинг акима — слой политического риска, не входит в Score.</div>
+    <div class="vd">
+      <div class="card"><div class="cap">Score (AQLS)</div><div class="num">${num(D.sc)}</div><div class="up" style="font-weight:700">${sign(D.delta)} к старту ${num(D.base)}</div>
+        <div class="hbar"><i style="width:${evalPct(D.sc)}%"></i></div><div style="display:flex;justify-content:space-between;font-size:12px;color:var(--mut);margin-top:4px"><span>52</span><span>оптимум ${num(D.best.score)}</span><span>58</span></div></div>
+      <div class="card"><div class="cap">Точность</div><div class="num">${num(100 - D.top, 2)}%</div><div>партий хуже вашей. Место <b>${int(D.rank)}</b> из ${int(D.total)}, топ ${num(D.top, 2)}%.</div>
+        <div style="margin-top:8px;color:var(--mut)">максимум ${num(D.best.score)}, на столе осталось ${num(D.gap)}</div></div>
+      <div class="card"><div class="cap">Результат выборов</div><div class="res up" style="margin-top:8px">1 – 0</div><div style="font-weight:700;margin-top:6px">Переизбран: ${num(D.appr, 1)}% при пороге 50%</div>
+        <div style="margin-top:10px;font-size:14px;color:var(--mut)">Для сравнения: лучшая партия движка — 0 – 1, ${num(D.best.approval, 1)}%.</div></div>
+    </div>
+  </section>
+
+  <section data-sec="D Анализ">
+    <div class="gm">
+      <div class="card"><div class="cap">График оценки по кварталам</div>
+        <svg viewBox="0 0 600 240" width="100%">${(() => { const sx = (q) => scale(q, 0, 8, 40, 590), sy = (v) => scale(v, 52, 57.5, 220, 10);
+          return `<rect x="40" y="${sy(57.5)}" width="550" height="${sy(52) - sy(57.5)}" fill="#23282c"/>
+            <path d="${path(tl, sx, sy)} L${sx(8)},${sy(52)} L${sx(0)},${sy(52)} Z" fill="#fff"/>
+            <path d="${path(tl, sx, sy)}" fill="none" stroke="#19b8d8" stroke-width="3"/>
+            <line x1="40" x2="590" y1="${sy(D.best.score)}" y2="${sy(D.best.score)}" stroke="#c8372d" stroke-dasharray="6 4"/>
+            ${tl.map(([q]) => `<text x="${sx(q)}" y="236" font-size="10" text-anchor="middle" fill="#5d6870">${QL[q]}</text>`).join('')}
+            <text x="586" y="${sy(D.best.score) - 6}" font-size="11" text-anchor="end" fill="#ff8a80">оптимум ${num(D.best.score)}</text>`; })()}</svg></div>
+      <div class="card"><div class="cap">Граница Парето: лучшая партия за каждую сумму</div>
+        <svg viewBox="0 0 600 240" width="100%">${(() => { const sx = (c) => scale(c, 58, 101, 40, 590), sy = (v) => scale(v, 55.5, 57.4, 215, 12), pts = D.pareto.map((p) => [p.cost, p.score]);
+          return `<path d="${stepPath(pts, sx, sy)}" fill="none" stroke="#15191c" stroke-width="2.5"/>${pts.map(([c, v]) => `<rect x="${sx(c) - 4}" y="${sy(v) - 4}" width="8" height="8" fill="#15191c"/>`).join('')}
+            <circle cx="${sx(D.cost)}" cy="${sy(D.sc)}" r="9" fill="#19b8d8" stroke="#fff" stroke-width="3"/><text x="${sx(D.cost) - 14}" y="${sy(D.sc) + 4}" font-size="12" text-anchor="end">ваша партия</text>
+            <circle cx="${sx(D.balanced.cost)}" cy="${sy(D.balanced.score)}" r="7" fill="#fff" stroke="#19b8d8" stroke-width="3"/>
+            ${[60, 70, 80, 90, 100].map((c) => `<text x="${sx(c)}" y="234" font-size="10" text-anchor="middle" fill="#5d6870">${c}</text>`).join('')}`; })()}</svg></div>
+    </div>
+    <div class="gm" style="margin-top:14px">
+      <div class="card coach"><div class="cap" style="margin-bottom:6px">Комментарий аналитика · ✓ числа сверены с движком</div>
+        <p>${esc(D.ai.summary)}</p>
+        <h3>Сильные ходы</h3>${D.ai.strengths.slice(0, 3).map((x) => `<p>${esc(x)}</p>`).join('')}
+        <h3>Риски</h3>${D.ai.risks.map((x) => `<p>${esc(x)}</p>`).join('')}
+        <h3>Лучшее продолжение → ${num(D.ai.recommendation.expected_score)}</h3><p>${esc(D.ai.recommendation.why)}</p>
+        <button class="btn" style="margin-top:6px">Применить рекомендацию</button></div>
+      <div class="card"><div class="cap">Районы: D до → после</div>
+        <table><thead><tr><th>Район</th><th>Жители</th><th>D</th><th>Δ</th><th>Рейтинг</th></tr></thead><tbody>
+        ${D.districts.map((d) => `<tr><td><b>${esc(d.name)}</b></td><td>${Math.round(d.pop * 100)}%</td><td>${num(d.Db)} → <b>${num(d.Da)}</b></td><td class="up"><b>${sign(d.dD)}</b></td><td class="${d.approval < 50 ? 'red' : 'up'}">${num(d.approval, 0)}%</td></tr>`).join('')}</tbody></table>
+        <div class="cap" style="margin-top:16px">Компромиссы</div><ul style="padding-left:18px;margin:6px 0 0">${D.ai.tradeoffs.map((x) => `<li>${esc(x)}</li>`).join('')}</ul></div>
+    </div>
+  </section>
+
+  <section data-sec="E Совет районов">
+    <h2 class="sec">Комментаторы из районов</h2><div class="sub">Каждый район оценивает партию по-своему.</div>
+    <div class="players">${D.councilPre.map((c) => `<div class="pl"><div style="display:flex;gap:10px;align-items:center"><div class="av ${c.mood === 'positive' ? 'pos' : c.mood === 'negative' ? 'neg' : ''}">${esc(c.district.slice(0, 2).toUpperCase())}</div><div><b>${esc(c.district)}</b><div style="font-size:12px;color:var(--mut)">${sign(c.delta_D)} · ${num(c.approval, 0)}%</div></div></div>
+      <p style="font:italic 14.5px/1.45 'Noto Serif',serif;margin:10px 0 0">«${esc(unq(c.quote))}»</p></div>`).join('')}</div>
+  </section>
+
+  <section data-sec="F Кризис">
+    <h2 class="sec">Ход соперника</h2><div class="sub">III квартал. Позицию нужно спасать одной заменой в пределах 100 единиц.</div>
+    <div class="crisis">
+      <div class="opp"><div class="cap" style="color:#9fb0b8">Чёрные · ${esc(D.event.district)}</div><h3>${esc(D.event.title)}</h3><p style="margin:0;color:#cfd8dc">${esc(D.event.description)}</p>
+        <div style="margin-top:14px;font-size:22px;font-weight:800">${num(D.res.score_before_crisis)} → <span style="color:#ff8a80">${num(D.res.score_after_crisis_no_swap)}</span></div></div>
+      <div class="card"><div class="cap">Ваш ответ</div><div style="font:900 40px/1.1 Onest;margin:8px 0">M12 → M4 Сарыарка <span class="up">!</span></div>
+        <div>Лучший ответ в позиции: вернул ${sign(D.res.recovered)}, Score ${num(D.res.score)}.</div>
+        <div style="margin-top:12px;padding:12px;background:#fff6f5;border-radius:6px"><b class="red">Но партия проиграна по времени:</b> рейтинг ${num(D.appr, 1)}% → ${num(D.res.approval.city, 1)}%, ниже порога 50%.</div></div>
+    </div>
+  </section>
+
+  <section data-sec="G Газета">
+    <div class="bul">
+      <div><div class="cap">Астана Times · ${esc(D.paper.date)} · турнирный бюллетень</div><h3 style="margin-top:8px">${esc(D.paper.headlines[0].title)}</h3><p style="font-size:17px;line-height:1.55">${esc(D.paper.headlines[0].lead)}</p>
+        <p style="font-style:italic;font-size:16px;line-height:1.55;border-top:2px solid var(--ink);padding-top:10px">${esc(D.paper.editorial)}</p></div>
+      <div>${D.paper.headlines.slice(1).map((h) => `<div style="border-bottom:1px solid var(--line);padding:10px 0"><b style="font:800 18px Onest">${esc(h.title)}</b><div style="font-size:15px">${esc(h.lead)}</div></div>`).join('')}</div>
+    </div>
+  </section>
+
+  <section data-sec="H Лидерборд">
+    <h2 class="sec">Турнирная таблица</h2><div class="sub">Сортировка по Score. Результат выборов — отдельно.</div>
+    <div class="card" style="padding:6px 12px"><table><thead><tr><th>#</th><th>Игрок</th><th>Score</th><th>Рейтинг</th><th>Выборы</th><th>Бюджет</th></tr></thead><tbody>
+      ${D.board.map((r, i) => `<tr style="${r.pin === 'opt' ? 'background:#fff6f5' : r.pin === 'me' ? 'background:#eef9fc' : ''}"><td><b>${i + 1}</b></td><td>${esc(r.team)}${r.demo ? ' <span style="color:var(--mut);font-size:12px">(пример)</span>' : ''}</td><td><b>${num(r.score)}</b></td><td>${num(r.approval, 1)}%</td><td class="${r.approval < 50 ? 'red' : 'up'}"><b>${r.approval < 50 ? '0 – 1' : '1 – 0'}</b></td><td>${r.cost}</td></tr>`).join('')}</tbody></table></div>
+  </section>`;
+}
+KIT.load().then((D) => { render(D); KIT.tags(2); }).catch((e) => { document.getElementById('app').textContent = 'Нет данных: ' + e.message; });
+</script>
+</body>
+</html>

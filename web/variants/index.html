@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>8 вариантов · Кабинет акима</title>
+<style>
+  :root{--ink:#0e1822;--mut:#5b6773;--line:#dde3e8;--sky:#19b8d8;--bg:#f4f6f8}
+  *{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,"Segoe UI",Roboto,sans-serif}
+  .wrap{max-width:1400px;margin:0 auto;padding:30px 24px 80px}
+  h1{font-size:34px;letter-spacing:-.02em;margin:0 0 8px}
+  .how{background:#fff;border:1px solid var(--line);border-radius:10px;padding:16px 20px;margin:16px 0 26px;display:grid;grid-template-columns:1.2fr 1fr;gap:24px}
+  .how code{background:#eef9fc;border:1px solid #bfe9f3;border-radius:5px;padding:1px 6px;font-size:14px}
+  .secs{display:grid;grid-template-columns:repeat(4,auto);gap:4px 18px;font-size:14px}
+  .grid{display:grid;grid-template-columns:repeat(2,1fr);gap:22px}
+  .card{background:#fff;border:1px solid var(--line);border-radius:12px;overflow:hidden;display:flex;flex-direction:column}
+  .prev{position:relative;height:340px;overflow:hidden;border-bottom:1px solid var(--line);background:#eee}
+  .prev iframe{position:absolute;left:0;top:0;width:1440px;height:1200px;border:0;transform-origin:0 0;pointer-events:none}
+  .body{padding:14px 18px 18px;display:flex;flex-direction:column;gap:6px;flex:1}
+  .row{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+  .n{display:grid;place-items:center;width:34px;height:34px;border-radius:8px;background:var(--ink);color:#fff;font-weight:800;font-size:17px}
+  .card h2{margin:0;font-size:21px}
+  .kind{font-size:11.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;padding:3px 8px;border-radius:5px;background:#eef1f4;color:var(--mut)}
+  .kind.a{background:#19b8d8;color:#04232b}.kind.p{background:#0e1822;color:#fff}
+  .card p{margin:0;color:#2c3843}
+  .risk{color:var(--mut);font-size:13.5px}
+  .open{margin-top:auto;align-self:flex-start;background:var(--sky);color:#04232b;font-weight:700;text-decoration:none;padding:9px 14px;border-radius:8px}
+  .declined{margin-top:28px;background:#fff;border:1px solid var(--line);border-radius:10px;padding:14px 20px;font-size:14px;color:#2c3843}
+  .declined li{margin:4px 0}
+  @media(max-width:900px){.grid,.how{grid-template-columns:1fr}.prev{height:220px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Кабинет акима · 8 направлений дизайна</h1>
+  <p style="color:var(--mut);margin:0;max-width:900px">Черновые доски. На каждой все экраны игры с настоящими данными движка для плана из ТЗ: Score 56,54, место 559, кризис «смог в Сарыарке». Небесно-голубой акцент сохранён везде.</p>
+  <div class="how">
+    <div><b>Как выбрать.</b> Назовите основу и секции, которые хотите забрать из других. Каждая секция на доске подписана голубой меткой <code>номер·буква</code>. Метки прячутся клавишей L.<br>
+      Пример: <code>основа 7, взять 2·A и 6·E, газету как в 1·G</code></div>
+    <div class="secs"><span><b>A</b> первый экран</span><span><b>B</b> кабинет</span><span><b>C</b> вердикт</span><span><b>D</b> анализ</span><span><b>E</b> совет районов</span><span><b>F</b> кризис</span><span><b>G</b> газета</span><span><b>H</b> лидерборд</span></div>
+  </div>
+  <div class="grid" id="grid"></div>
+  <div class="declined"><b>Рассмотрены и не вошли:</b>
+    <ul>
+      <li><b>Шёлковый плащ со шнуром:</b> одно движение перестраивает всю поверхность. Эту дисциплину взял вариант 1: вся доска держится на одной бумажной ленте.</li>
+      <li><b>Сад с дождём разной гравитации:</b> у каждого цвета свой закон. Взял вариант 1: у голубого, красного и графитового пера строго по одному значению.</li>
+      <li><b>Пиксельный шрифтовой образец Emigre:</b> одна форма в нескольких размерах как система иерархии. Взял вариант 1: Score повторяется крупно, средне и мелко.</li>
+    </ul>
+    Текущий тёмный интерфейс остаётся запасным вариантом «как у всех»: <a href="../">открыть</a>.
+  </div>
+</div>
+<script>
+const V = [
+  ['v1-samopisets.html', 'Самописец метеостанции', 'Назначено', 'a', 'Город как станция наблюдения: Score пишется голубым пером на миллиметровке, меры — каналы датчиков с полосой лага, газета — лента телетайпа.', 'Риск: светлая «техническая» бумага может показаться сухой; держится на аккуратности графиков.'],
+  ['v2-shahmaty.html', 'Анализ шахматной партии', 'Выбор Impeccable', 'p', 'План — партия, движок — шахматный движок: шкала оценки, доска «районы × показатели», ходы с пометками !! и ?!, кризис — ход соперника, лидерборд — турнирная таблица.', 'Риск: самый понятный и потому самый ожидаемый ход; метафора игры, хотя и серьёзной.'],
+  ['v3-tablo.html', 'Табло вокзала', 'Претендент', '', 'Всё — перекидное табло: меры — рейсы, выбранные горят голубой лампой, оптимум — отменённый рейс, кризис — задержка.', 'Риск: тёмная рамка; держится только на честной механике флапов, без свечения.'],
+  ['v4-hypercard.html', 'Стопка HyperCard', 'Претендент', '', 'Однобитные карточки с дизерингом, окна и кнопки старого Mac. Голубой — только состояние «нажато/выбрано» (перевод закреплённого акцента).', 'Риск: ретро-эстетика может читаться как игра; зато самая узнаваемая и скриншотная.'],
+  ['v5-plastinka.html', 'Обложка пластинки', 'Претендент', '', 'Небесно-голубой как залитый фон всей обложки, огромный обрезанный Score вместо портрета, пять решений — треклист в углу. Кризис — мандариновый релиз.', 'Риск: самый эмоциональный; граница с «весёлым» тонкая, держится строгой типографикой.'],
+  ['v6-vybory.html', 'Ночь выборов', 'Из списка', '', 'Графика телеэфира: полукруг из 100 мест для рейтинга, объявление победителя, итоги по районам, бегущая строка, «СРОЧНО» для кризиса.', 'Риск: знакомый жанр; зато главный вывод — «оптимум проигрывает» — читается мгновенно.'],
+  ['v7-genplan.html', 'Генплан на синьке', 'Из списка', '', 'Каждый экран — лист чертежа со штампом ГОСТ: схема районов со штриховкой, ведомость мероприятий, ТЭП, разрезы, лист согласований, «Изменение №1» с облаком.', 'Риск: плотная чертёжная графика; схема районов условная, не в масштабе.'],
+  ['v8-lrt.html', 'Схема линий ЛРТ', 'Из списка', '', 'Срок — линия Score со станциями-кварталами, решения вливаются ветками после лага, оптимум — экспресс на закрытую станцию. Кризис — «изменение в движении».', 'Риск: 5 цветов линий добавляют к акценту палитру направлений.'],
+];
+document.getElementById('grid').innerHTML = V.map(([f, t, k, kc, d, r], i) => `<div class="card">
+  <div class="prev"><iframe src="${f}?shot" loading="lazy" title="${t}"></iframe></div>
+  <div class="body"><div class="row"><span class="n">${i + 1}</span><h2>${t}</h2><span class="kind ${kc}">${k}</span></div><p>${d}</p><p class="risk">${r}</p><a class="open" href="${f}">Открыть доску ${i + 1} →</a></div></div>`).join('');
+const fit = () => document.querySelectorAll('.prev').forEach((p) => { const f = p.querySelector('iframe'); f.style.transform = `scale(${p.clientWidth / 1440})`; });
+addEventListener('resize', fit); fit();
+</script>
+</body>
+</html>

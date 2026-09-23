@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>3 · Табло</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=PT+Sans+Narrow:wght@400;700&family=PT+Sans:wght@400;700&display=swap" rel="stylesheet">
+<style>
+  :root{--steel:#c9ced2;--steel2:#aeb5ba;--frame:#3a4046;--flap:#141618;--flap2:#1d2023;--white:#f4f4f1;--lamp:#19b8d8;--red:#e0503f;--mut:#7d868d;--ink:#15181a}
+  *{box-sizing:border-box} body{margin:0;background:linear-gradient(180deg,#d7dcdf,#c3c9cd);color:var(--ink);font:16px/1.45 "PT Sans",system-ui,sans-serif}
+  ::selection{background:var(--lamp);color:#000}
+  .wrap{max-width:1320px;margin:0 auto;padding:22px 22px 90px}
+  section{margin-top:30px}
+  .sign{background:var(--frame);color:var(--white);display:flex;align-items:center;gap:16px;padding:12px 18px;border-radius:4px 4px 0 0;font:600 22px/1 Oswald;letter-spacing:.06em;text-transform:uppercase}
+  .sign small{font:400 14px "PT Sans Narrow";letter-spacing:.04em;color:#b9c1c6;text-transform:none}
+  .sign .clk{margin-left:auto;font:500 20px Oswald;color:var(--lamp)}
+  .board{background:linear-gradient(180deg,#2d3237,#23272b);padding:12px;border-radius:0 0 4px 4px;box-shadow:0 18px 40px rgba(0,0,0,.28),inset 0 0 0 2px #4a5157}
+  .fl{display:inline-flex;gap:3px;vertical-align:middle}
+  .fl span{width:.78em;height:1.28em;background:linear-gradient(180deg,var(--flap2) 0 49%,#000 49% 51%,var(--flap) 51%);color:var(--white);font:600 1em/1.28em Oswald;text-align:center;border-radius:2px;box-shadow:0 1px 0 rgba(255,255,255,.06)}
+  .fl.big{font-size:74px} .fl.mid{font-size:36px} .fl.sm{font-size:20px} .fl.xs{font-size:15px}
+  .fl.blue span{color:var(--lamp)} .fl.red span{color:var(--red)} .fl.dim span{color:#8b939a}
+  .rows{display:grid;gap:5px}
+  .row{display:grid;align-items:center;gap:10px;background:#0f1113;padding:7px 10px;border-radius:2px}
+  .hdr{display:grid;gap:10px;padding:4px 10px;color:#9aa3a9;font:500 12px "PT Sans Narrow";letter-spacing:.14em;text-transform:uppercase}
+  .lamp{width:12px;height:12px;border-radius:50%;background:#2c3134;box-shadow:inset 0 1px 2px #000}
+  .lamp.on{background:var(--lamp);box-shadow:0 0 0 2px rgba(25,184,216,.25)}
+  .lamp.r{background:var(--red)}
+  .txt{color:var(--white);font:500 18px/1.2 "PT Sans Narrow";letter-spacing:.02em}
+  .txt small{display:block;color:#8b939a;font-size:13px}
+  h2{font:700 34px/1 Oswald;text-transform:uppercase;letter-spacing:.02em;margin:0 0 4px}
+  .sub{color:#3f474d;margin-bottom:12px;font-family:"PT Sans Narrow";font-size:17px}
+  .finding{font:600 40px/1.1 Oswald;text-transform:uppercase;max-width:1100px;margin:18px 0 0}
+  .finding em{font-style:normal;color:#b3261e}
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+  .panel{background:var(--steel);border:1px solid var(--steel2);border-radius:4px;padding:16px;box-shadow:inset 0 1px 0 #fff}
+  .cap{font:600 13px "PT Sans Narrow";letter-spacing:.14em;text-transform:uppercase;color:#4c555b;margin-bottom:8px}
+  .notice{background:#fbfbf8;border:1px solid #d5d8da;padding:14px 16px;box-shadow:0 2px 6px rgba(0,0,0,.12);font-size:15px}
+  .notice h3{font:700 20px Oswald;text-transform:uppercase;margin:0 0 6px}
+  .notices{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+  .dep{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}
+  .paper{background:#f6f4ee;color:#141414;padding:24px 28px;box-shadow:0 10px 30px rgba(0,0,0,.25);display:grid;grid-template-columns:1.5fr 1fr;gap:24px;font-family:"PT Sans"}
+  .paper h3{font:700 48px/1 Oswald;text-transform:uppercase;margin:6px 0 10px}
+  .btn{background:var(--lamp);color:#03262e;border:0;padding:12px 18px;font:700 18px Oswald;text-transform:uppercase;letter-spacing:.06em;border-radius:3px}
+  @media(max-width:900px){.grid3,.notices,.dep,.paper{grid-template-columns:1fr}.fl.big{font-size:44px}.fl.mid{font-size:26px}.finding{font-size:26px}.row,.hdr{font-size:12px}}
+</style>
+</head>
+<body>
+<main class="wrap" id="app">Табло загружается…</main>
+<script src="_kit.js"></script>
+<script>
+const { num, int, sign, esc, unq, SHORT, QL } = KIT;
+const fl = (s, cls = 'sm', n) => { s = String(s).toUpperCase(); if (n) s = s.padEnd(n, ' ').slice(0, n); return `<span class="fl ${cls}">${[...s].map((c) => `<span>${c === ' ' ? '&nbsp;' : esc(c)}</span>`).join('')}</span>`; };
+function render(D) {
+  const inPlan = Object.fromEntries(D.decs.map((d, i) => [d.measure, { ...d, i }]));
+  const cols1 = 'grid-template-columns:18px 90px 1fr 170px 130px 90px';
+  const st = (r) => (r.approval < 50 ? fl('уволен', 'xs red', 10) : fl('переизбран', 'xs blue', 10));
+  document.getElementById('app').innerHTML = `
+  <section data-sec="A Первый экран" style="margin-top:6px">
+    <div class="sign">Кабинет акима <small>Астана · центральное табло решений · 694 395 маршрутов проверено</small><span class="clk">IV кв. 2028</span></div>
+    <div class="board">
+      <div style="display:flex;flex-wrap:wrap;gap:22px;align-items:flex-end;padding:8px 6px 14px">
+        <div><div class="hdr" style="padding:0 0 6px">Score · ваш план</div>${fl(num(D.sc), 'big')}</div>
+        <div><div class="hdr" style="padding:0 0 6px">к старту</div>${fl(sign(D.delta), 'mid blue')}</div>
+        <div><div class="hdr" style="padding:0 0 6px">рейтинг акима</div>${fl(num(D.appr, 1) + '%', 'mid')}</div>
+        <div><div class="hdr" style="padding:0 0 6px">место</div>${fl(int(D.rank).replace(/\s/g, '') + '/' + int(D.total).replace(/\s/g, ''), 'mid')}</div>
+      </div>
+      <div class="hdr" style="grid-template-columns:18px 1.6fr 140px 140px 170px 90px"><span></span><span>Маршрут</span><span>Score</span><span>Рейтинг</span><span>Статус</span><span>Бюджет</span></div>
+      <div class="rows">${D.board.map((r) => `<div class="row" style="grid-template-columns:18px 1.6fr 140px 140px 170px 90px"><span class="lamp ${r.approval < 50 ? 'r' : r.pin === 'me' ? 'on' : ''}"></span>
+        <span class="txt">${esc(r.team)}${r.demo ? ' <small style="display:inline">(пример)</small>' : ''}</span>${fl(num(r.score), 'sm')}${fl(num(r.approval, 1), 'sm ' + (r.approval < 50 ? 'red' : ''))}${st(r)}${fl(r.cost, 'sm dim', 3)}</div>`).join('')}</div>
+    </div>
+    <p class="finding">Лучший маршрут из ${int(D.total)} — ${num(D.best.score)}. <em>Рейс акима по нему отменён: рейтинг ${num(D.best.approval, 1)}%.</em></p>
+  </section>
+
+  <section data-sec="B Кабинет">
+    <h2>Табло мер</h2><div class="sub">Пять посадок из четырнадцати. Не больше двух на одном направлении. Бюджет — 100 единиц.</div>
+    <div class="sign" style="font-size:18px">Отправления · 2027 <span class="clk">${fl(String(D.cost).padStart(3, '0') + '/100', 'sm blue')}</span></div>
+    <div class="board">
+      <div class="hdr" style="${cols1}"><span></span><span>Рейс</span><span>Мера</span><span>Направление</span><span>Платформа</span><span>Цена</span></div>
+      <div class="rows">${D.measures.map((m) => { const on = inPlan[m.id]; return `<div class="row" style="${cols1}"><span class="lamp ${on ? 'on' : ''}"></span>${fl(m.id, 'sm ' + (on ? 'blue' : ''), 3)}
+        <span class="txt">${esc(m.name)}<small>${Object.entries(m.effects).map(([k, v]) => `${v > 0 ? '+' : '−'}${Math.abs(v)} ${SHORT[k]}`).join(' · ')} · лаг ${m.lag} кв.</small></span>
+        <span class="txt">${esc(D.DIR[m.direction].name)}</span>
+        ${on ? fl(on.district || 'город', 'xs blue', 8) : fl(m.type === 'district' ? 'район' : 'город', 'xs dim', 8)}${fl(m.cost, 'sm', 2)}</div>`; }).join('')}</div>
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 6px 4px;flex-wrap:wrap;gap:10px"><span class="txt" style="color:var(--lamp)">● Посадка разрешена: 5 из 5, остаток ${100 - D.cost} ед. не сгорает и не даёт бонуса</span><button class="btn">Принять решения</button></div>
+    </div>
+  </section>
+
+  <section data-sec="C Вердикт">
+    <h2>Прибытие: IV квартал 2028</h2><div class="sub">Рейтинг акима — слой политического риска, не входит в Score.</div>
+    <div class="grid3">
+      <div class="board"><div class="hdr" style="padding:0 0 8px">Score (AQLS)</div>${fl(num(D.sc), 'big')}<div class="txt" style="margin-top:8px">старт ${num(D.base)} · ${sign(D.delta)}</div></div>
+      <div class="board"><div class="hdr" style="padding:0 0 8px">Рейтинг акима</div>${fl(num(D.appr, 1), 'big blue')}<div class="txt" style="margin-top:8px">порог 50% · переизбран</div></div>
+      <div class="board"><div class="hdr" style="padding:0 0 8px">Счётчик сожаления</div><div class="txt" style="font-size:22px;line-height:1.3">максимум ${num(D.best.score)}, ваше место ${int(D.rank)} из ${int(D.total)}, топ ${num(D.top, 2)}%</div><div class="txt" style="margin-top:8px;color:#8b939a">на столе осталось ${num(D.gap)}</div></div>
+    </div>
+  </section>
+
+  <section data-sec="D Анализ">
+    <h2>Платформы: районы</h2><div class="sub">D района до и после, изменение и рейтинг. Красная лампа — район против.</div>
+    <div class="board">
+      <div class="hdr" style="grid-template-columns:18px 1fr 110px 170px 120px 110px"><span></span><span>Район</span><span>Жители</span><span>D до → после</span><span>Δ</span><span>Рейтинг</span></div>
+      <div class="rows">${D.districts.map((d) => `<div class="row" style="grid-template-columns:18px 1fr 110px 170px 120px 110px"><span class="lamp ${d.approval < 50 ? 'r' : 'on'}"></span><span class="txt">${esc(d.name)}<small>${esc(d.profile)}</small></span>${fl(Math.round(d.pop * 100) + '%', 'xs dim')}${fl(num(d.Da), 'sm')}${fl(sign(d.dD), 'sm blue')}${fl(num(d.approval, 0) + '%', 'sm ' + (d.approval < 50 ? 'red' : ''))}</div>`).join('')}</div>
+      <div class="hdr" style="padding:14px 6px 6px">Score по кварталам</div>
+      <div style="display:flex;flex-wrap:wrap;gap:12px;padding:0 6px 6px">${D.timeline.map((t) => `<div><div class="hdr" style="padding:0 0 4px;font-size:10px">${QL[t.q]}</div>${fl(num(t.score, 1), 'xs ' + (t.q === 8 ? 'blue' : ''))}</div>`).join('')}</div>
+      <div class="hdr" style="padding:14px 6px 6px">Вклад мер (без меры Score упадёт на)</div>
+      <div style="display:flex;flex-wrap:wrap;gap:16px;padding:0 6px 6px">${D.contrib.map((c, i) => `<div>${fl(c.measure, 'xs dim', 3)} ${fl('+' + num(c.marginal), 'xs ' + (i === D.contrib.length - 1 ? 'red' : 'blue'))}</div>`).join('')}</div>
+    </div>
+    <div class="notices" style="margin-top:14px">
+      ${[['Сильные стороны', D.ai.strengths], ['Риски', D.ai.risks], ['Последствия', D.ai.consequences], ['Компромиссы', D.ai.tradeoffs]].map(([t, xs]) => `<div class="notice"><h3>${t}</h3>${xs.slice(0, 3).map((x) => `<p style="margin:0 0 6px">${esc(x)}</p>`).join('')}</div>`).join('')}
+    </div>
+    <div class="notice" style="margin-top:12px;border-top:4px solid var(--lamp)"><h3>Рекомендация → Score ${num(D.ai.recommendation.expected_score)}</h3>${esc(D.ai.recommendation.why)} <span style="color:#4c555b">· ✓ числа сверены с движком · офлайн-шаблон</span></div>
+  </section>
+
+  <section data-sec="E Совет районов">
+    <h2>Объявления депутатов</h2><div class="sub">По одному от каждого района.</div>
+    <div class="dep">${D.councilPre.map((c) => `<div class="notice" style="border-top:5px solid ${c.mood === 'positive' ? 'var(--lamp)' : c.mood === 'negative' ? 'var(--red)' : '#8b939a'}"><h3>${esc(c.district)}</h3><div style="font:600 13px 'PT Sans Narrow';color:#4c555b;margin-bottom:6px">${c.mood === 'positive' ? 'ЗА' : c.mood === 'negative' ? 'ПРОТИВ' : 'ВОЗДЕРЖАЛСЯ'} · ${sign(c.delta_D)} · ${num(c.approval, 0)}%</div>«${esc(unq(c.quote))}»</div>`).join('')}</div>
+  </section>
+
+  <section data-sec="F Кризис">
+    <h2>Задержка: III квартал</h2><div class="sub">${esc(D.event.description)}</div>
+    <div class="board">
+      <div class="rows">
+        <div class="row" style="grid-template-columns:18px 1fr 170px 170px"><span class="lamp r"></span><span class="txt" style="font-size:22px">${esc(D.event.title)}<small>E2 воздух −10 · ${esc(D.event.district)}</small></span>${fl('задержка', 'sm red', 8)}${fl(num(D.res.score_after_crisis_no_swap), 'sm red')}</div>
+        <div class="row" style="grid-template-columns:18px 1fr 170px 170px"><span class="lamp on"></span><span class="txt" style="font-size:22px">Замена: M12 → M4 Сарыарка<small>лучшая из возможных · вернула ${sign(D.res.recovered)}</small></span>${fl('в пути', 'sm blue', 8)}${fl(num(D.res.score), 'sm blue')}</div>
+        <div class="row" style="grid-template-columns:18px 1fr 170px 170px"><span class="lamp r"></span><span class="txt" style="font-size:22px">Рейтинг акима после кризиса<small>было ${num(D.appr, 1)}% · порог 50%</small></span>${fl('отменён', 'sm red', 8)}${fl(num(D.res.approval.city, 1) + '%', 'sm red')}</div>
+      </div>
+    </div>
+  </section>
+
+  <section data-sec="G Газета">
+    <div class="paper">
+      <div><div style="font:600 13px 'PT Sans Narrow';letter-spacing:.14em;text-transform:uppercase">Астана Times · ${esc(D.paper.date)}</div><h3>${esc(D.paper.headlines[0].title)}</h3><p style="font-size:17px">${esc(D.paper.headlines[0].lead)}</p><p style="font-style:italic;border-top:3px solid #141414;padding-top:10px">${esc(D.paper.editorial)}</p></div>
+      <div>${D.paper.headlines.slice(1).map((h) => `<div style="border-bottom:1px solid #cfccc4;padding:9px 0"><b style="font:700 20px Oswald;text-transform:uppercase">${esc(h.title)}</b><div>${esc(h.lead)}</div></div>`).join('')}</div>
+    </div>
+  </section>
+
+  <section data-sec="H Лидерборд">
+    <h2>Табло команд</h2><div class="sub">То же табло, что на первом экране, — обновляется каждые 5 секунд.</div>
+    <div class="board"><div class="rows">${D.board.map((r, i) => `<div class="row" style="grid-template-columns:40px 1fr 140px 140px 170px"><span>${fl(i + 1, 'sm dim')}</span><span class="txt">${esc(r.team)}${r.demo ? ' <small style="display:inline">(пример)</small>' : ''}</span>${fl(num(r.score), 'sm')}${fl(num(r.approval, 1), 'sm ' + (r.approval < 50 ? 'red' : ''))}${st(r)}</div>`).join('')}</div></div>
+  </section>`;
+}
+KIT.load().then((D) => { render(D); KIT.tags(3); }).catch((e) => { document.getElementById('app').textContent = 'Нет данных: ' + e.message; });
+</script>
+</body>
+</html>

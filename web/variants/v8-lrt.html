@@ -1,0 +1,141 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>8 · Схема линий</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Geologica:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+  :root{--bg:#fbfbfa;--ink:#101a24;--mut:#5b6773;--sign:#12263a;--sky:#19b8d8;--transport:#19b8d8;--ecology:#3a9d4f;--social:#ef8a1f;--safety:#7a55c7;--services:#a8793a;--red:#d7382c;--line:#dde2e6}
+  *{box-sizing:border-box} body{margin:0;background:var(--bg);color:var(--ink);font:15.5px/1.5 Geologica,system-ui,sans-serif}
+  ::selection{background:var(--sky);color:#fff}
+  .wrap{max-width:1340px;margin:0 auto;padding:0 24px 90px}
+  section{margin-top:34px}
+  .top{background:var(--sign);color:#fff;display:flex;align-items:center;gap:14px;padding:14px 24px}
+  .m{width:34px;height:34px;border-radius:50%;background:var(--sky);display:grid;place-items:center;font:900 16px Geologica;color:#fff}
+  .top b{font:800 20px Geologica} .top>span{color:#a9bccd} .top .dot{color:#fff} .top .m{color:#04232b}
+  .dot[style*="--transport"],.dot[style*="--sky"]{color:#04232b!important}
+  .top .r{margin-left:auto;display:flex;gap:8px}
+  .dot{display:inline-grid;place-items:center;width:26px;height:26px;border-radius:50%;color:#fff;font:800 10px Geologica;vertical-align:middle}
+  .sign{background:var(--sign);color:#fff;padding:18px 22px;border-radius:6px}
+  .sign .cap{color:#a9bccd}
+  .cap{font:600 12px Geologica;letter-spacing:.08em;text-transform:uppercase;color:var(--mut)}
+  h2{font:800 34px/1.05 Geologica;letter-spacing:-.02em;margin:0 0 4px}
+  .sub{color:var(--mut);margin:0 0 14px}
+  .h1{font:900 48px/1.02 Geologica;letter-spacing:-.03em;margin:26px 0 8px;max-width:1080px}
+  .h1 em{font-style:normal;color:var(--red)}
+  .big{font:900 92px/.9 Geologica;letter-spacing:-.04em;font-variant-numeric:tabular-nums}
+  .map{background:#fff;border:1px solid var(--line);border-radius:6px;padding:10px}
+  .lines{display:grid;grid-template-columns:repeat(5,1fr);gap:16px}
+  .ln h3{margin:0 0 8px;font:800 17px Geologica;display:flex;align-items:center;gap:8px}
+  .ln h3 i{display:inline-block;width:28px;height:8px;border-radius:4px}
+  .st{display:grid;grid-template-columns:34px 1fr auto;gap:8px;align-items:start;padding:8px 0;border-bottom:1px solid var(--line)}
+  .st .dot{width:30px;height:30px;font-size:11px;background:#fff;border:4px solid;color:var(--ink)}
+  .st.on .dot{color:#fff}
+  .st b{font-weight:700;font-size:14.5px;line-height:1.25} .st small{display:block;color:var(--mut);font-size:12px}
+  .st .c{font:800 17px Geologica}
+  .grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+  .ticket{display:flex;gap:18px;align-items:center;flex-wrap:wrap;margin-top:16px;background:#fff;border:1px solid var(--line);border-radius:6px;padding:14px 18px}
+  .btn{background:var(--sky);color:#04232b;border:0;border-radius:999px;padding:12px 22px;font:800 16px Geologica}
+  .desk{background:#fff;border:1px solid var(--line);border-radius:6px;padding:18px;display:grid;grid-template-columns:repeat(4,1fr);gap:18px}
+  .stations{display:grid;grid-template-columns:repeat(5,1fr);gap:14px}
+  .sts{background:#fff;border:1px solid var(--line);border-radius:6px;overflow:hidden}
+  .sts .nm{background:var(--sign);color:#fff;padding:10px 14px;font:800 18px Geologica;display:flex;justify-content:space-between;align-items:center}
+  .sts p{margin:0;padding:12px 14px;font-size:14px}
+  .notice{background:#fff7d6;border:3px solid var(--ink);border-radius:6px;padding:22px;display:grid;grid-template-columns:1.2fr 1fr;gap:26px}
+  .free{background:#fff;border-top:10px solid var(--sky);padding:24px 28px;display:grid;grid-template-columns:1.4fr 1fr;gap:26px;box-shadow:0 10px 30px rgba(16,26,36,.1)}
+  table{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums}
+  th{font:600 12px Geologica;letter-spacing:.08em;text-transform:uppercase;color:var(--mut);text-align:right;padding:10px;border-bottom:3px solid var(--ink)}
+  td{padding:12px 10px;text-align:right;border-bottom:1px solid var(--line)}
+  th:nth-child(2),td:nth-child(2){text-align:left}
+  svg text{font-family:Geologica,sans-serif}
+  @media(max-width:900px){.lines,.grid3,.desk,.stations,.notice,.free{grid-template-columns:1fr}.h1{font-size:30px}.big{font-size:64px}}
+</style>
+</head>
+<body>
+<div class="top"><span class="m">А</span><b>Кабинет акима</b><span>схема решений Астаны · 2027–2028</span><span class="r"></span></div>
+<main class="wrap" id="app">Строим схему…</main>
+<script src="_kit.js"></script>
+<script>
+const { num, int, sign, esc, unq, SHORT, QL, scale } = KIT;
+const COL = { transport: 'var(--transport)', ecology: 'var(--ecology)', social: 'var(--social)', safety: 'var(--safety)', services: 'var(--services)' };
+const HEX = { transport: '#19b8d8', ecology: '#3a9d4f', social: '#ef8a1f', safety: '#7a55c7', services: '#a8793a' };
+function lineMap(D) {
+  const W = 1280, H = 360, y0 = 250, sx = (q) => scale(q, 0, 8, 70, W - 150);
+  const decs = D.decs.map((d, i) => ({ ...d, q: d.m.lag + 1, lane: i }));
+  let s = `<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Линия Score по кварталам">`;
+  s += `<path d="M${sx(0)},${y0} H${sx(8)}" stroke="#19b8d8" stroke-width="14" stroke-linecap="round"/>`;
+  s += `<path d="M${sx(5)},${y0} C${sx(6)},${y0} ${sx(6)},70 ${sx(7)},70 H${W - 60}" stroke="#d7382c" stroke-width="6" stroke-dasharray="3 10" stroke-linecap="round" fill="none"/>`;
+  s += `<text x="${W - 60}" y="52" text-anchor="end" font-size="15" font-weight="800" fill="#d7382c">Экспресс «Оптимум» · ${num(D.best.score)}</text><text x="${W - 60}" y="100" text-anchor="end" font-size="13" fill="#d7382c">станция закрыта: рейтинг ${num(D.best.approval, 1)}%</text>`;
+  decs.forEach((d, i) => { const x = sx(Math.min(8, d.q)), c = HEX[d.m.direction], yy = 116 + i * 30;
+    s += `<path d="M40,${yy} H${x - 50} C${x - 20},${yy} ${x},${y0 - 60} ${x},${y0}" stroke="${c}" stroke-width="7" fill="none" stroke-linecap="round"/>`;
+    s += `<g><circle cx="40" cy="${yy}" r="12" fill="${c}"/><text x="40" y="${yy + 4}" text-anchor="middle" font-size="9" font-weight="800" fill="#fff">${d.measure}</text><text x="60" y="${yy - 9}" font-size="12" fill="#101a24" paint-order="stroke" stroke="#fff" stroke-width="5">${esc(d.m.name)}${d.district ? ' · ' + d.district : ''} — вливается к ${QL[Math.min(8, d.q)]}</text></g>`; });
+  D.timeline.forEach((t) => { const x = sx(t.q), last = t.q === 8;
+    s += `<circle cx="${x}" cy="${y0}" r="${last ? 20 : 11}" fill="#fff" stroke="#101a24" stroke-width="${last ? 6 : 4}"/>`;
+    s += `<text x="${x}" y="${y0 + 44}" text-anchor="middle" font-size="12" fill="#5b6773">${QL[t.q]}</text><text x="${x}" y="${y0 + 64}" text-anchor="middle" font-size="${last ? 22 : 15}" font-weight="800" fill="#101a24">${num(t.score)}</text>`; });
+  return s + '</svg>';
+}
+function render(D) {
+  const inPlan = Object.fromEntries(D.decs.map((d) => [d.measure, d]));
+  document.querySelector('.top .r').innerHTML = D.directions.map((d) => `<span class="dot" style="background:${COL[d.id]}" title="${esc(d.name)}">${d.name.slice(0, 1)}</span>`).join('');
+  document.getElementById('app').innerHTML = `
+  <section data-sec="A Первый экран" style="margin-top:0">
+    <h1 class="h1">Линия Score идёт до ${num(D.sc)}. <em>Экспресс до ${num(D.best.score)} есть, но на его конечной аким уволен.</em></h1>
+    <p class="sub" style="font-size:18px">Пять решений вливаются в линию, когда проходит их лаг. Проверены все ${int(D.total)} законных маршрута; ваш — ${int(D.rank)}-й, рейтинг акима ${num(D.appr, 1)}%.</p>
+    <div class="map">${lineMap(D)}</div>
+  </section>
+
+  <section data-sec="B Кабинет">
+    <h2>Схема маршрутов</h2><p class="sub">Пять линий из четырнадцати. Не больше двух одного цвета. Проездной — 100 единиц.</p>
+    <div class="lines">${D.directions.map((dir) => `<div class="ln"><h3><i style="background:${COL[dir.id]}"></i>${esc(dir.name)}</h3>${D.measures.filter((m) => m.direction === dir.id).map((m) => { const on = inPlan[m.id]; return `<div class="st ${on ? 'on' : ''}"><span class="dot" style="border-color:${COL[dir.id]};${on ? 'background:' + COL[dir.id] : ''}">${m.id}</span><span><b>${esc(m.name)}</b><small>${Object.entries(m.effects).map(([k, v]) => `${v > 0 ? '+' : '−'}${Math.abs(v)} ${SHORT[k]}`).join(', ')} · лаг ${m.lag}${on ? ' · <b style="color:var(--ink)">' + (on.district || 'весь город') + '</b>' : ''}</small></span><span class="c">${m.cost}</span></div>`; }).join('')}</div>`).join('')}</div>
+    <div class="ticket"><span class="cap">Проездной</span><b style="font:900 34px Geologica">${D.cost}<span style="font-size:18px;color:var(--mut)"> / 100</span></b><div style="flex:1;min-width:200px;height:12px;background:#eef1f3;border-radius:6px"><div style="height:100%;width:${D.cost}%;background:var(--sky);border-radius:6px"></div></div><span style="color:var(--mut);font-size:14px">остаток ${100 - D.cost} не сгорает и не даёт бонуса · маршрут допустим</span><button class="btn">Принять решения</button></div>
+  </section>
+
+  <section data-sec="C Вердикт">
+    <div class="grid3">
+      <div class="sign"><div class="cap">Score (AQLS) · конечная</div><div class="big">${num(D.sc)}</div><div style="color:#7fdcef;font-weight:700">${sign(D.delta)} от «${num(D.base)}»</div></div>
+      <div class="sign"><div class="cap">Рейтинг акима · не входит в Score</div><div class="big">${num(D.appr, 1)}%</div><div style="color:#7fdcef;font-weight:700">переизбран · порог 50%</div></div>
+      <div class="sign"><div class="cap">Счётчик сожаления</div><div style="font:800 23px/1.3 Geologica;margin-top:10px">максимум ${num(D.best.score)}, ваше место ${int(D.rank)} из ${int(D.total)}, топ ${num(D.top, 2)}%</div><div style="color:#a9bccd;margin-top:6px">на столе осталось ${num(D.gap)}</div></div>
+    </div>
+  </section>
+
+  <section data-sec="D Анализ">
+    <h2>Районы — станции</h2><p class="sub">D района до решений (мелко) и после (крупно). Цвет кольца — рейтинг акима в районе.</p>
+    <div class="map"><svg viewBox="0 0 1280 200" width="100%">${(() => { const xs = (i) => 110 + i * 265; let s = `<path d="M${xs(0)},90 H${xs(4)}" stroke="#101a24" stroke-width="10" stroke-linecap="round"/>`;
+      D.districts.forEach((d, i) => { const ok = d.approval >= 50; s += `<circle cx="${xs(i)}" cy="90" r="26" fill="#fff" stroke="${ok ? '#19b8d8' : '#d7382c'}" stroke-width="8"/><text x="${xs(i)}" y="44" text-anchor="middle" font-size="19" font-weight="800" fill="#101a24">${d.name}</text>
+        <text x="${xs(i)}" y="146" text-anchor="middle" font-size="13" fill="#5b6773">${num(d.Db)} →</text><text x="${xs(i)}" y="172" text-anchor="middle" font-size="24" font-weight="900" fill="#101a24">${num(d.Da)}</text><text x="${xs(i)}" y="194" text-anchor="middle" font-size="12" font-weight="700" fill="${ok ? '#0a7891' : '#d7382c'}">${sign(d.dD)} · ${num(d.approval, 0)}%</text>`; });
+      return s; })()}</svg></div>
+    <div class="grid3" style="grid-template-columns:1fr 2fr;margin-top:14px">
+      <div class="map" style="padding:16px"><div class="cap" style="margin-bottom:8px">Вклад линий · без линии Score упадёт на</div>${D.contrib.map((c) => `<div style="display:grid;grid-template-columns:120px 1fr 50px;gap:8px;align-items:center;margin:8px 0;font-size:13px"><span><span class="dot" style="width:22px;height:22px;font-size:8px;background:${COL[D.M[c.measure].direction]}">${c.measure}</span> ${c.district || 'город'}</span><span style="height:8px;background:#eef1f3;border-radius:4px"><span style="display:block;height:100%;border-radius:4px;width:${c.marginal / D.contrib[0].marginal * 100}%;background:${COL[D.M[c.measure].direction]}"></span></span><b>+${num(c.marginal)}</b></div>`).join('')}</div>
+      <div class="desk" style="grid-template-columns:1fr 1fr">${[['Сильные стороны', D.ai.strengths], ['Риски', D.ai.risks], ['Последствия', D.ai.consequences], ['Компромиссы', D.ai.tradeoffs]].map(([t, xs]) => `<div><div class="cap" style="color:var(--ink)">${t}</div>${xs.slice(0, 2).map((x) => `<p style="font-size:14px;margin:6px 0">${esc(x)}</p>`).join('')}</div>`).join('')}
+        <div style="grid-column:1/-1;border-top:3px solid var(--sky);padding-top:10px"><b>Справочная рекомендует → ${num(D.ai.recommendation.expected_score)}.</b> ${esc(D.ai.recommendation.why)} <span style="color:var(--mut)">✓ числа сверены с движком</span></div></div>
+    </div>
+  </section>
+
+  <section data-sec="E Совет районов">
+    <h2>Голос станций</h2><p class="sub">Депутаты маслихата от каждого района.</p>
+    <div class="stations">${D.councilPre.map((c) => `<div class="sts"><div class="nm"><span>${esc(c.district)}</span><span class="dot" style="background:${c.mood === 'positive' ? 'var(--sky)' : c.mood === 'negative' ? 'var(--red)' : 'var(--mut)'}">${c.mood === 'positive' ? 'за' : c.mood === 'negative' ? '✕' : '—'}</span></div><p>«${esc(unq(c.quote))}»</p><p style="padding-top:0;color:var(--mut);font-size:12.5px">ΔD ${sign(c.delta_D)} · рейтинг ${num(c.approval, 0)}%</p></div>`).join('')}</div>
+  </section>
+
+  <section data-sec="F Кризис">
+    <div class="notice"><div><div class="cap" style="color:var(--ink)">Изменение в движении · III квартал</div><div style="font:900 44px/1.05 Geologica;margin:8px 0 10px">${esc(D.event.title)}</div><p style="font-size:17px;margin:0">${esc(D.event.description)}</p></div>
+      <div><div style="display:flex;align-items:center;gap:10px;font:800 20px Geologica"><span class="dot" style="background:var(--services);width:34px;height:34px">M12</span> закрыта <span style="color:var(--mut)">→</span> <span class="dot" style="background:var(--ecology);width:34px;height:34px">M4</span> открыта в Сарыарке</div>
+        <div style="font:900 30px Geologica;margin:14px 0 4px">${num(D.res.score_before_crisis)} → <span style="color:var(--red)">${num(D.res.score_after_crisis_no_swap)}</span> → ${num(D.res.score)}</div><div style="color:var(--mut)">лучший объезд из возможных: ${sign(D.res.recovered)}</div>
+        <div style="margin-top:12px;background:var(--ink);color:#fff;padding:12px 14px;border-radius:6px;font:800 18px Geologica">Рейтинг ${num(D.appr, 1)}% → <span style="color:#ff8f85">${num(D.res.approval.city, 1)}%</span>: аким уволен</div></div></div>
+  </section>
+
+  <section data-sec="G Газета">
+    <div class="free"><div><div class="cap">Бесплатная газета в вагонах · Астана Times · ${esc(D.paper.date)}</div><div style="font:900 54px/1 Geologica;letter-spacing:-.03em;margin:10px 0">${esc(D.paper.headlines[0].title)}</div><p style="font-size:18px">${esc(D.paper.headlines[0].lead)}</p><p style="font-style:italic;border-top:3px solid var(--ink);padding-top:10px">${esc(D.paper.editorial)}</p></div>
+      <div>${D.paper.headlines.slice(1).map((h) => `<div style="padding:10px 0;border-bottom:1px solid var(--line)"><b style="font:800 18px Geologica">${esc(h.title)}</b><div style="font-size:14.5px">${esc(h.lead)}</div></div>`).join('')}</div></div>
+  </section>
+
+  <section data-sec="H Лидерборд">
+    <h2>Рейтинг маршрутов</h2><p class="sub">По Score. Последний столбец — доехал ли аким до второго срока.</p>
+    <div class="map" style="padding:6px 16px"><table><tr><th>#</th><th>Команда</th><th>Score</th><th>Рейтинг</th><th>Итог</th><th>Бюджет</th></tr>${D.board.map((r, i) => `<tr style="${r.pin === 'me' ? 'background:#eef9fc' : ''}"><td><b>${i + 1}</b></td><td>${esc(r.team)}${r.demo ? ' <span style="color:var(--mut);font-size:12px">(пример)</span>' : ''}</td><td><b>${num(r.score)}</b></td><td>${num(r.approval, 1)}%</td><td style="color:${r.approval < 50 ? 'var(--red)' : '#0a7891'};font-weight:800">${r.approval < 50 ? 'уволен' : 'второй срок'}</td><td>${r.cost}</td></tr>`).join('')}</table></div>
+  </section>`;
+}
+KIT.load().then((D) => { render(D); KIT.tags(8); }).catch((e) => { document.getElementById('app').textContent = 'Нет данных: ' + e.message; });
+</script>
+</body>
+</html>

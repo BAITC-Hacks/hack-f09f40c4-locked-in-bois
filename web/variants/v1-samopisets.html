@@ -1,0 +1,290 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>1 · Самописец</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sofia+Sans+Extra+Condensed:wght@500;700;800;900&family=Sofia+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root{--paper:#f0f5f5;--grid:#d3e8ec;--grid2:#a9d6df;--ink:#0d2a33;--graph:#56696f;--pen:#19b8d8;--pen-ink:#0a7d95;--red:#cf3a2c;--steel:#dfe5e6;--rule:#b9c7ca}
+  *{box-sizing:border-box} html{background:#e3eaeb}
+  body{margin:0;font:15px/1.5 "Sofia Sans",system-ui,sans-serif;color:var(--ink);background:#e3eaeb}
+  ::selection{background:var(--pen);color:#fff}
+  .cond{font-family:"Sofia Sans Extra Condensed","Sofia Sans",sans-serif}
+  .mono{font-family:"JetBrains Mono",ui-monospace,monospace}
+  .wrap{max-width:1280px;margin:0 auto;padding:28px 24px 80px}
+  .paper{background-color:var(--paper);
+    background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px),linear-gradient(var(--grid2) 1px,transparent 1px),linear-gradient(90deg,var(--grid2) 1px,transparent 1px);
+    background-size:8px 8px,8px 8px,40px 40px,40px 40px;border:1px solid var(--rule)}
+  .strip{position:relative;padding:22px 44px}
+  .strip:before,.strip:after{content:"";position:absolute;top:0;bottom:0;width:22px;background:radial-gradient(circle at 11px 12px,#e3eaeb 4.5px,transparent 5px) 0 0/22px 24px repeat-y;border-right:1px dashed var(--rule)}
+  .strip:before{left:0} .strip:after{right:0;border-right:0;border-left:1px dashed var(--rule)}
+  section{margin-top:26px}
+  h1,h2,h3{margin:0}
+  .plate{display:flex;flex-wrap:wrap;align-items:center;gap:14px 28px;background:var(--steel);border:1px solid var(--rule);padding:10px 16px;border-radius:3px}
+  .plate b{letter-spacing:.14em;font-size:13px}
+  .screw{width:10px;height:10px;border-radius:50%;background:radial-gradient(circle at 40% 35%,#fff,#9aa7aa);box-shadow:inset 0 0 0 1px #8d9a9d}
+  .h-sec{display:flex;align-items:baseline;gap:14px;margin:0 0 12px}
+  .h-sec h2{font:800 34px/1 "Sofia Sans Extra Condensed",sans-serif;letter-spacing:.01em}
+  .h-sec span{color:var(--graph);font-size:14px}
+  /* hero */
+  .hero{display:grid;grid-template-columns:1fr 330px;gap:0;margin-top:14px}
+  .hero .reading{background:var(--ink);color:#e9f6f8;padding:22px 24px;display:flex;flex-direction:column;gap:14px}
+  .big{font:900 128px/.82 "Sofia Sans Extra Condensed",sans-serif;letter-spacing:-.01em;color:#fff}
+  .mid{font:800 44px/.9 "Sofia Sans Extra Condensed",sans-serif}
+  .small{font:700 22px/1 "Sofia Sans Extra Condensed",sans-serif}
+  .reading .lbl{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:#8fc9d6}
+  .finding{margin-top:6px;font:700 30px/1.08 "Sofia Sans Extra Condensed",sans-serif;max-width:900px}
+  .finding em{font-style:normal;color:var(--red)}
+  .pen-l{color:var(--pen-ink)} .red{color:var(--red)}
+  svg text{font-family:"JetBrains Mono",monospace}
+  /* cabinet */
+  .cab{display:grid;grid-template-columns:1fr 300px;gap:18px}
+  .rowdir{display:grid;grid-template-columns:120px 1fr;gap:10px;align-items:stretch;margin-bottom:10px}
+  .rowdir .dn{font:800 22px/1 "Sofia Sans Extra Condensed",sans-serif;padding-top:8px;border-top:3px solid var(--ink)}
+  .rowdir .dn small{display:block;font:500 12px "Sofia Sans";color:var(--graph);margin-top:4px}
+  .chans{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+  .ch{background:#fbfdfd;border:1px solid var(--rule);padding:10px 12px;position:relative}
+  .ch.on{border:2px solid var(--pen);background:#effafd}
+  .ch .top{display:flex;justify-content:space-between;align-items:center}
+  .code{font:600 12px "JetBrains Mono";border:1.5px solid var(--ink);padding:1px 5px}
+  .ch.on .code{background:var(--ink);color:#fff}
+  .cost{font:800 28px/1 "Sofia Sans Extra Condensed"}
+  .cost small{font-size:13px;color:var(--graph)}
+  .ch .nm{font-weight:700;line-height:1.2;margin:6px 0 6px;min-height:36px}
+  .lagbar{display:grid;grid-template-columns:repeat(8,1fr);gap:2px;margin-top:6px}
+  .lagbar i{height:7px;background:var(--grid2)} .lagbar i.r{background:var(--pen)}
+  .eff{font:500 12px "JetBrains Mono";color:var(--graph)}
+  .dist{position:absolute;right:10px;bottom:34px;font:italic 700 14px "Sofia Sans";color:var(--pen-ink)}
+  .gauge{background:var(--steel);border:1px solid var(--rule);padding:16px}
+  .tape{font:600 13px "JetBrains Mono";background:#fffdf7;border:1px dashed var(--rule);padding:10px;margin-top:12px}
+  .btn{display:block;width:100%;margin-top:12px;background:var(--ink);color:#fff;border:0;padding:14px;font:800 20px "Sofia Sans Extra Condensed";letter-spacing:.06em;cursor:pointer}
+  /* verdict */
+  .dials{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+  .dialbox{background:var(--steel);border:1px solid var(--rule);padding:14px 16px}
+  .dialbox .cap{font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--graph)}
+  /* analysis */
+  table.log{width:100%;border-collapse:collapse;font:500 14px "JetBrains Mono"}
+  .log th{font:700 12px "Sofia Sans";text-transform:uppercase;letter-spacing:.06em;color:var(--graph);padding:6px 4px;border-bottom:2px solid var(--ink);text-align:center}
+  .log td{padding:7px 4px;border-bottom:1px solid var(--rule);text-align:center}
+  .log td:first-child,.log th:first-child{text-align:left}
+  .circ{border:2px solid var(--red);border-radius:50%;padding:0 5px;color:var(--red)}
+  .up{color:var(--pen-ink);font-size:11px;display:block}
+  .two{display:grid;grid-template-columns:1.3fr 1fr;gap:18px}
+  .journal{display:grid;grid-template-columns:1fr 1fr;gap:0;border:1px solid var(--rule);background:#fbfdfd}
+  .journal div{padding:12px 14px;border-right:1px solid var(--rule);border-bottom:1px solid var(--rule)}
+  .journal h3{font:800 20px "Sofia Sans Extra Condensed";margin-bottom:6px}
+  .journal ul{margin:0;padding-left:18px;font-size:14px}
+  .rec{grid-column:1/-1;background:#effafd;border-top:2px solid var(--pen)!important}
+  /* council */
+  .council{display:grid;grid-template-columns:repeat(5,1fr);gap:10px}
+  .st{background:#fbfdfd;border:1px solid var(--rule);padding:12px}
+  .st .head{display:flex;justify-content:space-between;align-items:baseline;border-bottom:2px solid var(--ink);padding-bottom:6px;margin-bottom:8px}
+  .st .head b{font:800 22px "Sofia Sans Extra Condensed"}
+  .st q{display:block;font-size:14px;line-height:1.4;quotes:none}
+  .mood{font:700 12px "JetBrains Mono";letter-spacing:.06em}
+  /* crisis */
+  .crisis{display:grid;grid-template-columns:1fr 340px;gap:18px}
+  .alarm{background:var(--red);color:#fff;padding:18px}
+  .alarm h3{font:900 44px/.95 "Sofia Sans Extra Condensed"}
+  .seq{display:flex;gap:8px;margin-top:10px}
+  .seq div{flex:1;background:#fff;color:var(--ink);padding:10px;text-align:center}
+  /* bulletin */
+  .teletype{max-width:860px;margin:0 auto;background:#fbfbf6;border:1px solid var(--rule);padding:26px 48px;font:15px/1.55 "JetBrains Mono";position:relative}
+  .teletype:before,.teletype:after{content:"";position:absolute;top:0;bottom:0;width:26px;background:radial-gradient(circle at 13px 12px,#e3eaeb 5px,transparent 5.5px) 0 0/26px 24px repeat-y}
+  .teletype:before{left:0}.teletype:after{right:0}
+  .teletype h3{font:900 54px/.95 "Sofia Sans Extra Condensed";margin:6px 0 14px}
+  .teletype .hl{font-weight:600;text-transform:uppercase;margin-top:14px}
+  .lb td,.lb th{text-align:right} .lb td:nth-child(2),.lb th:nth-child(2){text-align:left}
+  .pin-opt{background:#fbe9e7} .pin-bal{background:#eef9fc}
+  @media (max-width:900px){.hero,.cab,.two,.crisis{grid-template-columns:1fr}.chans{grid-template-columns:1fr 1fr}.council,.dials{grid-template-columns:1fr 1fr}.big{font-size:96px}}
+</style>
+</head>
+<body>
+<main class="wrap" id="app"><p>Загрузка записей самописца…</p></main>
+<script src="_kit.js"></script>
+<script>
+const { num, int, sign, esc, unq, SHORT, QL, scale, path, stepPath } = KIT;
+
+function dial(value, min, max, opts = {}) {
+  const W = 260, H = 150, cx = 130, cy = 132, R = 110;
+  const ang = (v) => Math.PI * (1 - (v - min) / (max - min));
+  const pt = (v, r) => [cx + r * Math.cos(ang(v)), cy - r * Math.sin(ang(v))];
+  let ticks = '';
+  const step = opts.step || (max - min) / 10;
+  for (let v = min; v <= max + 1e-9; v += step / 2) {
+    const major = Math.abs(((v - min) / step) % 1) < 1e-6;
+    const [x1, y1] = pt(v, R), [x2, y2] = pt(v, R - (major ? 14 : 7));
+    ticks += `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="#0d2a33" stroke-width="${major ? 1.6 : .8}"/>`;
+    if (major) { const [tx, ty] = pt(v, R - 26); ticks += `<text x="${tx}" y="${ty + 4}" font-size="10" text-anchor="middle" fill="#56696f">${num(v, opts.dec ?? 0)}</text>`; }
+  }
+  let zone = '';
+  if (opts.redBelow != null) { const [a1, b1] = pt(min, R + 6), [a2, b2] = pt(opts.redBelow, R + 6); zone = `<path d="M${a1},${b1} A${R + 6},${R + 6} 0 0 1 ${a2},${b2}" fill="none" stroke="#cf3a2c" stroke-width="5"/>`; }
+  let marks = (opts.marks || []).map((m) => { const [x1, y1] = pt(m.v, R + 2), [x2, y2] = pt(m.v, R - 20); return `<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${m.c}" stroke-width="3"/>`; }).join('');
+  const [nx, ny] = pt(value, R - 8);
+  return `<svg viewBox="0 0 ${W} ${H}" width="100%">${zone}${ticks}${marks}
+    <line x1="${cx}" y1="${cy}" x2="${nx}" y2="${ny}" stroke="${opts.needle || '#19b8d8'}" stroke-width="3.5" stroke-linecap="round"/>
+    <circle cx="${cx}" cy="${cy}" r="8" fill="#0d2a33"/></svg>`;
+}
+
+function drum(D, { crisis = false } = {}) {
+  const W = 1100, H = 300, pl = 60, pr = 20, pt = 20, pb = 40;
+  const sx = (q) => scale(q, 0, 8, pl, W - pr), sy = (v) => scale(v, 51, 57.5, H - pb, pt);
+  let grid = '';
+  for (let v = 51; v <= 57.5; v += 0.5) grid += `<text x="${pl - 8}" y="${sy(v) + 4}" font-size="10" text-anchor="end" fill="#56696f">${num(v, 1)}</text>`;
+  for (let q = 0; q <= 8; q++) grid += `<text x="${sx(q)}" y="${H - 14}" font-size="10" text-anchor="middle" fill="#56696f">${QL[q]}</text>`;
+  const tl = D.timeline.map((t) => [t.q, t.score]);
+  const rtl = D.res.timeline.map((t) => [t.q, t.score]);
+  const ln = (v, c, dash, lbl) => `<line x1="${pl}" x2="${W - pr}" y1="${sy(v)}" y2="${sy(v)}" stroke="${c}" stroke-width="1.4" ${dash ? 'stroke-dasharray="6 5"' : ''}/><text x="${W - pr}" y="${sy(v) - 6}" font-size="11" text-anchor="end" fill="${c}">${lbl}</text>`;
+  const ann = [[2, 'M10 · M12 вступают'], [4, 'M5 · M7 · M8 вступают']].map(([q, t]) => `<line x1="${sx(q)}" x2="${sx(q)}" y1="${pt}" y2="${H - pb}" stroke="#56696f" stroke-dasharray="2 4"/><text x="${sx(q) + 6}" y="${pt + 14}" font-size="11" fill="#56696f">${t}</text>`).join('');
+  const crisisLayer = crisis ? `<path d="${path(rtl, sx, sy)}" fill="none" stroke="#cf3a2c" stroke-width="2.5"/>
+      <rect x="${sx(3)}" y="${pt}" width="${sx(8) - sx(3)}" height="${H - pb - pt}" fill="#cf3a2c" opacity=".06"/>
+      <text x="${sx(3) + 6}" y="${H - pb - 10}" font-size="11" fill="#cf3a2c">III кв.: смог в Сарыарке · E2 −10</text>` : '';
+  return `<svg viewBox="0 0 ${W} ${H}" width="100%" role="img" aria-label="Score по кварталам">${grid}
+    ${ln(D.best.score, '#cf3a2c', true, 'оптимум формулы 57,24 — рейтинг 48,4%')}${ln(D.base, '#56696f', true, 'без решений 52,56')}${ann}
+    <path d="${path(tl, sx, sy)}" fill="none" stroke="#19b8d8" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+    ${tl.map(([q, v]) => `<circle cx="${sx(q)}" cy="${sy(v)}" r="3.5" fill="#0d2a33"/>`).join('')}
+    <text x="${sx(8) - 6}" y="${sy(D.sc) + 22}" font-size="13" font-weight="600" text-anchor="end" fill="#0a7d95">${num(D.sc)}</text>
+    ${crisisLayer}</svg>`;
+}
+
+function render(D) {
+  const ap = D.appr, crit = (v) => v < 40;
+  const dn = (id) => D.DIR[id].name;
+  const inPlan = Object.fromEntries(D.decs.map((d, i) => [d.measure, { ...d, i }]));
+  const counts = {}; D.decs.forEach((d) => (counts[d.m.direction] = (counts[d.m.direction] || 0) + 1));
+  const a = D.ai;
+  document.getElementById('app').innerHTML = `
+  <div class="plate">
+    <span class="screw"></span><b>СТАНЦИЯ «КАБИНЕТ АКИМА»</b><span>Самописец качества жизни · Астана · 8 кварталов</span>
+    <span style="margin-left:auto" class="mono">694 395 планов перебрано</span><span class="screw"></span>
+  </div>
+
+  <section data-sec="A Первый экран">
+    <div class="hero">
+      <div class="paper strip">${drum(D)}</div>
+      <div class="reading">
+        <div><div class="lbl">Score к IV кв. 2028</div><div class="big">${num(D.sc)}</div></div>
+        <div class="mid">${sign(D.delta)} <span class="small" style="color:#8fc9d6">к ${num(D.base)}</span></div>
+        <div><div class="lbl">Рейтинг акима · не входит в Score</div><div class="mid">${num(ap, 1)}%</div></div>
+        <div><div class="lbl">Место среди всех планов</div><div class="small">${int(D.rank)} из ${int(D.total)} · топ ${num(D.top, 2)}%</div></div>
+      </div>
+    </div>
+    <p class="finding cond">Самописец перебрал все ${int(D.total)} законных плана. Лучший даёт ${num(D.best.score)} — и <em>аким с этим планом уволен: рейтинг ${num(D.best.approval, 1)}%</em>.</p>
+  </section>
+
+  <section data-sec="B Кабинет">
+    <div class="h-sec"><h2>Панель каналов</h2><span>14 мер · выбрать ровно 5 · не больше 2 в направлении · бюджет 100</span></div>
+    <div class="cab">
+      <div>${D.directions.map((d) => `<div class="rowdir"><div class="dn">${esc(d.name)}<small>${d.indicators.map((c) => c + ' ' + SHORT[c]).join(' · ')} · ${counts[d.id] || 0}/2</small></div>
+        <div class="chans">${D.measures.filter((m) => m.direction === d.id).map((m) => { const on = inPlan[m.id]; const real = 8 - m.lag; return `
+          <div class="ch ${on ? 'on' : ''}"><div class="top"><span class="code">${m.id}</span><span class="cost">${m.cost}<small> ед.</small></span></div>
+          <div class="nm">${esc(m.name)}</div>
+          <div class="eff">${Object.entries(m.effects).map(([k, v]) => `${v > 0 ? '+' : '−'}${Math.abs(v)} ${SHORT[k]}`).join(' · ')}</div>
+          <div class="lagbar" title="лаг ${m.lag} кв.">${Array.from({ length: 8 }, (_, i) => `<i class="${i >= m.lag ? 'r' : ''}"></i>`).join('')}</div>
+          <div class="eff" style="margin-top:3px">${m.type === 'district' ? 'район' : 'город'} · к концу срока ${Math.round(real / 8 * 100)}%</div>
+          ${on && on.district ? `<span class="dist">→ ${esc(on.district)}</span>` : ''}</div>`; }).join('')}</div></div>`).join('')}</div>
+      <div>
+        <div class="gauge">
+          <div class="cap mono" style="font-size:12px;color:var(--graph)">БЮДЖЕТ · ЕД.</div>
+          <div style="display:flex;gap:14px;align-items:flex-end;margin-top:8px">
+            <svg viewBox="0 0 60 260" width="60" height="260"><rect x="18" y="10" width="24" height="240" fill="#fbfdfd" stroke="#0d2a33"/>
+              <rect x="18" y="${10 + 240 * (1 - D.cost / 100)}" width="24" height="${240 * D.cost / 100}" fill="#19b8d8"/>
+              ${[0, 25, 50, 75, 100].map((v) => `<line x1="8" x2="18" y1="${250 - 2.4 * v}" y2="${250 - 2.4 * v}" stroke="#0d2a33"/><text x="0" y="${254 - 2.4 * v}" font-size="9" fill="#56696f">${v}</text>`).join('')}</svg>
+            <div><div class="big" style="font-size:88px;color:var(--ink)">${D.cost}</div><div class="small">из 100 · остаток ${100 - D.cost}</div><div style="font-size:13px;color:var(--graph);margin-top:6px">остаток не сгорает и не даёт бонуса</div></div>
+          </div>
+          ${D.decs.map((d, i) => `<div class="mono" style="font-size:13px;border-top:1px solid var(--rule);padding:6px 0;display:flex;justify-content:space-between"><span>${i + 1}. ${d.measure} ${d.district ? '· ' + esc(d.district) : '· город'}</span><span>${d.m.cost}</span></div>`).join('')}
+          <div class="tape">✓ ПЛАН ДОПУСТИМ · 5/5 РЕШЕНИЙ · ${Object.keys(counts).length} НАПРАВЛЕНИЙ</div>
+          <button class="btn">ПРИНЯТЬ РЕШЕНИЯ</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section data-sec="C Вердикт">
+    <div class="h-sec"><h2>Показания приборов</h2><span>IV квартал 2028</span></div>
+    <div class="dials">
+      <div class="dialbox"><div class="cap">Score (AQLS)</div>${dial(D.sc, 52, 58, { step: 1, dec: 0, marks: [{ v: D.base, c: '#56696f' }, { v: D.best.score, c: '#cf3a2c' }] })}
+        <div class="mid" style="text-align:center">${num(D.sc)}</div><div style="text-align:center;color:var(--graph);font-size:13px">серая риска — старт ${num(D.base)}, красная — оптимум ${num(D.best.score)}</div></div>
+      <div class="dialbox"><div class="cap">Рейтинг акима · слой политического риска, не входит в Score</div>${dial(ap, 0, 100, { step: 10, redBelow: 50, needle: ap >= 50 ? '#19b8d8' : '#cf3a2c' })}
+        <div class="mid" style="text-align:center">${num(ap, 1)}%</div><div style="text-align:center;font-weight:700" class="pen-l">переизбран · порог 50%</div></div>
+      <div class="dialbox"><div class="cap">Счётчик сожаления</div>
+        <div style="margin-top:18px" class="paper"><svg viewBox="0 0 300 70" width="100%">
+          <line x1="20" x2="280" y1="40" y2="40" stroke="#0d2a33" stroke-width="2"/>
+          ${[52.56, 53.5, 54.5, 55.5, 56.5, 57.24].map((v) => `<line x1="${scale(v, 52.56, 57.24, 20, 280)}" x2="${scale(v, 52.56, 57.24, 20, 280)}" y1="34" y2="46" stroke="#0d2a33"/><text x="${scale(v, 52.56, 57.24, 20, 280)}" y="62" font-size="9" text-anchor="middle" fill="#56696f">${num(v, v % 1 ? 2 : 1)}</text>`).join('')}
+          <path d="M${scale(D.sc, 52.56, 57.24, 20, 280)},34 l-7,-14 h14 z" fill="#19b8d8"/></svg></div>
+        <p style="font-size:17px;line-height:1.35;margin:14px 0 0">максимум <b>${num(D.best.score)}</b>, ваше место <b>${int(D.rank)}</b> из ${int(D.total)}, топ <b class="pen-l">${num(D.top, 2)}%</b></p>
+        <p style="margin:6px 0 0;color:var(--graph)">На столе осталось ${num(D.gap)}. Лучший план с рейтингом ≥50%: ${num(D.balanced.score)} · ${num(D.balanced.approval, 1)}%.</p></div>
+    </div>
+  </section>
+
+  <section data-sec="D Анализ">
+    <div class="h-sec"><h2>Журнал каналов по районам</h2><span>красный круг — показатель ниже 40 до решений; каждая такая ячейка −1 к Score</span></div>
+    <div class="paper" style="padding:14px 18px;overflow-x:auto"><table class="log"><thead><tr><th>Район</th>${D.inds.map((i) => `<th>${i.code}<br><span style="font-weight:500;text-transform:none;letter-spacing:0">${SHORT[i.code]}</span></th>`).join('')}<th>D до → после</th><th>Рейтинг</th></tr></thead>
+      <tbody>${D.districts.map((d) => `<tr><td><b>${esc(d.name)}</b><br><span style="color:var(--graph);font-size:11px">${Math.round(d.pop * 100)}% жителей</span></td>${d.after.map((v, k) => { const b = d.before[k]; return `<td>${crit(b) ? `<span class="circ">${num(b, 0)}</span>` : ''}${crit(b) ? '<span class="up">→ ' + num(v, 1) + '</span>' : num(v, 1)}${!crit(b) && v - b > .05 ? `<span class="up">+${num(v - b, 1)}</span>` : ''}</td>`; }).join('')}<td>${num(d.Db)} → <b>${num(d.Da)}</b></td><td class="${d.approval < 50 ? 'red' : 'pen-l'}">${num(d.approval, 0)}%</td></tr>`).join('')}</tbody></table></div>
+    <div class="two" style="margin-top:18px">
+      <div class="paper strip" style="padding:14px 44px">${(() => {
+        const W = 640, H = 260, sx = (c) => scale(c, 55, 101, 50, W - 10), sy = (v) => scale(v, 55.4, 57.4, H - 30, 14);
+        const pts = D.pareto.map((p) => [p.cost, p.score]);
+        return `<svg viewBox="0 0 ${W} ${H}" width="100%"><text x="50" y="12" font-size="11" fill="#56696f">Граница Парето: лучший Score за каждую сумму</text>
+          ${[55.5, 56, 56.5, 57].map((v) => `<text x="44" y="${sy(v) + 4}" font-size="10" text-anchor="end" fill="#56696f">${num(v, 1)}</text>`).join('')}
+          ${[60, 70, 80, 90, 100].map((c) => `<text x="${sx(c)}" y="${H - 10}" font-size="10" text-anchor="middle" fill="#56696f">${c}</text>`).join('')}
+          <path d="${stepPath(pts, sx, sy)}" fill="none" stroke="#19b8d8" stroke-width="2.5"/>
+          ${pts.map(([c, v]) => `<circle cx="${sx(c)}" cy="${sy(v)}" r="3" fill="#0d2a33"/>`).join('')}
+          <circle cx="${sx(D.cost)}" cy="${sy(D.sc)}" r="8" fill="#fff" stroke="#19b8d8" stroke-width="4"/><text x="${sx(D.cost) - 12}" y="${sy(D.sc) + 4}" font-size="11" text-anchor="end" fill="#0a7d95">ваш план ${num(D.sc)}</text>
+          <rect x="${sx(D.best.cost) - 6}" y="${sy(D.best.score) - 6}" width="12" height="12" fill="#cf3a2c" transform="rotate(45 ${sx(D.best.cost)} ${sy(D.best.score)})"/><text x="${sx(D.best.cost) - 12}" y="${sy(D.best.score) - 10}" font-size="11" text-anchor="end" fill="#cf3a2c">оптимум · уволен</text></svg>`; })()}</div>
+      <div class="paper" style="padding:16px 18px"><div class="mono" style="font-size:12px;color:var(--graph);margin-bottom:8px">ВКЛАД КАЖДОЙ МЕРЫ · НАСКОЛЬКО УПАДЁТ SCORE БЕЗ НЕЁ</div>
+        ${D.contrib.map((c, i) => `<div style="display:grid;grid-template-columns:120px 1fr 54px;gap:8px;align-items:center;margin:8px 0"><span class="mono" style="font-size:13px">${c.measure}${c.district ? ' · ' + esc(c.district) : ''}</span>
+          <span style="height:14px;background:${i === D.contrib.length - 1 ? '#cf3a2c' : '#19b8d8'};width:${c.marginal / D.contrib[0].marginal * 100}%"></span><b class="mono" style="font-size:13px">+${num(c.marginal)}</b></div>`).join('')}
+        <p style="font-size:13px;color:var(--graph);margin:10px 0 0">Красное перо — худшая отдача на единицу бюджета.</p></div>
+    </div>
+    <div class="journal" style="margin-top:18px">
+      <div><h3>Сильные стороны</h3><ul>${a.strengths.map((x) => `<li>${esc(x)}</li>`).join('')}</ul></div>
+      <div><h3>Риски</h3><ul>${a.risks.map((x) => `<li>${esc(x)}</li>`).join('')}</ul></div>
+      <div><h3>Последствия</h3><ul>${a.consequences.map((x) => `<li>${esc(x)}</li>`).join('')}</ul></div>
+      <div><h3>Компромиссы</h3><ul>${a.tradeoffs.map((x) => `<li>${esc(x)}</li>`).join('')}</ul></div>
+      <div class="rec"><h3>Рекомендация аналитика → Score ${num(a.recommendation.expected_score)}</h3><p style="margin:0">${esc(a.recommendation.why)}</p>
+        <p class="mono" style="font-size:12px;color:var(--graph);margin:8px 0 0">✓ все числа сверены с движком · ${a.provider === 'offline' ? 'офлайн-шаблон' : a.provider}</p></div>
+    </div>
+  </section>
+
+  <section data-sec="E Совет районов">
+    <div class="h-sec"><h2>Посты наблюдения: депутаты</h2><span>реакция на план до кризиса</span></div>
+    <div class="council">${D.councilPre.map((c) => `<div class="st"><div class="head"><b>${esc(c.district)}</b><span class="mood ${c.mood === 'negative' ? 'red' : 'pen-l'}">${c.mood === 'positive' ? 'ЗА' : c.mood === 'negative' ? 'ПРОТИВ' : 'ВОЗДЕРЖ.'}</span></div>
+      <div class="mono" style="font-size:12px;color:var(--graph);margin-bottom:6px">ΔD ${sign(c.delta_D)} · рейтинг ${num(c.approval, 0)}%</div><q>«${esc(unq(c.quote))}»</q></div>`).join('')}</div>
+  </section>
+
+  <section data-sec="F Кризис">
+    <div class="h-sec"><h2>Скачок на ленте</h2><span>III квартал · заменить ровно одну меру</span></div>
+    <div class="crisis">
+      <div class="paper strip">${drum(D, { crisis: true })}</div>
+      <div class="alarm"><div class="mono" style="font-size:12px;letter-spacing:.1em">ТРЕВОГА · ${esc(D.event.district.toUpperCase())}</div><h3>${esc(D.event.title)}</h3>
+        <p style="margin:8px 0 0;font-size:14px">${esc(D.event.description)}</p>
+        <div class="seq"><div><div class="mono" style="font-size:10px">ДО</div><b class="mid" style="font-size:30px">${num(D.res.score_before_crisis)}</b></div><div><div class="mono" style="font-size:10px">БЕЗ ЗАМЕНЫ</div><b class="mid red" style="font-size:30px">${num(D.res.score_after_crisis_no_swap)}</b></div><div><div class="mono" style="font-size:10px">M12 → M4</div><b class="mid pen-l" style="font-size:30px">${num(D.res.score)}</b></div></div>
+        <p style="margin:12px 0 0;font-weight:700">Лучшая из возможных замен вернула ${sign(D.res.recovered)}. Рейтинг ${num(ap, 1)}% → ${num(D.res.approval.city, 1)}%: аким уволен.</p></div>
+    </div>
+  </section>
+
+  <section data-sec="G Газета">
+    <div class="h-sec"><h2>Бюллетень телетайпа</h2><span>«Астана Times», ${esc(D.paper.date)}</span></div>
+    <div class="teletype">
+      <div style="display:flex;justify-content:space-between;font-size:12px;color:var(--graph)"><span>АСТАНА TIMES · ЛЕНТА</span><span>${esc(D.paper.date.toUpperCase())}</span></div>
+      <h3>${esc(D.paper.headlines[0].title)}</h3>
+      <p style="margin:0">${esc(D.paper.headlines[0].lead)}</p>
+      ${D.paper.headlines.slice(1).map((h) => `<div class="hl">■ ${esc(h.title)}</div><div>${esc(h.lead)}</div>`).join('')}
+      <div class="hl" style="margin-top:22px">— ОТ РЕДАКЦИИ —</div><div style="font-style:italic">${esc(D.paper.editorial)}</div>
+      <div style="margin-top:18px;border-top:1px dashed var(--rule);padding-top:8px;font-size:12px;color:var(--graph)">КРИТИЧЕСКИХ ЯЧЕЕК НЕТ · СЛАБЕЙШИЙ РАЙОН: НУРА ${num(D.res.d_min)} · ЦИФРЫ — ДВИЖОК AQLS</div>
+    </div>
+  </section>
+
+  <section data-sec="H Лидерборд">
+    <div class="h-sec"><h2>Журнал смены</h2><span>сортировка по Score · смотрите на рейтинг</span></div>
+    <div class="paper" style="padding:14px 18px"><table class="log lb"><thead><tr><th>#</th><th>Команда</th><th>Score</th><th>Рейтинг</th><th>Итог</th><th>Бюджет</th></tr></thead>
+      <tbody>${D.board.map((r, i) => `<tr class="${r.pin === 'opt' ? 'pin-opt' : r.pin === 'bal' ? 'pin-bal' : ''}"><td>${i + 1}</td><td style="text-align:left">${esc(r.team)}${r.demo ? ' <span style="color:var(--graph);font-size:11px">(пример)</span>' : ''}</td><td><b>${num(r.score)}</b></td><td class="${r.approval < 50 ? 'red' : ''}">${num(r.approval, 1)}%</td><td class="${r.approval < 50 ? 'red' : 'pen-l'}">${r.approval < 50 ? 'уволен' : 'переизбран'}</td><td>${r.cost}</td></tr>`).join('')}</tbody></table></div>
+  </section>`;
+}
+KIT.load().then((D) => { render(D); KIT.tags(1); }).catch((e) => { document.getElementById('app').textContent = 'Нет данных: ' + e.message; });
+</script>
+</body>
+</html>
