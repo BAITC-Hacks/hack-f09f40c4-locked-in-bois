@@ -1397,8 +1397,8 @@ async function boot() {
   indexDataset(raw);
   S.slots = Array(S.ds.decisions_required).fill(null);
   const mb = $('#modeBadge');
-  mb.textContent = SOURCE === 'api' ? 'движок онлайн' : 'демо: записанные ответы';
-  if (SOURCE === 'api') api('GET', '/api/health').then((h) => { mb.textContent = `движок онлайн · тексты: ${h.provider === 'offline' ? 'шаблон' : 'ИИ, ' + h.provider}`; }).catch(() => {});
+  mb.textContent = SOURCE === 'api' ? '' : 'демо: записанные ответы';
+  mb.hidden = SOURCE === 'api';
   const shared = planFromParam();
   if (shared) { loadPlan(shared); toast('Загружен план из ссылки'); } else onPlanChange();
   const h = location.hash.replace('#', '');
