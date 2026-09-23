@@ -38,6 +38,7 @@ This file = PLAN.md §4 verbatim, plus the extra fields the backend returns (mar
    recommendation:{plan, expected_score, why}, provider:"openai|nvidia|offline", grounded:true}
   ```
   `strengths`, `risks`, `consequences` and `tradeoffs` are arrays of strings. `grounded:false` means the number guard rejected the LLM text twice and the offline template was used.
+  - **+** `recommendation.expected_score` always comes from the engine. `guard: {attempts, rejected: [numbers]}`, `tool_trace: [{tool, args}]` (empty offline), `fallback_reason` (only when the LLM path failed or timed out). Show `tool_trace` in the UI as "агент вызвал: score → optimize_same_budget → what_if". It is the visible proof that the agent really calls tools.
 - `POST /api/shock` {plan, seed} → `{event:{id,title,district,effects}, new_baseline_score, must:"swap_one"}`
   - **+** `event.description`, `event.hint`, `event.quarter`, `score_before` (the plan's score without the crisis), `best_swaps:[{out, in:{measure,district}, score, gain}]` (top 3; use it for a hint, or keep it hidden so the AI can judge the swap).
   - `seed` is any integer; the event is `events[seed % 3]`.
@@ -73,7 +74,7 @@ One call returns the District Council and the newspaper front page. Offline mode
     "editorial": "…one paragraph…",
     "crit_sidebar": [ {"district": "Алматы", "indicator": "T1", "value": 38.25} ]  // cells still < 40
   },
-  "provider": "openai|nvidia|offline", "grounded": true }
+  "provider": "openai|nvidia|offline", "grounded": true, "guard": {"attempts": 0, "rejected": []} }
 ```
 If `event_id` (+ optional `swap`) is passed, the newspaper covers the crisis as well.
 
@@ -81,4 +82,4 @@ If `event_id` (+ optional `swap`) is passed, the newspaper covers the crisis as 
 
 | Endpoint | Status |
 |---|---|
-| everything above | being implemented; this file is the source of truth for field names |
+| everything above | **implemented and tested** (`pytest -q`). Live: `uvicorn api.main:app` → `/docs` |
